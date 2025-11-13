@@ -71,7 +71,7 @@ TiTaS는 위 3가지 문제를 해결하기 위해 다음과 같은 핵심 기�
 
 ```bash
 # 1. 저장소를 클론합니다.
-$ git clone [https://github.com/내_아이디/titas-project.git](https://github.com/yshls/titas-project.git)
+$ git clone [https://github.com/yshls/titas-project.git](https://github.com/yshls/titas-project.git)
 
 # 2. 프로젝트 폴더로 이동합니다.
 $ cd titas-project

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { DialogueLine } from '@/utils/types';
 import type { DiffResult } from './diffChecker';
-
+import { useTTS } from '@/utils/useTTS';
 import { checkWordDiff } from './diffChecker';
 import { useSpeechRecognition } from '@/utils/useSpeechRecognition';
 
@@ -43,7 +43,13 @@ export function TalkPage() {
   const [currentLineIndex, setCurrentLineIndex] = useState(0);
   const [feedback, setFeedback] = useState<DiffResult[] | null>(null);
 
+  // 음성 인식 엔진 (STT) 훅
   const { transcript, isListening, startListening } = useSpeechRecognition();
+
+  // 음성 재생 훅(TTS)
+  const { speak, isSpeaking } = useTTS();
+  // 현재 대사 가져오기
+  const currentLine = script[currentLineIndex];
 
   useEffect(() => {
     // 음성 인식이 끝나면 채점 실행
@@ -54,20 +60,34 @@ export function TalkPage() {
       const diffResult = checkWordDiff(currentLine.originalLine, transcript);
       setFeedback(diffResult);
 
-      // TODO:TTS 연결 후 자동 다음 대사 넘김 구현
-      // setTimeout(() => {
-      //   setCurrentLineIndex(currentLineIndex + 1);
-      //   setFeedback(null);
-      // }, 3000);
+      const timer = setTimeout(() => {
+        setCurrentLineIndex(currentLineIndex + 1);
+        setFeedback(null);
+      }, 3000);
+      return () => clearTimeout(timer);
     }
   }, [transcript, isListening, currentLineIndex, script]);
+
+  useEffect(() => {
+    if (currentLine && !currentLine.isUserTurn && !isSpeaking && !isListening) {
+      speak(currentLine.originalLine, () => {
+        // 말이 끝나면 다음 대사 즉! 사용자한테 자동으로 넘긴다.
+        setCurrentLineIndex(currentLineIndex + 1);
+      });
+    }
+  }, [
+    currentLine,
+    isSpeaking,
+    speak,
+    currentLineIndex,
+    isListening,
+    setCurrentLineIndex,
+  ]); // 의존성 배열 업데이트
 
   const handleMicClick = () => {
     setFeedback(null);
     startListening();
   };
-
-  const currentLine = script[currentLineIndex];
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
@@ -133,7 +153,9 @@ export function TalkPage() {
         </button>
         <button
           onClick={handleMicClick}
-          disabled={isListening || !currentLine || !currentLine.isUserTurn}
+          disabled={
+            isListening || isSpeaking || !currentLine || !currentLine.isUserTurn
+          }
           className="flex-1 flex flex-col items-center justify-center text-blue-600 disabled:opacity-50"
         >
           <div
@@ -146,6 +168,8 @@ export function TalkPage() {
           <span className="mt-1 text-sm">
             {isListening
               ? 'Listening...'
+              : isSpeaking
+              ? "Computer's Turn..."
               : currentLine?.isUserTurn
               ? 'Click to Speak'
               : "Computer's Turn"}

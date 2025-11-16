@@ -1,5 +1,8 @@
+import { TalkPage } from '@/pages/TalkPage';
+import './index.css';
+
 function App() {
-  return <></>;
+  return <TalkPage />;
 }
 
 export default App;

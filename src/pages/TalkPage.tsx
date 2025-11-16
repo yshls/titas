@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { DialogueLine } from '@/utils/types';
 import type { DiffResult } from './diffChecker';
+import { useLocation } from 'react-router-dom';
 import { useTTS } from '@/utils/useTTS';
 import { checkWordDiff } from './diffChecker';
 import { useSpeechRecognition } from '@/utils/useSpeechRecognition';
@@ -36,10 +37,14 @@ const MOCK_SCRIPT: DialogueLine[] = [
     isUserTurn: true,
   },
 ];
-// ---------------------------------
 
 export function TalkPage() {
-  const [script, setScript] = useState(MOCK_SCRIPT);
+  const location = useLocation();
+  // 2페이지에 데이터가 있는지 확인
+  const passedScript = location.state?.script as DialogueLine[] | undefined;
+  const [script, setScript] = useState<DialogueLine[]>(
+    passedScript || MOCK_SCRIPT
+  );
   const [currentLineIndex, setCurrentLineIndex] = useState(0);
   const [feedback, setFeedback] = useState<DiffResult[] | null>(null);
 

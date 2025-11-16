@@ -2,20 +2,21 @@
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
-    colors: {
-      black: '#333333',
+    extend: {
+      colors: {
+        black: '#333333',
 
-      transparent: 'transparent',
-      current: 'currentColor',
+        transparent: 'transparent',
+        current: 'currentColor',
 
-      // 커스텀 색상들
-      speaker1: '#C8F0EB',
-      speaker2: '#FFF4CC',
-      speaker3: '#DED9F2',
-      speaker4: '#FFEAE0',
-      primary: '#3A76F0',
+        // 커스텀 색상들
+        speaker1: '#C8F0EB',
+        speaker2: '#FFF4CC',
+        speaker3: '#DED9F2',
+        speaker4: '#FFEAE0',
+        primary: '#3A76F0',
+      },
     },
-    extend: {},
   },
   plugins: [],
 };

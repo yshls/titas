@@ -76,7 +76,7 @@ export function TalkPage() {
   useEffect(() => {
     if (currentLine && !currentLine.isUserTurn && !isSpeaking && !isListening) {
       speak(currentLine.originalLine, () => {
-        // 말이 끝나면 다음 대사 즉! 사용자한테 자동으로 넘긴다.
+        // 말이 끝나면 다음 대사 즉! 사용자한테 자동으로 넘김
         setCurrentLineIndex(currentLineIndex + 1);
       });
     }
@@ -95,15 +95,7 @@ export function TalkPage() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
-      {/* === Header === */}
-      <header className="flex justify-between items-center p-4 border-b border-gray-200 bg-white">
-        <img src="/titas_logo.png" alt="TiTaS Logo" className="h-8" />
-        <button className="text-sm font-medium text-gray-600 hover:text-black">
-          [ End Session ]
-        </button>
-      </header>
-
+    <>
       {/* === Chat Display === */}
       <div className="flex-1 p-4 overflow-y-auto space-y-4">
         {currentLine ? (
@@ -116,7 +108,7 @@ export function TalkPage() {
             <div
               className={`p-4 rounded-lg max-w-2xl shadow-sm ${
                 currentLine.isUserTurn
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-orange-600 text-white'
                   : 'bg-gray-200 text-gray-800'
               }`}
             >
@@ -184,6 +176,6 @@ export function TalkPage() {
           ?
         </button>
       </footer>
-    </div>
+    </>
   );
 }

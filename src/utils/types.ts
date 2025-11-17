@@ -3,11 +3,11 @@
  * 파서(Algo 1)가 이 형태의 데이터를 만듦
  */
 export interface DialogueLine {
-  id: string; // '고유' ID (crypto.randomUUID())
-  speakerId: string; // '화자' '식별자' (예: "Speaker 1")
-  speakerColor: string; // '할당'된 '컬러'
-  originalLine: string; // '정답' '원본' '대사'
-  isUserTurn: boolean; // '사용자' '차례'인지 '여부'
+  id: string; // 고유 ID (crypto.randomUUID())
+  speakerId: string; // 화자 식별자 (예: "Speaker 1")
+  speakerColor: string; // 할당된 컬러
+  originalLine: string; // 정답 원본 대사
+  isUserTurn: boolean; // 사용자 차례인지 여부
 }
 
 /**

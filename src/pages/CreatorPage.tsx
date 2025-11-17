@@ -52,9 +52,9 @@ export function CreatorPage() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <>
       {/* 왼쪽 패널 */}
-      <div className="w-1/4 min-w-[250px] bg-white border-r border-gray-200 p-6 flex flex-col">
+      <div className="w-1/4 min-w-[250px] border-r  border-gray-200 pr-6 flex flex-col">
         <h1 className="text-2xl font-bold mb-6">TiTaS Creator</h1>
 
         <label className="text-sm font-medium text-gray-500">
@@ -68,7 +68,7 @@ export function CreatorPage() {
           className="w-full p-2 border border-gray-300 rounded-md mt-1 mb-6"
         />
 
-        <button className="w-full p-2 mb-6 text-white bg-blue-600 rounded-md hover:bg-blue-700">
+        <button className="w-full p-2 mb-6 text-white bg-orange-500 rounded-md hover:bg-orange-700">
           Save Script
         </button>
 
@@ -80,7 +80,7 @@ export function CreatorPage() {
               onClick={() => setActiveSpeakerId(speaker.id)}
               className={`w-full p-3 text-left rounded-md border-2 ${
                 activeSpeakerId === speaker.id
-                  ? 'border-blue-500 bg-blue-50'
+                  ? 'border-orange-500 bg-orange-50'
                   : 'border-transparent hover:bg-gray-100'
               }`}
             >
@@ -98,7 +98,7 @@ export function CreatorPage() {
       </div>
 
       {/* 오른쪽 메인 영역 */}
-      <div className="flex-1 flex flex-col p-6">
+      <div className="flex-1 flex flex-col py-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold">Script Editor</h2>
           {/* 세션 종료 */}
@@ -147,7 +147,7 @@ export function CreatorPage() {
           />
           <button
             onClick={handleAddLine}
-            className="p-3 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            className="p-3 bg-orange-600 text-white rounded-md hover:bg-orange-700"
           >
             Add
           </button>
@@ -163,6 +163,6 @@ export function CreatorPage() {
           </button>
         </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -3,6 +3,9 @@ export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
+      fontFamily: {
+        presentation: ['Presentation', 'sans-serif'],
+      },
       colors: {
         black: '#333333',
 

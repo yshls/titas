@@ -1,23 +1,59 @@
 /** @type {import('tailwindcss').Config} */
-export default {
+module.exports = {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
-      fontFamily: {
-        presentation: ['Presentation', 'sans-serif'],
-      },
       colors: {
-        black: '#333333',
+        // Primary Colors
+        primary: {
+          DEFAULT: '#D4756B',
+          hover: '#C26659',
+        },
 
-        transparent: 'transparent',
-        current: 'currentColor',
+        // Background Colors
+        background: {
+          light: '#FAF0E6',
+          dark: '#1A1714',
+        },
 
-        // 커스텀 색상들
-        speaker1: '#C8F0EB',
-        speaker2: '#FFF4CC',
-        speaker3: '#DED9F2',
-        speaker4: '#FFEAE0',
-        primary: '#3A76F0',
+        // Text Colors
+        text: {
+          light: {
+            primary: '#1A1A1A',
+            secondary: '#4A4A4A',
+          },
+          dark: {
+            primary: '#E8E6E3',
+            secondary: '#B8B6B3',
+          },
+        },
+
+        // Speaker Colors
+        speaker: {
+          1: '#B8D4DB',
+          2: '#C8D9B4',
+          3: '#C4B5D5',
+        },
+
+        // Disabled Button Colors
+        disabled: {
+          light: '#D4C4B0',
+          dark: '#3A3530',
+        },
+
+        // Border Colors
+        border: {
+          light: {
+            primary: '#E0D4C8',
+            secondary: '#EDE7DD',
+            divider: '#F0E8DC',
+          },
+          dark: {
+            primary: '#2D2621',
+            secondary: '#252019',
+            divider: '#221E19',
+          },
+        },
       },
     },
   },

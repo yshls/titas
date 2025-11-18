@@ -4,28 +4,49 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>titas</title>
 
-    <script>
-      (function () {
-        const theme = localStorage.getItem('theme') || 'system';
-        const root = window.document.documentElement;
+    <!-- 영어 폰트 -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
 
-        const isDark =
-          theme === 'dark' ||
-          (theme === 'system' &&
-            window.matchMedia('(prefers-color-scheme: dark)').matches);
+    <!-- 포인트 폰트 -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Shantell+Sans:ital,wght@0,300..800;1,300..800&display=swap"
+      rel="stylesheet"
+    />
 
-        root.classList.toggle('dark', isDark);
-      })();
-    </script>
+    <!-- 한국어 폰트  -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <title>TiTaS</title>
 
     <style>
       body {
-        background-color: #faf0e6;
+        background-color: #f2ebe2;
+        margin: 0;
+        padding: 0;
+        font-family: 'Noto Sans KR', 'Inter', -apple-system, BlinkMacSystemFont,
+          'Segoe UI', Roboto, sans-serif;
       }
-      .dark body {
-        background-color: #1a1714;
+
+      /* 포인트 폰트 */
+      .font-display {
+        font-family: 'Shantell Sans', 'Noto Sans KR', 'Inter', cursive;
+      }
+
+      .font-kr {
+        font-family: 'Noto Sans KR', 'Inter', sans-serif;
+      }
+
+      /* 영어/라틴 문자 우선 */
+      .font-en {
+        font-family: 'Inter', 'Noto Sans KR', sans-serif;
       }
     </style>
   </head>

@@ -1,49 +1,54 @@
 import type { DialogueLine } from '@/utils/types';
 
-// 문장 종결 부호(. ? !) 와 그 뒤 공백을 찾는 정규식
+// 문장 종결 부호 분리 정규식
 const SENTENCE_SPLIT_REGEX = /(.*?[.?!])\s*/g;
 
 /**
-RAW 텍스트를 입력받아 문장 단위로 분리하고 화자 정보를 할당
-*/
+ * 원본 텍스트를 파싱하여 대화 라인 배열 생성
+ * @param rawText - 콜론과 줄바꿈으로 구분된 원본 스크립트
+ * @param speakerMap - 화자 ID와 컬러 매핑 객체
+ * @returns DialogueLine 배열
+ */
 
 export function parseScript(
   rawText: string,
-  speakerMap: Record<string, string> // {'Speaker 1': '#C8F0EB'}
+  speakerMap: Record<string, string>
 ): DialogueLine[] {
-  // 1. 텍스트 정리 및 화자 식별자 추출 로직 시작
   const resultLines: DialogueLine[] = [];
 
-  // 화자랑 패턴 정의
-  const speakerPattern = /(Speaker\s*\d+:)\s*/g;
-  const parts = rawText
-    .trim()
-    .split(speakerPattern)
-    .filter((p) => p.trim() !== '');
+  // 화자 식별자 패턴
+  const speakerPattern = /(Speaker\s*\d+:)/g;
 
-  for (let i = 0; i < parts.length; i += 2) {
-    const speakerIdPrefix = parts[i] ? parts[i].trim() : '';
-    const rawLineBlock = parts[i + 1] ? parts[i + 1].trim() : ''; // 긴 단락
+  // 텍스트를 화자 기준으로 분리
+  const parts = rawText.trim().split(speakerPattern);
 
-    const speakerId = speakerIdPrefix.replace(':', '');
-    // 회자 id 추출
+  // 화자와 대사 추출
+  for (let i = 1; i < parts.length; i += 2) {
+    const speakerIdPrefix = parts[i].trim();
+    const rawLineBlock = parts[i + 1] ? parts[i + 1].trim() : '';
+
+    const speakerId = speakerIdPrefix.replace(':', '').trim();
+
     if (rawLineBlock.length > 0 && speakerId) {
+      // 대사를 문장 단위로 분리
       const sentences = rawLineBlock.match(SENTENCE_SPLIT_REGEX);
+
       if (sentences && sentences.length > 0) {
         for (const sentence of sentences) {
           const trimmedLine = sentence.trim();
+
           if (trimmedLine.length > 0) {
             resultLines.push({
-              id: crypto.randomUUID(), // 고유 ID
+              id: crypto.randomUUID(),
               speakerId: speakerId,
-              speakerColor: speakerMap[speakerId] || '#AAAAAA', // 맵에 없으면 회색
+              speakerColor: speakerMap[speakerId] || '#AAAAAA',
               originalLine: trimmedLine,
-              isUserTurn: speakerId === 'Speaker 1', // 사용자가 첫 화자라고 가정 => 임시 설정
+              isUserTurn: speakerId === 'Speaker 1',
             });
           }
         }
       } else {
-        // 문장 분리가 안된 경우 전체 블록을 하나의 라인으로 처리
+        // 문장 부호 없는 경우 전체를 하나의 라인으로 처리
         resultLines.push({
           id: crypto.randomUUID(),
           speakerId: speakerId,

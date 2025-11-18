@@ -1,78 +1,157 @@
-import { Outlet, Link } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-
-type Theme = 'light' | 'dark';
+import { Outlet, Link, useLocation } from 'react-router-dom';
+import {
+  MdDashboard,
+  MdCreate,
+  MdLibraryBooks,
+  MdBarChart,
+} from 'react-icons/md';
 
 export function RootLayout() {
-  const [theme, setTheme] = useState<Theme>(
-    () => (localStorage.getItem('theme') as Theme) || 'light'
-  );
-
-  // 테마 적용
-  useEffect(() => {
-    const root = window.document.documentElement;
-    root.classList.toggle('dark', theme === 'dark');
-    localStorage.setItem('theme', theme);
-  }, [theme]);
-
-  // 테마 토글
-  const toggleTheme = () => {
-    setTheme((current) => (current === 'light' ? 'dark' : 'light'));
-  };
-
   return (
-    <div className="min-h-screen font-sans bg-gray-100 dark:bg-gray-950">
-      <div className="w-full max-w-[1180px] mx-auto flex flex-col min-h-screen bg-white dark:bg-gray-900 shadow-lg">
+    <div className="min-h-screen bg-bgPrimary font-sans text-textPrimary">
+      <div className="w-full max-w-[1200px] mx-auto flex flex-col min-h-screen">
         {/* 헤더 */}
-        <header className="sticky top-0 z-10 flex justify-between items-center px-6 py-3 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
-          <Link to="/" className="flex items-center">
-            <img src="/titas_logo.png" alt="TiTaS Logo" className="h-9" />
-          </Link>
-
-          <div className="flex items-center space-x-6">
-            {/* 내비게이션 */}
-            <nav className="flex space-x-4">
-              <NavLink to="/">Dashboard</NavLink>
-              <NavLink to="/create">Create Script</NavLink>
-              <NavLink to="/scripts">My Scripts</NavLink>
-              <NavLink to="/review">Review</NavLink>
-            </nav>
-
-            {/* 테마 토글 버튼 */}
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
-              title={`Current: ${theme}`}
+        <header className=" border-b-4 border-textPrimary">
+          <div className="px-4 py-4 flex items-center justify-between">
+            <Link
+              to="/"
+              className="flex items-center  hover:scale-105 transition-all duration-200 focus:outline-none "
+              aria-label="Go to dashboard"
             >
-              {theme === 'light' ? '☀️' : '🌙'}
-            </button>
+              <img src="/public/titas_logo.png" alt="" className="w-14" />
+            </Link>
+
+            {/* 데스크탑 네비게이션 */}
+            <nav
+              className="hidden lg:flex items-center gap-4 "
+              aria-label="Main navigation"
+            >
+              <NavLink to="/" text="Dashboard" icon={<MdDashboard />} />
+              <NavLink to="/create" text="Create" icon={<MdCreate />} />
+              <NavLink to="/scripts" text="Scripts" icon={<MdLibraryBooks />} />
+              <NavLink to="/review" text="Review" icon={<MdBarChart />} />
+            </nav>
+          </div>
+
+          {/* 모바일/태블릿: 컴팩트 네비게이션 */}
+          <div className="lg:hidden border-t border-textPrimary">
+            <div className="flex items-center justify-center p-3">
+              <TabletNavLink to="/" text="Dashboard" icon={<MdDashboard />} />
+              <TabletNavLink to="/create" text="Create" icon={<MdCreate />} />
+              <TabletNavLink
+                to="/scripts"
+                text="Scripts"
+                icon={<MdLibraryBooks />}
+              />
+              <TabletNavLink to="/review" text="Review" icon={<MdBarChart />} />
+            </div>
           </div>
         </header>
 
         {/* 메인 컨텐츠 */}
-        <div className="grow">
-          <main className="p-8">
+        <div className="flex-1 p-4">
+          <main>
             <Outlet />
           </main>
         </div>
 
         {/* 푸터 */}
-        <footer className="px-6 py-3 border-t border-gray-200 dark:border-gray-700 text-center text-gray-500 dark:text-gray-400 shrink-0">
-          © 2025 TiTaS. All rights reserved.
+        <footer className="">
+          <p className="font-sans text-sm font-sm text-textDisabled text-center py-4">
+            © 2025 TiTaS. All rights reserved.
+          </p>
         </footer>
       </div>
     </div>
   );
 }
 
-// 내비게이션 링크 컴포넌트
-function NavLink({ to, children }: { to: string; children: React.ReactNode }) {
+// 데스크탑 네비게이션 링크
+function NavLink({
+  to,
+  text,
+  icon,
+}: {
+  to: string;
+  text: string;
+  icon: React.ReactNode;
+}) {
+  const location = useLocation();
+  const isActive = location.pathname === to;
+
   return (
     <Link
       to={to}
-      className="text-gray-600 dark:text-gray-300 font-medium hover:text-orange-500 dark:hover:text-orange-400 transition"
+      className={`
+        flex items-center gap-2 px-4 py-2 rounded-lg border-3 border-textPrimary
+        font-display font-medium uppercase text-sm
+        transition-all duration-200 focus:outline-none 
+        
+        ${
+          isActive
+            ? 'bg-primary text-white scale-105 '
+            : 'bg-bgCard text-primary hover:bg-primary/10 hover:scale-105 '
+        }
+      `}
+      aria-current={isActive ? 'page' : undefined}
     >
-      {children}
+      <span className="text-base" aria-hidden="true">
+        {icon}
+      </span>
+      <span>{text}</span>
     </Link>
   );
 }
+
+// 모바일/태블릿 네비게이션
+function TabletNavLink({
+  to,
+  text,
+  icon,
+}: {
+  to: string;
+  text: string;
+  icon: React.ReactNode;
+}) {
+  const location = useLocation();
+  const isActive = location.pathname === to;
+
+  return (
+    <Link
+      to={to}
+      className={`
+        flex-1 flex flex-col items-center gap-1 py-3 px-2 rounded-xl border-2 border-textPrimary
+        transition-all duration-200 focus:outline-none focus:ring-2 
+        ${
+          isActive
+            ? 'bg-primary text-white scale-105 '
+            : 'bg-bgCard text-primary  hover:scale-105 shadow-sm'
+        }
+      `}
+      aria-current={isActive ? 'page' : undefined}
+    >
+      <span className="text-lg" aria-hidden="true">
+        {icon}
+      </span>
+      <span className="text-xs font-medium uppercase mt-1">{text}</span>
+    </Link>
+  );
+}
+
+// 푸터 링크 컴포넌트 (중복 제거)
+// function FooterLink({
+//   to,
+//   children,
+// }: {
+//   to: string;
+//   children: React.ReactNode;
+// }) {
+//   return (
+//     <Link
+//       to={to}
+//       className="font-sans text-sm font-medium text-textSecondary hover:text-primary transition-colors duration-200"
+//     >
+//       {children}
+//     </Link>
+//   );
+// }

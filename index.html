@@ -1,10 +1,33 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>titas</title>
+
+    <script>
+      (function () {
+        const theme = localStorage.getItem('theme') || 'system';
+        const root = window.document.documentElement;
+
+        const isDark =
+          theme === 'dark' ||
+          (theme === 'system' &&
+            window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+        root.classList.toggle('dark', isDark);
+      })();
+    </script>
+
+    <style>
+      body {
+        background-color: #faf0e6;
+      }
+      .dark body {
+        background-color: #1a1714;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>

@@ -1,9 +1,14 @@
-import { Link } from 'react-router-dom';
-import { DayPicker } from 'react-day-picker';
-import 'react-day-picker/dist/style.css';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAppStore } from '@/store/appStore';
 import { useTitle } from '@/hooks/useTitle';
+import {
+  MdTrendingUp,
+  MdLibraryBooks,
+  MdFormatListBulleted,
+  MdCheckCircle,
+  MdChevronLeft,
+  MdChevronRight,
+} from 'react-icons/md';
 
 export function GrowthHubPage() {
   useTitle('Dashboard');
@@ -12,102 +17,377 @@ export function GrowthHubPage() {
   const practiceLogs = useAppStore((state) => state.practiceLogs);
   const loadInitialData = useAppStore((state) => state.loadInitialData);
 
-  // 초기 데이터 로드
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+
   useEffect(() => {
     if (allScripts.length === 0) {
       loadInitialData();
     }
   }, [loadInitialData, allScripts.length]);
 
-  // 연습한 날짜 목록
   const practicedDays = useMemo(() => {
     return practiceLogs.map((log) => new Date(log.date));
   }, [practiceLogs]);
 
-  // 평균 정확도 계산
   const avgAccuracy = useMemo(() => {
     if (practiceLogs.length === 0) return 0;
     const total = practiceLogs.reduce((acc, log) => acc + log.accuracy, 0);
     return total / practiceLogs.length;
   }, [practiceLogs]);
 
-  // 캘린더 스타일
-  const modifiers = { practiced: practicedDays, today: new Date() };
-  const modifiersStyles = {
-    practiced: {
-      backgroundColor: '#3b82f6',
-      color: 'white',
-    },
-    today: { fontWeight: 'bold', color: '#f97316' },
+  const totalLines = useMemo(() => {
+    return allScripts.reduce((acc, script) => acc + script.lines.length, 0);
+  }, [allScripts]);
+
+  const handlePrevMonth = () => {
+    if (currentMonth === 0) {
+      setCurrentMonth(11);
+      setCurrentYear(currentYear - 1);
+    } else {
+      setCurrentMonth(currentMonth - 1);
+    }
+  };
+
+  const handleNextMonth = () => {
+    if (currentMonth === 11) {
+      setCurrentMonth(0);
+      setCurrentYear(currentYear + 1);
+    } else {
+      setCurrentMonth(currentMonth + 1);
+    }
   };
 
   return (
-    <div className="pb-8 bg-gray-900 text-gray-200 min-h-full">
-      <div className="flex flex-col lg:flex-row gap-8">
-        {/* 캘린더 영역 */}
-        <div className="lg:w-1/2 w-full">
-          <h2 className="text-2xl font-bold mb-4 text-white">My Activity</h2>
-          <div className="p-4 rounded-lg shadow-lg bg-white text-gray-900">
-            <DayPicker
-              mode="single"
-              className="w-full"
-              classNames={{
-                table: 'w-full',
-              }}
-              modifiers={modifiers}
-              modifiersStyles={modifiersStyles}
+    <div className="min-h-full pb-8" role="main" aria-label="Dashboard">
+      {/* 헤더 */}
+      <header className="mb-8">
+        <h1 className="font-display text-5xl font-black text-primary mb-4 uppercase tracking-tight">
+          Welcome Back!
+        </h1>
+        <p className="font-sans text-base font-medium text-textPrimary">
+          Track your progress and keep practicing!
+        </p>
+      </header>
+
+      {/* 데스크탑: 좌우 2열 레이아웃 */}
+      <div className="hidden md:grid md:grid-cols-2 gap-8">
+        {/* 왼쪽: 달력 */}
+        <CompactCalendar
+          practicedDays={practicedDays}
+          currentMonth={currentMonth}
+          currentYear={currentYear}
+          onPrevMonth={handlePrevMonth}
+          onNextMonth={handleNextMonth}
+        />
+
+        {/* 오른쪽: 통계 + 활동 */}
+        <div className="space-y-6">
+          {/* 정사각형 통계 3개 - 가로 배치 */}
+          <div className="grid grid-cols-3 gap-4">
+            <SquareStatCard
+              title="Avg. Accuracy"
+              value={avgAccuracy > 0 ? `${avgAccuracy.toFixed(1)}%` : '0%'}
+              icon={<MdTrendingUp />}
+            />
+            <SquareStatCard
+              title="Total Scripts"
+              value={allScripts.length}
+              icon={<MdLibraryBooks />}
+            />
+            <SquareStatCard
+              title="Total Lines"
+              value={totalLines}
+              icon={<MdFormatListBulleted />}
             />
           </div>
-        </div>
 
-        {/* 통계 및 버튼 영역 */}
-        <div className="lg:w-1/2 w-full flex flex-col gap-8">
-          {/* 통계 */}
-          <div>
-            <h2 className="text-2xl font-bold mb-4 text-white">Overview</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3 gap-6">
-              <StatCard
-                title="Avg. Accuracy"
-                value={avgAccuracy > 0 ? `${avgAccuracy.toFixed(1)}%` : 'N/A'}
-              />
-              <StatCard title="Total Scripts" value={allScripts.length} />
-              <StatCard
-                title="Total Lines"
-                value={allScripts.reduce(
-                  (acc, script) => acc + script.lines.length,
-                  0
-                )}
-              />
+          {/* 최근 활동 카드 */}
+          {practiceLogs.length > 0 ? (
+            <div className="bg-speaker2 rounded-2xl border-4 border-textPrimary p-6">
+              <div className="flex items-center gap-3 mb-3">
+                <MdCheckCircle className="w-7 h-7 text-textPrimary" />
+                <h3 className="font-display text-xl font-black text-textPrimary uppercase">
+                  Recent Activity
+                </h3>
+              </div>
+              <p className="font-sans text-lg font-medium text-textPrimary mb-2">
+                You've completed{' '}
+                <strong className="font-display text-2xl font-bold">
+                  {practiceLogs.length}
+                </strong>{' '}
+                practice sessions
+              </p>
+              <p className="font-sans text-sm font-medium text-textPrimary">
+                Keep up the great work! 🎉
+              </p>
             </div>
-          </div>
-
-          {/* 액션 버튼 */}
-          <div className="flex flex-col space-y-4 mt-auto">
-            <Link
-              to="/create"
-              className="w-full text-center bg-orange-600 text-white py-4 rounded-lg font-bold hover:bg-orange-700 transition duration-200 shadow-lg"
-            >
-              + Create New Script
-            </Link>
-            <Link
-              to="#"
-              className="w-full text-center text-gray-400 py-2 hover:text-white transition"
-            >
-              Review My Weak Spots (Coming Soon)
-            </Link>
-          </div>
+          ) : (
+            <div className="bg-white rounded-2xl border-4 border-dashed border-textPrimary p-8 text-center">
+              <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary border-4 border-textPrimary mb-4">
+                <MdLibraryBooks className="w-10 h-10 text-white" />
+              </div>
+              <h3 className="font-display text-2xl font-black text-primary mb-3 uppercase">
+                Start Your Practice Journey
+              </h3>
+              <p className="font-sans text-base text-textPrimary">
+                Create your first script and begin practicing to see your
+                progress here.
+              </p>
+            </div>
+          )}
         </div>
+      </div>
+
+      {/* 모바일: 세로 레이아웃 */}
+      <div className="md:hidden space-y-6">
+        {/* 모바일 통계 - 세로 배치 */}
+        <div className="grid grid-cols-1 gap-4">
+          <SquareStatCard
+            title="Avg. Accuracy"
+            value={avgAccuracy > 0 ? `${avgAccuracy.toFixed(1)}%` : '0%'}
+            icon={<MdTrendingUp />}
+          />
+          <SquareStatCard
+            title="Total Scripts"
+            value={allScripts.length}
+            icon={<MdLibraryBooks />}
+          />
+          <SquareStatCard
+            title="Total Lines"
+            value={totalLines}
+            icon={<MdFormatListBulleted />}
+          />
+        </div>
+
+        {/* 모바일 달력 */}
+        <CompactCalendar
+          practicedDays={practicedDays}
+          currentMonth={currentMonth}
+          currentYear={currentYear}
+          onPrevMonth={handlePrevMonth}
+          onNextMonth={handleNextMonth}
+        />
+
+        {/* 모바일 최근 활동 */}
+        {practiceLogs.length > 0 ? (
+          <div className="bg-speaker2 rounded-2xl border-4 border-textPrimary p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <MdCheckCircle className="w-5 h-5 text-textPrimary" />
+              <h3 className="font-display text-sm font-black text-textPrimary uppercase">
+                Recent Activity
+              </h3>
+            </div>
+            <p className="font-sans text-sm font-medium text-textPrimary">
+              {practiceLogs.length} practice sessions completed. Great work! 🎉
+            </p>
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl border-4 border-dashed border-textPrimary p-6 text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-primary border-3 border-textPrimary mb-3">
+              <MdLibraryBooks className="w-8 h-8 text-white" />
+            </div>
+            <h3 className="font-display text-lg font-black text-primary mb-2 uppercase">
+              Get Started
+            </h3>
+            <p className="font-sans text-sm text-textPrimary">
+              Create your first script to begin your learning journey!
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-// 통계 카드 컴포넌트
-function StatCard({ title, value }: { title: string; value: string | number }) {
+// 정사각형 통계 카드
+function SquareStatCard({
+  title,
+  value,
+  icon,
+}: {
+  title: string;
+  value: string | number;
+  icon: React.ReactNode;
+}) {
   return (
-    <div className="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700">
-      <h3 className="text-sm font-medium text-gray-400">{title}</h3>
-      <p className="text-3xl font-bold text-white mt-2">{value}</p>
-    </div>
+    <article className="bg-white rounded-2xl border-4 border-textPrimary p-4 md:aspect-square flex flex-row md:flex-col gap-4 md:gap-0 items-center md:items-start md:justify-between">
+      {/* 아이콘 */}
+      <div className="shrink-0">
+        <div className="p-4 bg-primary rounded-xl border-3 border-textPrimary">
+          <span className="text-white text-lg">{icon}</span>
+        </div>
+      </div>
+
+      {/* 모바일은 가로, 데스크탑은 세로 */}
+      <div className="flex-1 flex flex-col justify-center md:justify-end">
+        <h3 className="font-display text-xs font-black text-textPrimary uppercase mb-1">
+          {title}
+        </h3>
+        <p className="font-display text-2xl md:text-3xl font-black text-textPrimary">
+          {value}
+        </p>
+      </div>
+    </article>
+  );
+}
+
+function CompactCalendar({
+  practicedDays,
+  currentMonth,
+  currentYear,
+  onPrevMonth,
+  onNextMonth,
+}: {
+  practicedDays: Date[];
+  currentMonth: number;
+  currentYear: number;
+  onPrevMonth: () => void;
+  onNextMonth: () => void;
+}) {
+  const today = new Date();
+  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+  const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
+  const monthNames = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
+
+  const isPracticedDay = (day: number) => {
+    return practicedDays.some(
+      (practiced) =>
+        practiced.getDate() === day &&
+        practiced.getMonth() === currentMonth &&
+        practiced.getFullYear() === currentYear
+    );
+  };
+
+  const isToday = (day: number) => {
+    return (
+      day === today.getDate() &&
+      currentMonth === today.getMonth() &&
+      currentYear === today.getFullYear()
+    );
+  };
+
+  // 이번 달 연습 횟수 계산
+  const practiceCount = practicedDays.filter(
+    (date) =>
+      date.getMonth() === currentMonth && date.getFullYear() === currentYear
+  ).length;
+
+  return (
+    <section className="bg-white rounded-2xl border-4 border-textPrimary overflow-hidden">
+      {/* 헤더 */}
+      <div className="p-3 border-b-3 border-textPrimary bg-primary">
+        <div className="flex items-center justify-between">
+          <button
+            onClick={onPrevMonth}
+            className="p-1.5 hover:bg-white/20 rounded"
+            aria-label="Previous month"
+          >
+            <MdChevronLeft className="w-4 h-4 text-white" />
+          </button>
+          <h3 className="font-display text-xl font-bold text-white uppercase">
+            {monthNames[currentMonth]} {currentYear}
+          </h3>
+          <button
+            onClick={onNextMonth}
+            className="p-1.5 hover:bg-white/20 rounded"
+            aria-label="Next month"
+          >
+            <MdChevronRight className="w-4 h-4 text-white" />
+          </button>
+        </div>
+      </div>
+
+      {/* 달력 테이블 */}
+      <table className="w-full border-collapse">
+        <thead>
+          <tr className="border-b border-textPrimary/10">
+            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+              <th
+                key={day}
+                className="py-2 text-base font-bold text-textPrimary uppercase"
+              >
+                {day}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {Array.from({ length: 6 }, (_, week) => (
+            <tr key={week}>
+              {Array.from({ length: 7 }, (_, dayOfWeek) => {
+                const dayOfMonth = week * 7 + dayOfWeek - firstDayOfMonth + 1;
+
+                if (dayOfMonth < 1 || dayOfMonth > daysInMonth) {
+                  return (
+                    <td key={dayOfWeek} className="p-0.5">
+                      <div className="h-9" />
+                    </td>
+                  );
+                }
+
+                const isPracticed = isPracticedDay(dayOfMonth);
+                const isTodayDay = isToday(dayOfMonth);
+
+                return (
+                  <td key={dayOfWeek} className="p-0.5">
+                    <button
+                      className={`
+                        w-full h-9 rounded border-2 transition-all duration-200 text-sm font-bold
+                        ${
+                          isPracticed
+                            ? 'bg-primary text-white border-textPrimary'
+                            : isTodayDay
+                            ? 'bg-primary/10 border-primary text-primary'
+                            : 'text-textSecondary border-transparent hover:border-primary/50 hover:bg-primary/5'
+                        }
+                      `}
+                      onClick={() => console.log(`Selected: ${dayOfMonth}`)}
+                      aria-label={`Date ${dayOfMonth}`}
+                    >
+                      {dayOfMonth}
+                    </button>
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {/*Legend */}
+      <div className="px-4 py-3 border-t-2 border-textPrimary/10 bg-white">
+        <div className="flex items-center justify-between text-xs">
+          {/* 연습한 날 표시 */}
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded border-2 border-textPrimary bg-primary" />
+            <span className="font-sans font-medium text-textPrimary">
+              Practice days ({practiceCount})
+            </span>
+          </div>
+
+          {/* 오늘 표시 */}
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded border-2 border-primary bg-primary/10" />
+            <span className="font-sans font-medium text-textPrimary">
+              Today
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }

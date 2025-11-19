@@ -5,9 +5,9 @@
   --font-sans: 'Inter', system-ui, sans-serif;
   --font-display: 'Shantell Sans', cursive;
 
-  /* 기본 색상 (Brand) */
-  --color-primary: #d4756b;
-  --color-primary-hover: #c26659;
+  /* 기본 색상 */
+  --color-primary: #c97451;
+  --color-primary-hover: #a96f43;
 
   /* 텍스트 색상 */
   --color-textPrimary: #1a1a1a;
@@ -15,9 +15,9 @@
   --color-textDisabled: #d4c4b0;
 
   /* 배경 색상 */
-  --color-bgPrimary: #f2ebe2; /* 메인 배경 */
-  --color-bgCard: #ffffff; /* 카드/헤더 배경 */
-  --color-bgDisabled: #d4c4b0;
+  --color-bgPrimary: #f2f1ed;
+  --color-bgCard: #fff9f0;
+  --color-bgDisabled: #ede8dd;
 
   /* 테두리 색상 */
   --color-borderPrimary: #e0d4c8;
@@ -25,11 +25,11 @@
   --color-borderDivider: #f0e8dc;
 
   /* 스피커 색상 */
-  --color-speaker1: #b8d4db;
-  --color-speaker2: #c8d9b4;
-  --color-speaker3: #c4b5d5;
+  --color-speaker1: #c4b5d5;
+  --color-speaker2: #b5d0b1;
+  --color-speaker3: #b8d4db;
 
-  /* 상태 색상 (성공/에러) */
+  /* 상태 색상 */
   --color-success: #b5dab7;
   --color-successBg: #f1f8f1;
   --color-successDark: #88b888;

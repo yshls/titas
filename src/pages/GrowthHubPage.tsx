@@ -70,9 +70,9 @@ export function GrowthHubPage() {
         </p>
       </header>
 
-      {/* 데스크탑: 좌우 2열 레이아웃 */}
+      {/* 데스크탑 */}
       <div className="hidden md:grid md:grid-cols-2 gap-8">
-        {/* 왼쪽: 달력 */}
+        {/* 달력 */}
         <CompactCalendar
           practicedDays={practicedDays}
           currentMonth={currentMonth}
@@ -81,9 +81,8 @@ export function GrowthHubPage() {
           onNextMonth={handleNextMonth}
         />
 
-        {/* 오른쪽: 통계 + 활동 */}
         <div className="space-y-6">
-          {/* 정사각형 통계 3개 - 가로 배치 */}
+          {/* 통계 */}
           <div className="grid grid-cols-3 gap-4">
             <SquareStatCard
               title="Avg. Accuracy"
@@ -102,9 +101,9 @@ export function GrowthHubPage() {
             />
           </div>
 
-          {/* 최근 활동 카드 */}
+          {/* 최근 활동 */}
           {practiceLogs.length > 0 ? (
-            <div className="bg-speaker2 rounded-2xl border-4 border-textPrimary p-6">
+            <div className="bg-speaker2 rounded-2xl border-3 border-textPrimary p-6">
               <div className="flex items-center gap-3 mb-3">
                 <MdCheckCircle className="w-7 h-7 text-textPrimary" />
                 <h3 className="font-display text-xl font-black text-textPrimary uppercase">
@@ -123,8 +122,8 @@ export function GrowthHubPage() {
               </p>
             </div>
           ) : (
-            <div className="bg-white rounded-2xl border-4 border-dashed border-textPrimary p-8 text-center">
-              <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary border-4 border-textPrimary mb-4">
+            <div className="bg-white rounded-2xl border-3 border-dashed border-textPrimary p-8 text-center">
+              <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary border-3 border-textPrimary mb-4">
                 <MdLibraryBooks className="w-10 h-10 text-white" />
               </div>
               <h3 className="font-display text-2xl font-black text-primary mb-3 uppercase">
@@ -139,9 +138,9 @@ export function GrowthHubPage() {
         </div>
       </div>
 
-      {/* 모바일: 세로 레이아웃 */}
+      {/* 모바일 */}
       <div className="md:hidden space-y-6">
-        {/* 모바일 통계 - 세로 배치 */}
+        {/* 통계 */}
         <div className="grid grid-cols-1 gap-4">
           <SquareStatCard
             title="Avg. Accuracy"
@@ -160,7 +159,7 @@ export function GrowthHubPage() {
           />
         </div>
 
-        {/* 모바일 달력 */}
+        {/* 달력 */}
         <CompactCalendar
           practicedDays={practicedDays}
           currentMonth={currentMonth}
@@ -169,9 +168,9 @@ export function GrowthHubPage() {
           onNextMonth={handleNextMonth}
         />
 
-        {/* 모바일 최근 활동 */}
+        {/* 최근 활동 */}
         {practiceLogs.length > 0 ? (
-          <div className="bg-speaker2 rounded-2xl border-4 border-textPrimary p-4">
+          <div className="bg-speaker2 rounded-2xl border-3 border-textPrimary p-4">
             <div className="flex items-center gap-2 mb-2">
               <MdCheckCircle className="w-5 h-5 text-textPrimary" />
               <h3 className="font-display text-sm font-black text-textPrimary uppercase">
@@ -183,7 +182,7 @@ export function GrowthHubPage() {
             </p>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl border-4 border-dashed border-textPrimary p-6 text-center">
+          <div className="bg-white rounded-2xl border-3 border-dashed border-textPrimary p-6 text-center">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-primary border-3 border-textPrimary mb-3">
               <MdLibraryBooks className="w-8 h-8 text-white" />
             </div>
@@ -200,7 +199,7 @@ export function GrowthHubPage() {
   );
 }
 
-// 정사각형 통계 카드
+// 통계 카드
 function SquareStatCard({
   title,
   value,
@@ -211,7 +210,7 @@ function SquareStatCard({
   icon: React.ReactNode;
 }) {
   return (
-    <article className="bg-white rounded-2xl border-4 border-textPrimary p-4 md:aspect-square flex flex-row md:flex-col gap-4 md:gap-0 items-center md:items-start md:justify-between">
+    <article className="bg-white rounded-2xl border-3 border-textPrimary p-4 md:aspect-square flex flex-row md:flex-col gap-4 md:gap-0 items-center md:items-start md:justify-between">
       {/* 아이콘 */}
       <div className="shrink-0">
         <div className="p-4 bg-primary rounded-xl border-3 border-textPrimary">
@@ -219,7 +218,7 @@ function SquareStatCard({
         </div>
       </div>
 
-      {/* 모바일은 가로, 데스크탑은 세로 */}
+      {/* 컨텐츠 */}
       <div className="flex-1 flex flex-col justify-center md:justify-end">
         <h3 className="font-display text-xs font-black text-textPrimary uppercase mb-1">
           {title}
@@ -232,6 +231,7 @@ function SquareStatCard({
   );
 }
 
+// 달력
 function CompactCalendar({
   practicedDays,
   currentMonth,
@@ -280,14 +280,14 @@ function CompactCalendar({
     );
   };
 
-  // 이번 달 연습 횟수 계산
+  // 연습 횟수
   const practiceCount = practicedDays.filter(
     (date) =>
       date.getMonth() === currentMonth && date.getFullYear() === currentYear
   ).length;
 
   return (
-    <section className="bg-white rounded-2xl border-4 border-textPrimary overflow-hidden">
+    <section className="bg-white rounded-2xl border-3 border-textPrimary overflow-hidden">
       {/* 헤더 */}
       <div className="p-3 border-b-3 border-textPrimary bg-primary">
         <div className="flex items-center justify-between">
@@ -311,7 +311,7 @@ function CompactCalendar({
         </div>
       </div>
 
-      {/* 달력 테이블 */}
+      {/* 테이블 */}
       <table className="w-full border-collapse">
         <thead>
           <tr className="border-b border-textPrimary/10">
@@ -368,10 +368,10 @@ function CompactCalendar({
         </tbody>
       </table>
 
-      {/*Legend */}
+      {/* 범례 */}
       <div className="px-4 py-3 border-t-2 border-textPrimary/10 bg-white">
         <div className="flex items-center justify-between text-xs">
-          {/* 연습한 날 표시 */}
+          {/* 연습일 */}
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded border-2 border-textPrimary bg-primary" />
             <span className="font-sans font-medium text-textPrimary">
@@ -379,7 +379,7 @@ function CompactCalendar({
             </span>
           </div>
 
-          {/* 오늘 표시 */}
+          {/* 오늘 */}
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded border-2 border-primary bg-primary/10" />
             <span className="font-sans font-medium text-textPrimary">

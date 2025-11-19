@@ -1,78 +1,85 @@
-@tailwind utilities;
 @import 'tailwindcss';
 
-@font-face {
-  font-family: 'Presentation';
-  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2404@1.0/Freesentation-1Thin.woff2')
-    format('woff2');
-  font-weight: 100;
-  font-display: swap;
+@theme {
+  /* 폰트 설정 */
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-display: 'Shantell Sans', cursive;
+
+  /* 기본 색상 (Brand) */
+  --color-primary: #d4756b;
+  --color-primary-hover: #c26659;
+
+  /* 텍스트 색상 */
+  --color-textPrimary: #1a1a1a;
+  --color-textSecondary: #4a4a4a;
+  --color-textDisabled: #d4c4b0;
+
+  /* 배경 색상 */
+  --color-bgPrimary: #f2ebe2; /* 메인 배경 */
+  --color-bgCard: #ffffff; /* 카드/헤더 배경 */
+  --color-bgDisabled: #d4c4b0;
+
+  /* 테두리 색상 */
+  --color-borderPrimary: #e0d4c8;
+  --color-borderSecondary: #ede7dd;
+  --color-borderDivider: #f0e8dc;
+
+  /* 스피커 색상 */
+  --color-speaker1: #b8d4db;
+  --color-speaker2: #c8d9b4;
+  --color-speaker3: #c4b5d5;
+
+  /* 상태 색상 (성공/에러) */
+  --color-success: #b5dab7;
+  --color-successBg: #f1f8f1;
+  --color-successDark: #88b888;
+  --color-error: #e8b4b8;
+  --color-errorBg: #fdf0f0;
+  --color-errorDark: #d68a90;
 }
 
-@font-face {
-  font-family: 'Presentation';
-  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2404@1.0/Freesentation-2ExtraLight.woff2')
-    format('woff2');
-  font-weight: 200;
-  font-display: swap;
+/* 기본 스타일 적용 */
+@layer base {
+  body {
+    font-family: var(--font-sans);
+
+    background-color: var(--color-bgPrimary);
+    color: var(--color-textPrimary);
+  }
+
+  /* 제목 폰트 적용 */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display);
+  }
 }
 
-@font-face {
-  font-family: 'Presentation';
-  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2404@1.0/Freesentation-3Light.woff2')
-    format('woff2');
-  font-weight: 300;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Presentation';
-  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2404@1.0/Freesentation-4Regular.woff2')
-    format('woff2');
-  font-weight: 400;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Presentation';
-  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2404@1.0/Freesentation-5Medium.woff2')
-    format('woff2');
-  font-weight: 500;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Presentation';
-  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2404@1.0/Freesentation-6SemiBold.woff2')
-    format('woff2');
-  font-weight: 600;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Presentation';
-  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2404@1.0/Freesentation-7Bold.woff2')
-    format('woff2');
-  font-weight: 700;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Presentation';
-  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2404@1.0/Freesentation-8ExtraBold.woff2')
-    format('woff2');
-  font-weight: 800;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Presentation';
-  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2404@1.0/Freesentation-9Black.woff2')
-    format('woff2');
-  font-weight: 900;
-  font-display: swap;
-}
-
-body {
-  font-family: 'Presentation', sans-serif;
+@layer utilities {
+  .border-b-wavy {
+    position: relative;
+    padding-bottom: 4px;
+  }
+  .border-b-wavy::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 4px;
+    background: radial-gradient(
+        circle at 50% 0,
+        transparent 3px,
+        currentColor 3px,
+        currentColor 4px,
+        transparent 4px
+      )
+      repeat-x;
+    background-size: 12px 4px;
+    background-position: 0 100%;
+    color: var(--color-textPrimary);
+  }
 }

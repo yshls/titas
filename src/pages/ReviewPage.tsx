@@ -25,7 +25,7 @@ function MissedWordItem({ word, count, rank }: MissedWordItemProps) {
   const { speak, isSpeaking } = useTTS(); // TTS 훅
 
   return (
-    <li className="bg-white rounded-xl border-2 border-border-default transition-shadow hover:shadow-md">
+    <li className="bg-white rounded-xl border-2 border-border-default transition-transform duration-200 hover:scale-[1.02]">
       <div
         className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 p-3"
         role="button"

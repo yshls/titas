@@ -1,15 +1,110 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useAppStore } from '@/store/appStore';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useTTS } from '@/utils/useTTS';
 import type { WeakSpot } from '@/utils/types';
-import { MdTrendingDown, MdBarChart } from 'react-icons/md';
+import {
+  MdTrendingDown,
+  MdBarChart,
+  MdPlayArrow,
+  MdVolumeUp,
+} from 'react-icons/md';
+
+const TOP_WORDS_COUNT = 10; // 표시할 상위 단어 개수
+
+type MissedWordItemProps = {
+  word: string;
+  count: number;
+  rank: number;
+};
+
+/**
+ * 틀린 단어 항목 컴포넌트
+ */
+function MissedWordItem({ word, count, rank }: MissedWordItemProps) {
+  const { speak, isSpeaking } = useTTS(); // TTS 훅
+
+  return (
+    <li className="bg-white rounded-xl border-2 border-border-default transition-shadow hover:shadow-md">
+      <div
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 p-3"
+        role="button"
+      >
+        <div className="flex items-center gap-4 flex-1">
+          <div className="shrink-0 w-10 h-10 rounded-lg border-2 border-border-default flex items-center justify-center bg-primary/10">
+            <span className="font-display text-lg font-black text-text-primary">
+              {rank}
+            </span>
+          </div>
+
+          <div className="min-w-0 flex items-center gap-2">
+            <span className="font-display text-lg sm:text-xl font-black text-text-primary uppercase block">
+              {word}
+            </span>
+            <button
+              onClick={(e) => {
+                e.stopPropagation(); // 이벤트 전파 방지
+                speak(word);
+              }}
+              disabled={isSpeaking}
+              className="p-1 rounded-full hover:bg-primary/10 disabled:opacity-50"
+              aria-label={`Listen to ${word}`}
+            >
+              <MdVolumeUp
+                className={`w-5 h-5 transition-colors ${
+                  isSpeaking ? 'text-primary' : 'text-text-secondary'
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+
+        <div className="flex items-center self-start sm:self-center gap-2 px-2 sm:px-4 py-1 sm:py-2 rounded-lg border-2 border-border-default bg-accent/10 sm:min-w-32">
+          <MdTrendingDown
+            className="w-4 h-4 sm:w-5 sm:h-5 text-accent"
+            aria-hidden="true"
+          />
+          <span className="font-display text-sm sm:text-lg font-black text-primary">
+            {count} {count === 1 ? 'miss' : 'misses'}
+          </span>
+        </div>
+      </div>
+    </li>
+  );
+}
+
+/**
+ * 데이터 없음 플레이스홀더
+ */
+function NoDataPlaceholder() {
+  return (
+    <div className="text-center py-12">
+      <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary/10 border-2 border-border-default mb-6">
+        <MdBarChart className="w-10 h-10 text-primary" aria-hidden="true" />
+      </div>
+      <h3 className="font-display text-2xl font-black text-accent mb-3 uppercase">
+        No Data Yet
+      </h3>
+      <p className="font-sans text-lg font-medium text-text-secondary mb-6">
+        No weakness data yet. Keep practicing!
+      </p>
+      <Link
+        to="/"
+        className="font-display inline-flex items-center gap-2 px-4 py-3 bg-primary text-white rounded-xl border-2 border-border-default font-bold uppercase transition-transform duration-300 focus:outline-none"
+      >
+        Start Practicing
+      </Link>
+    </div>
+  );
+}
 
 export function ReviewPage() {
   const practiceLogs = useAppStore((state) => state.practiceLogs);
-
+  const navigate = useNavigate();
+  const [wordForPractice] = useState<string | null>(null);
   // 약점 단어 계산
   const missedWordCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
+    const counts: Record<string, number> = {}; // 단어별 횟수 기록
 
     const allErrors: WeakSpot[] = practiceLogs.flatMap((log) => log.errors);
 
@@ -18,6 +113,7 @@ export function ReviewPage() {
       .map((error) => error.original.toLowerCase().trim());
 
     for (const word of missedWords) {
+      // 단어 횟수 계산
       if (word) {
         counts[word] = (counts[word] || 0) + 1;
       }
@@ -25,32 +121,26 @@ export function ReviewPage() {
 
     return Object.entries(counts)
       .map(([word, count]) => ({ word, count }))
-      .sort((a, b) => b.count - a.count);
+      .sort((a, b) => b.count - a.count); // 횟수 기준 내림차순 정렬
   }, [practiceLogs]);
 
   return (
-    <div className="min-h-full">
-      {/* 헤더 */}
-      <header className="mb-4">
-        <h1 className="font-display text-4xl font-black text-primary uppercase">
+    <div className="min-h-full p-2 sm:p-4">
+      <header className="mb-4 text-center md:text-left">
+        <h1 className="font-display text-4xl font-black text-accent uppercase">
           My Weak Spots
         </h1>
       </header>
 
-      {/* 메인 */}
-      <div className="bg-white rounded-2xl border-3 border-textPrimary overflow-hidden">
-        {/* 카드 헤더 */}
-        <div className="p-4 border-b-3 border-textPrimary bg-primary">
+      <div className="bg-white rounded-2xl border-2 border-border-default overflow-hidden">
+        <div className="p-4 border-b-2 border-border-default bg-primary ">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-white rounded-xl border-3 border-textPrimary">
-              <MdBarChart
-                className="w-7 h-7 text-textPrimary"
-                aria-hidden="true"
-              />
+            <div className="p-3 bg-white rounded-xl border-2 border-border-default">
+              <MdBarChart className="w-7 h-7 text-primary" aria-hidden="true" />
             </div>
             <div>
               <h2 className="font-display text-2xl font-black text-white uppercase">
-                Top 10 Missed Words
+                Top {TOP_WORDS_COUNT} Missed Words
               </h2>
               <p className="font-sans text-sm font-medium text-white/90">
                 Words you struggle with most
@@ -59,70 +149,47 @@ export function ReviewPage() {
           </div>
         </div>
 
-        {/* 카드 콘텐츠 */}
+        {wordForPractice && (
+          <div className="p-4 bg-primary/5 border-t-2 border-border-default">
+            <button
+              onClick={() => {
+                const sentencesToPractice = practiceLogs
+                  .flatMap((log) => log.errors)
+                  .filter(
+                    (e) =>
+                      e.original?.toLowerCase().trim() ===
+                        wordForPractice.toLowerCase() && e.lineContent
+                  )
+                  .map((e) => ({
+                    id: e.id,
+                    originalLine: e.lineContent,
+                    speakerId: 'Practice',
+                  }));
+
+                navigate('/talk', { state: { lines: sentencesToPractice } }); // 연습 페이지로 이동
+              }}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary text-white rounded-xl font-bold uppercase text-sm hover:bg-primary/90 transition-colors"
+            >
+              <MdPlayArrow className="w-5 h-5" />
+              Practice Sentences for "{wordForPractice}"
+            </button>
+          </div>
+        )}
+
         <div className="p-4">
-          {missedWordCounts.length > 0 ? (
+          {missedWordCounts.length > 0 ? ( // 조건부 렌더링
             <ol className="space-y-4">
-              {missedWordCounts.slice(0, 10).map((item, index) => (
-                <li
+              {missedWordCounts.slice(0, TOP_WORDS_COUNT).map((item, index) => (
+                <MissedWordItem
                   key={item.word}
-                  className="flex items-center gap-4 p-4 bg-white rounded-xl border-3 border-textPrimary hover:scale-[1.02] transition-all"
-                >
-                  {/* 순위 */}
-                  <div
-                    className="flex-shrink-0 w-10 h-10 rounded-lg border-3 border-textPrimary flex items-center justify-center"
-                    style={{ backgroundColor: '#F3F4F6' }}
-                  >
-                    <span className="font-display text-lg font-black text-textPrimary">
-                      {index + 1}
-                    </span>
-                  </div>
-
-                  {/* 단어 */}
-                  <div className="flex-1 min-w-0">
-                    <span className="font-display text-xl font-black text-textPrimary uppercase block">
-                      {item.word}
-                    </span>
-                  </div>
-
-                  {/* 횟수 */}
-                  <div
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg border-3 border-textPrimary"
-                    style={{ backgroundColor: '#F3F4F6' }}
-                  >
-                    <MdTrendingDown
-                      className="w-5 h-5 text-primary"
-                      aria-hidden="true"
-                    />
-                    <span className="font-display text-base font-bold text-primary">
-                      {item.count} {item.count === 1 ? 'miss' : 'misses'}
-                    </span>
-                  </div>
-                </li>
+                  rank={index + 1}
+                  word={item.word}
+                  count={item.count}
+                />
               ))}
             </ol>
           ) : (
-            /* 데이터 없음 */
-            <div className="text-center py-12">
-              <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary/10 border-3 border-textPrimary mb-6">
-                <MdBarChart
-                  className="w-10 h-10 text-primary"
-                  aria-hidden="true"
-                />
-              </div>
-              <h3 className="font-display text-2xl font-black text-primary mb-3 uppercase">
-                No Data Yet
-              </h3>
-              <p className="font-sans text-lg font-medium text-secondary mb-6">
-                No weakness data yet. Keep practicing!
-              </p>
-              <Link
-                to="/"
-                className="font-display inline-flex items-center gap-2 px-4 py-3 bg-primary text-white rounded-xl border-3 border-textPrimary font-bold uppercase hover:scale-105 transition-all focus:outline-none focus:ring-3 focus:ring-black"
-              >
-                Start Practicing
-              </Link>
-            </div>
+            <NoDataPlaceholder />
           )}
         </div>
       </div>

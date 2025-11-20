@@ -32,10 +32,10 @@ export function RootLayout() {
             {/* 로고 */}
             <Link
               to="/"
-              className="flex items-center hover:scale-105 transition-all duration-200 focus:outline-none font-display text-4xl font-extrabold text-text-primary"
+              className="flex items-center hover:scale-105 transition-all duration-200 focus:outline-none"
               aria-label="Go to dashboard"
             >
-              TiTas
+              <img src="/titas_logo.png" alt="TiTaS Logo" className="h-8" />
             </Link>
 
             {/* 데스크탑 메뉴 */}

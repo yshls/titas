@@ -65,3 +65,17 @@ export function addPracticeLog(logEntry: PracticeLog): void {
     console.error('Failed to save practice log:', error);
   }
 }
+
+/**
+ * 스크립트 하나 삭제 (ScriptListPage용)
+ */
+
+export function deleteScript(scriptId: string): void {
+  try {
+    const scripts = loadAllScripts();
+    const newScripts = scripts.filter((script) => script.id !== scriptId);
+    localStorage.setItem('titas_scripts', JSON.stringify(newScripts));
+  } catch (error) {
+    console.error('Failed to delete script:', error);
+  }
+}

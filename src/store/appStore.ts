@@ -8,33 +8,35 @@ import {
   saveScript,
   loadPracticeLogs,
   addPracticeLog,
+  deleteScript as deleteScriptStorage,
 } from '@/utils/storageService';
 
-// 앱 전역 상태 타입 정의
+// 상태
 export interface AppState {
-  // 전역 상태
+  // 상태
   allScripts: ScriptData[];
   practiceLogs: PracticeLog[];
 
-  // 대화 훈련 임시 상태
+  // 임시 상태
   currentScript: DialogueLine[];
   spokenText: string;
   lastDiffResult: DiffResult[];
 
-  // 상태 관리 액션
+  // 액션
   loadInitialData: () => void;
   saveNewScript: (script: ScriptData) => void;
   addNewPracticeLog: (logEntry: PracticeLog) => void;
 
-  // 대화 상태 업데이트
+  // 업데이트
   setSpokenText: (text: string) => void;
   recordDiffResult: (result: DiffResult[]) => void;
   loadScript: (script: DialogueLine[]) => void;
+  deleteScript: (scriptId: string) => void;
 }
 
-// Zustand 스토어 생성
+// 스토어
 export const useAppStore = create<AppState>((set) => ({
-  // 초기 상태
+  // 초기화
   allScripts: [],
   practiceLogs: [],
 
@@ -42,7 +44,7 @@ export const useAppStore = create<AppState>((set) => ({
   spokenText: '',
   lastDiffResult: [],
 
-  // 초기 데이터 로드
+  // 로드
   loadInitialData: () => {
     const scripts = loadAllScripts();
     const logs = loadPracticeLogs();
@@ -55,7 +57,7 @@ export const useAppStore = create<AppState>((set) => ({
     );
   },
 
-  // 새 스크립트 저장
+  // 저장
   saveNewScript: (script) => {
     saveScript(script);
     set((state) => ({
@@ -63,7 +65,7 @@ export const useAppStore = create<AppState>((set) => ({
     }));
   },
 
-  // 새 연습 기록 추가
+  // 기록
   addNewPracticeLog: (logEntry) => {
     addPracticeLog(logEntry);
     set((state) => ({
@@ -71,8 +73,15 @@ export const useAppStore = create<AppState>((set) => ({
     }));
   },
 
-  // 대화 상태 업데이트
+  // 업데이트
   setSpokenText: (text) => set({ spokenText: text }),
   recordDiffResult: (result) => set({ lastDiffResult: result }),
   loadScript: (script) => set({ currentScript: script }),
+
+  deleteScript: (scriptId: string) => {
+    deleteScriptStorage(scriptId);
+    set((state) => ({
+      allScripts: state.allScripts.filter((script) => script.id !== scriptId),
+    }));
+  },
 }));

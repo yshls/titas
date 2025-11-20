@@ -16,23 +16,38 @@ type MissedWordItemProps = {
   word: string;
   count: number;
   rank: number;
+  onClick: () => void;
+  isSelected: boolean;
 };
 
 /**
  * 틀린 단어 항목 컴포넌트
  */
-function MissedWordItem({ word, count, rank }: MissedWordItemProps) {
+function MissedWordItem({
+  word,
+  count,
+  rank,
+  onClick,
+  isSelected,
+}: MissedWordItemProps) {
   const { speak, isSpeaking } = useTTS(); // TTS 훅
 
   return (
-    <li className="bg-white rounded-xl border-2 border-border-default transition-transform duration-200 hover:scale-[1.02]">
+    <li
+      onClick={onClick}
+      className={`bg-white rounded-xl border-2 transition-all duration-200 hover:scale-[1.02] cursor-pointer ${
+        isSelected
+          ? 'border-primary ring-2 ring-primary'
+          : 'border-border-default'
+      }`}
+    >
       <div
         className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 p-3"
         role="button"
       >
         <div className="flex items-center gap-4 flex-1">
           <div className="shrink-0 w-10 h-10 rounded-lg border-2 border-border-default flex items-center justify-center bg-primary/10">
-            <span className="font-display text-lg font-black text-primary">
+            <span className="font-display text-lg font-black text-text-primary">
               {rank}
             </span>
           </div>
@@ -52,7 +67,7 @@ function MissedWordItem({ word, count, rank }: MissedWordItemProps) {
             >
               <MdVolumeUp
                 className={`w-5 h-5 transition-colors ${
-                  isSpeaking ? 'text-primary' : 'text-text-primary'
+                  isSpeaking ? 'text-text-primary' : 'text-text-muted'
                 }`}
               />
             </button>
@@ -64,7 +79,7 @@ function MissedWordItem({ word, count, rank }: MissedWordItemProps) {
             className="w-4 h-4 sm:w-5 sm:h-5 text-accent"
             aria-hidden="true"
           />
-          <span className="font-display text-sm sm:text-lg font-black text-primary">
+          <span className="font-display text-sm sm:text-lg font-black text-text-primary">
             {count} {count === 1 ? 'miss' : 'misses'}
           </span>
         </div>
@@ -80,7 +95,10 @@ function NoDataPlaceholder() {
   return (
     <div className="text-center py-12">
       <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary/10 border-2 border-border-default mb-6">
-        <MdBarChart className="w-10 h-10 text-primary" aria-hidden="true" />
+        <MdBarChart
+          className="w-10 h-10 text-text-primary"
+          aria-hidden="true"
+        />
       </div>
       <h3 className="font-display text-2xl font-black text-accent mb-3 uppercase">
         No Data Yet
@@ -101,6 +119,7 @@ function NoDataPlaceholder() {
 export function ReviewPage() {
   const practiceLogs = useAppStore((state) => state.practiceLogs);
   const navigate = useNavigate();
+  const [wordForPractice, setWordForPractice] = useState<string | null>(null);
   // 약점 단어 계산
   const missedWordCounts = useMemo(() => {
     const counts: Record<string, number> = {}; // 단어별 횟수 기록
@@ -155,9 +174,10 @@ export function ReviewPage() {
                 const sentencesToPractice = practiceLogs
                   .flatMap((log) => log.errors)
                   .filter(
-                    (e) =>
-                      e.original?.toLowerCase().trim() ===
-                        wordForPractice.toLowerCase() && e.lineContent
+                    (e): e is WeakSpot & { lineContent: string } =>
+                      typeof (e as any).lineContent === 'string' &&
+                      (e as any).original?.toLowerCase().trim() ===
+                        wordForPractice.toLowerCase()
                   )
                   .map((e) => ({
                     id: e.id,
@@ -184,6 +204,12 @@ export function ReviewPage() {
                   rank={index + 1}
                   word={item.word}
                   count={item.count}
+                  isSelected={wordForPractice === item.word}
+                  onClick={() =>
+                    setWordForPractice(
+                      wordForPractice === item.word ? null : item.word
+                    )
+                  }
                 />
               ))}
             </ol>

@@ -26,7 +26,7 @@ export function ScriptListPage() {
   const navigate = useNavigate();
   const deleteScript = useAppStore((state) => state.deleteScript);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState('date-desc'); // 'date-desc'가 기본값
+  const [sortBy, setSortBy] = useState('date-desc');
   const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
   const sortMenuRef = useRef<HTMLDivElement>(null);
 
@@ -39,31 +39,45 @@ export function ScriptListPage() {
 
   // 삭제
   const handleDeleteClick = (scriptId: string, scriptTitle: string) => {
-    toast((t) => (
-      <div className="flex flex-col gap-2">
-        <p className="text-center font-bold">Delete "{scriptTitle}"?</p>
-        <div className="flex gap-2">
-          <button
-            onClick={() => {
-              setDeletingId(scriptId);
-              toast.dismiss(t.id);
-              setTimeout(() => {
-                deleteScript(scriptId);
-              }, 300);
-            }}
-            className="w-full px-3 py-2 text-sm font-bold text-white uppercase bg-error rounded-lg"
-          >
-            Delete
-          </button>
-          <button
-            onClick={() => toast.dismiss(t.id)}
-            className="w-full px-3 py-2 text-sm font-bold text-text-secondary uppercase bg-gray-100 rounded-lg"
-          >
-            Cancel
-          </button>
+    toast.custom(
+      (t) => (
+        <div
+          className={`${
+            t.visible ? 'animate-enter' : 'animate-leave'
+          } max-w-md w-full bg-white shadow-lg rounded-2xl pointer-events-auto flex ring-1 ring-border-default ring-opacity-5 p-4`}
+        >
+          <div className="flex-1 w-0">
+            <div className="flex flex-col items-center text-center">
+              <p className="text-base font-bold text-text-primary">
+                Delete "{scriptTitle}"?
+              </p>
+              <p className="mt-1 text-sm text-text-secondary">
+                This action cannot be undone.
+              </p>
+              <div className="flex mt-4 gap-3 w-full">
+                <button
+                  onClick={() => {
+                    setDeletingId(scriptId);
+                    toast.dismiss(t.id);
+                    setTimeout(() => deleteScript(scriptId), 300);
+                  }}
+                  className="w-full px-4 py-2 text-sm font-bold text-white uppercase bg-error rounded-lg"
+                >
+                  Delete
+                </button>
+                <button
+                  onClick={() => toast.dismiss(t.id)}
+                  className="w-full px-4 py-2 text-sm font-bold text-text-secondary uppercase bg-gray-100 hover:bg-gray-200 rounded-lg"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-    ));
+      ),
+      { duration: 6000 }
+    );
   };
 
   // 메뉴 닫기

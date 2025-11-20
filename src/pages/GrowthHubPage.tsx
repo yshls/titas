@@ -59,13 +59,13 @@ export function GrowthHubPage() {
   };
 
   return (
-    <div className="min-h-full pb-8" role="main" aria-label="Dashboard">
+    <div className="min-h-full pb-3" role="main" aria-label="Dashboard">
       {/* 헤더 */}
-      <header className="mb-8 text-center md:text-left">
+      <header className="mb-4 text-center md:text-left">
         <h1 className="font-display text-4xl font-black text-accent mb-2 uppercase tracking-tight">
           Welcome Back!
         </h1>
-        <p className="font-sans text-base font-medium text-text-secondary">
+        <p className="font-sans text-sm font-bold text-text-secondary">
           Track your progress and keep practicing!
         </p>
       </header>
@@ -83,7 +83,7 @@ export function GrowthHubPage() {
 
         <div className="space-y-6">
           {/* 통계 */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="flex flex-col gap-4">
             <SquareStatCard
               title="Avg. Accuracy"
               value={avgAccuracy > 0 ? `${avgAccuracy.toFixed(1)}%` : '0%'}
@@ -113,7 +113,7 @@ export function GrowthHubPage() {
                 </h3>
               </div>
               <p className="font-sans text-lg font-medium text-text-primary mb-2">
-                You've completed
+                You've completed{' '}
                 <strong className="font-display text-2xl font-bold text-accent">
                   {practiceLogs.length}
                 </strong>
@@ -143,7 +143,7 @@ export function GrowthHubPage() {
       {/* 모바일 */}
       <div className="md:hidden space-y-6">
         {/* 통계 */}
-        <div className="grid grid-cols-1 gap-4">
+        <div className="flex flex-col gap-4">
           <SquareStatCard
             title="Avg. Accuracy"
             value={avgAccuracy > 0 ? `${avgAccuracy.toFixed(1)}%` : '0%'}
@@ -206,7 +206,7 @@ export function GrowthHubPage() {
   );
 }
 
-// 통계 카드 - Primary를 자유롭게 사용
+// 통계 카드
 function SquareStatCard({
   title,
   value,
@@ -217,19 +217,21 @@ function SquareStatCard({
   icon: React.ReactNode;
 }) {
   return (
-    <article className="bg-white rounded-2xl border-2 border-border-default p-3 md:aspect-square flex flex-row md:flex-col gap-4 md:gap-0 items-center md:items-start md:justify-between  transition-transform duration-300">
+    <article className="bg-white rounded-2xl border-2 border-border-default p-4 flex flex-row gap-4 items-center transition-transform duration-300">
       {/* 아이콘 */}
       <div className="shrink-0">
-        <div className="p-3 bg-primary/20 rounded-xl border-2 border-border-default ">
-          <span className="text-text-primary text-lg">{icon}</span>
+        <div className="p-3 bg-primary/10 rounded-xl border-2 border-border-default">
+          <span className="text-primary text-2xl">{icon}</span>
         </div>
       </div>
 
-      {/* 컨텐츠 */}
-      <div className="flex-1 flex flex-col justify-center md:justify-end">
-        <h3 className="font-display text-xs font-black text-secondary uppercase mb-1">
-          {title}
-        </h3>
+      {/* 콘텐츠 */}
+      <div className="flex-1 flex items-center justify-between">
+        <div>
+          <h3 className="font-display text-base font-black text-secondary uppercase">
+            {title}
+          </h3>
+        </div>
         <p className="font-display text-2xl md:text-3xl font-black text-accent">
           {value}
         </p>
@@ -238,7 +240,7 @@ function SquareStatCard({
   );
 }
 
-// 달력 - Primary를 적극 활용
+// 달력
 function CompactCalendar({
   practicedDays,
   currentMonth,
@@ -289,7 +291,7 @@ function CompactCalendar({
 
   return (
     <section className="bg-white rounded-2xl border-2 border-border-default overflow-hidden ">
-      {/* 헤더 -  */}
+      {/* 헤더 */}
       <div className="p-3 border-b-2 border-border-default bg-primary">
         <div className="flex items-center justify-between">
           <button
@@ -312,7 +314,7 @@ function CompactCalendar({
         </div>
       </div>
 
-      {/* 요일 헤더 */}
+      {/* 요일 */}
       <div className="grid grid-cols-7 border-b-2 border-border-subtle bg-primary/5 ">
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
           <div
@@ -324,16 +326,16 @@ function CompactCalendar({
         ))}
       </div>
 
-      {/* 달력 그리드 */}
+      {/* 날짜 */}
       <div className="grid grid-cols-7 gap-1 p-2">
-        {/* 빈 날짜들 */}
+        {/* 앞쪽 빈칸 */}
         {Array(firstDayOfMonth)
           .fill(null)
           .map((_, index) => (
             <div key={`empty-${index}`} className="h-10 w-full" />
           ))}
 
-        {/* 실제 날짜들 */}
+        {/* 날짜들 */}
         {Array.from({ length: daysInMonth }, (_, dayIndex) => {
           const dayOfMonth = dayIndex + 1;
           const isPracticed = isPracticedDay(dayOfMonth);
@@ -363,7 +365,7 @@ function CompactCalendar({
           );
         })}
 
-        {/* 6주 완성 위해 빈 셀 채우기 */}
+        {/* 뒤쪽 빈칸 */}
         {Array(42 - (firstDayOfMonth + daysInMonth))
           .fill(null)
           .map((_, index) => (

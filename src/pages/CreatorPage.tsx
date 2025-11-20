@@ -368,42 +368,44 @@ export function CreatorPage() {
           role="form"
           aria-label="Add new dialogue line"
         >
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <div
-              className="flex items-center gap-2 px-3 py-3 rounded-xl border-2 border-border-default shrink-0"
+              className="flex items-center justify-center sm:justify-start gap-2 px-3 py-2 sm:py-3 rounded-xl border-2 border-border-default shrink-0"
               style={
                 { backgroundColor: activeSpeaker?.hex } as React.CSSProperties
               }
               aria-label={`Currently speaking as ${activeSpeaker?.id}`}
             >
-              <span className="font-display font-black text-text-primary text-sm uppercase">
+              <span className="font-display font-black text-text-primary text-sm uppercase ">
                 {activeSpeaker?.id}
               </span>
             </div>
             <label htmlFor="line-input" className="sr-only">
               Enter dialogue line
             </label>
-            <input
-              id="line-input"
-              type="text"
-              value={currentLineInput}
-              onChange={(e) => setCurrentLineInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleAddLine()}
-              placeholder="Type dialogue and press Enter..."
-              className="flex-1 p-3 rounded-xl border-2 border-border-default bg-white text-text-primary font-bold focus:outline-none   placeholder:text-secondary/50 caret-textPrimary"
-              aria-describedby="input-help"
-            />
-            <span id="input-help" className="sr-only">
-              Press Enter or click Add button to add line
-            </span>
-            <button
-              onClick={handleAddLine}
-              disabled={!currentLineInput.trim()}
-              className="p-3 rounded-xl bg-primary text-white border-2 border-border-default transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none shrink-0"
-              aria-label="Add dialogue line"
-            >
-              <MdAdd className="w-7 h-7" aria-hidden="true" />
-            </button>
+            <div className="flex-1 flex items-center gap-3">
+              <input
+                id="line-input"
+                type="text"
+                value={currentLineInput}
+                onChange={(e) => setCurrentLineInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleAddLine()}
+                placeholder="Type dialogue and press Enter..."
+                className="flex-1 w-full p-3 rounded-xl border-2 border-border-default bg-white text-text-primary font-bold focus:outline-none placeholder:text-secondary/50 caret-textPrimary"
+                aria-describedby="input-help"
+              />
+              <span id="input-help" className="sr-only">
+                Press Enter or click Add button to add line
+              </span>
+              <button
+                onClick={handleAddLine}
+                disabled={!currentLineInput.trim()}
+                className="p-3 rounded-xl bg-primary text-white border-2 border-border-default transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none shrink-0"
+                aria-label="Add dialogue line"
+              >
+                <MdAdd className="w-7 h-7" aria-hidden="true" />
+              </button>
+            </div>
           </div>
         </div>
         {/* 모바일 액션 */}

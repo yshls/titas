@@ -61,11 +61,11 @@ export function GrowthHubPage() {
   return (
     <div className="min-h-full pb-8" role="main" aria-label="Dashboard">
       {/* 헤더 */}
-      <header className="mb-8">
-        <h1 className="font-display text-5xl font-black text-primary mb-4 uppercase tracking-tight">
+      <header className="mb-8 text-center md:text-left">
+        <h1 className="font-display text-4xl font-black text-accent mb-2 uppercase tracking-tight">
           Welcome Back!
         </h1>
-        <p className="font-sans text-base font-medium text-textPrimary">
+        <p className="font-sans text-base font-medium text-text-secondary">
           Track your progress and keep practicing!
         </p>
       </header>
@@ -103,33 +103,35 @@ export function GrowthHubPage() {
 
           {/* 최근 활동 */}
           {practiceLogs.length > 0 ? (
-            <div className="bg-speaker2 rounded-2xl border-3 border-textPrimary p-6">
+            <div className="bg-white rounded-2xl border-2 border-border-default p-4 ">
               <div className="flex items-center gap-3 mb-3">
-                <MdCheckCircle className="w-7 h-7 text-textPrimary" />
-                <h3 className="font-display text-xl font-black text-textPrimary uppercase">
+                <div className="p-2 bg-success/10 rounded-lg">
+                  <MdCheckCircle className="w-7 h-7 text-success" />
+                </div>
+                <h3 className="font-display text-xl font-black text-accent uppercase">
                   Recent Activity
                 </h3>
               </div>
-              <p className="font-sans text-lg font-medium text-textPrimary mb-2">
-                You've completed{' '}
-                <strong className="font-display text-2xl font-bold">
+              <p className="font-sans text-lg font-medium text-text-primary mb-2">
+                You've completed
+                <strong className="font-display text-2xl font-bold text-accent">
                   {practiceLogs.length}
-                </strong>{' '}
+                </strong>
                 practice sessions
               </p>
-              <p className="font-sans text-sm font-medium text-textPrimary">
+              <p className="font-sans text-sm font-medium text-secondary">
                 Keep up the great work! 🎉
               </p>
             </div>
           ) : (
-            <div className="bg-white rounded-2xl border-3 border-dashed border-textPrimary p-8 text-center">
-              <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary border-3 border-textPrimary mb-4">
+            <div className="bg-white rounded-2xl border-2 border-border-dashed border-dashed p-8 text-center ">
+              <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary border-2 border-border-default mb-4 ">
                 <MdLibraryBooks className="w-10 h-10 text-white" />
               </div>
-              <h3 className="font-display text-2xl font-black text-primary mb-3 uppercase">
+              <h3 className="font-display text-2xl font-black text-accent mb-3 uppercase">
                 Start Your Practice Journey
               </h3>
-              <p className="font-sans text-base text-textPrimary">
+              <p className="font-sans text-base text-text-secondary">
                 Create your first script and begin practicing to see your
                 progress here.
               </p>
@@ -170,26 +172,31 @@ export function GrowthHubPage() {
 
         {/* 최근 활동 */}
         {practiceLogs.length > 0 ? (
-          <div className="bg-speaker2 rounded-2xl border-3 border-textPrimary p-4">
+          <div className="bg-accent/10 rounded-2xl border-2 border-border-default p-3 ">
             <div className="flex items-center gap-2 mb-2">
-              <MdCheckCircle className="w-5 h-5 text-textPrimary" />
-              <h3 className="font-display text-sm font-black text-textPrimary uppercase">
+              <div className="p-1.5 bg-success/10 rounded-lg">
+                <MdCheckCircle className="w-5 h-5 text-success" />
+              </div>
+              <h3 className="font-display text-sm font-black text-accent uppercase">
                 Recent Activity
               </h3>
             </div>
-            <p className="font-sans text-sm font-medium text-textPrimary">
-              {practiceLogs.length} practice sessions completed. Great work! 🎉
+            <p className="font-sans text-sm font-medium text-text-primary">
+              <span className="font-display text-lg font-bold text-accent">
+                {practiceLogs.length}
+              </span>{' '}
+              practice sessions completed. Great work! 🎉
             </p>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl border-3 border-dashed border-textPrimary p-6 text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-primary border-3 border-textPrimary mb-3">
+          <div className="bg-white rounded-2xl border-2 border-border-dashed p-6 text-center ">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-primary border-2 border-border-default mb-3 ">
               <MdLibraryBooks className="w-8 h-8 text-white" />
             </div>
-            <h3 className="font-display text-lg font-black text-primary mb-2 uppercase">
+            <h3 className="font-display text-lg font-black text-accent mb-2 uppercase">
               Get Started
             </h3>
-            <p className="font-sans text-sm text-textPrimary">
+            <p className="font-sans text-sm text-text-secondary">
               Create your first script to begin your learning journey!
             </p>
           </div>
@@ -199,7 +206,7 @@ export function GrowthHubPage() {
   );
 }
 
-// 통계 카드
+// 통계 카드 - Primary를 자유롭게 사용
 function SquareStatCard({
   title,
   value,
@@ -210,20 +217,20 @@ function SquareStatCard({
   icon: React.ReactNode;
 }) {
   return (
-    <article className="bg-white rounded-2xl border-3 border-textPrimary p-4 md:aspect-square flex flex-row md:flex-col gap-4 md:gap-0 items-center md:items-start md:justify-between">
+    <article className="bg-white rounded-2xl border-2 border-border-default p-3 md:aspect-square flex flex-row md:flex-col gap-4 md:gap-0 items-center md:items-start md:justify-between  transition-transform duration-300">
       {/* 아이콘 */}
       <div className="shrink-0">
-        <div className="p-4 bg-primary rounded-xl border-3 border-textPrimary">
-          <span className="text-white text-lg">{icon}</span>
+        <div className="p-3 bg-primary/20 rounded-xl border-2 border-border-default ">
+          <span className="text-text-primary text-lg">{icon}</span>
         </div>
       </div>
 
       {/* 컨텐츠 */}
       <div className="flex-1 flex flex-col justify-center md:justify-end">
-        <h3 className="font-display text-xs font-black text-textPrimary uppercase mb-1">
+        <h3 className="font-display text-xs font-black text-secondary uppercase mb-1">
           {title}
         </h3>
-        <p className="font-display text-2xl md:text-3xl font-black text-textPrimary">
+        <p className="font-display text-2xl md:text-3xl font-black text-accent">
           {value}
         </p>
       </div>
@@ -231,7 +238,7 @@ function SquareStatCard({
   );
 }
 
-// 달력
+// 달력 - Primary를 적극 활용
 function CompactCalendar({
   practicedDays,
   currentMonth,
@@ -280,109 +287,109 @@ function CompactCalendar({
     );
   };
 
-  // 연습 횟수
-  const practiceCount = practicedDays.filter(
-    (date) =>
-      date.getMonth() === currentMonth && date.getFullYear() === currentYear
-  ).length;
-
   return (
-    <section className="bg-white rounded-2xl border-3 border-textPrimary overflow-hidden">
-      {/* 헤더 */}
-      <div className="p-3 border-b-3 border-textPrimary bg-primary">
+    <section className="bg-white rounded-2xl border-2 border-border-default overflow-hidden ">
+      {/* 헤더 -  */}
+      <div className="p-3 border-b-2 border-border-default bg-primary">
         <div className="flex items-center justify-between">
           <button
             onClick={onPrevMonth}
-            className="p-1.5 hover:bg-white/20 rounded"
+            className="p-2 hover:bg-white/20 rounded-lg transition-all duration-300 flex items-center justify-center active:scale-95"
             aria-label="Previous month"
           >
-            <MdChevronLeft className="w-4 h-4 text-white" />
+            <MdChevronLeft className="w-5 h-5 text-white" />
           </button>
           <h3 className="font-display text-xl font-bold text-white uppercase">
             {monthNames[currentMonth]} {currentYear}
           </h3>
           <button
             onClick={onNextMonth}
-            className="p-1.5 hover:bg-white/20 rounded"
+            className="p-2 hover:bg-white/20 rounded-lg transition-all duration-300 flex items-center justify-center active:scale-95"
             aria-label="Next month"
           >
-            <MdChevronRight className="w-4 h-4 text-white" />
+            <MdChevronRight className="w-5 h-5 text-white" />
           </button>
         </div>
       </div>
 
-      {/* 테이블 */}
-      <table className="w-full border-collapse">
-        <thead>
-          <tr className="border-b border-textPrimary/10">
-            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-              <th
-                key={day}
-                className="py-2 text-base font-bold text-textPrimary uppercase"
-              >
-                {day}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {Array.from({ length: 6 }, (_, week) => (
-            <tr key={week}>
-              {Array.from({ length: 7 }, (_, dayOfWeek) => {
-                const dayOfMonth = week * 7 + dayOfWeek - firstDayOfMonth + 1;
+      {/* 요일 헤더 */}
+      <div className="grid grid-cols-7 border-b-2 border-border-subtle bg-primary/5 ">
+        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+          <div
+            key={day}
+            className="py-3 px-2 text-xs font-bold text-text-primary uppercase text-center"
+          >
+            {day}
+          </div>
+        ))}
+      </div>
 
-                if (dayOfMonth < 1 || dayOfMonth > daysInMonth) {
-                  return (
-                    <td key={dayOfWeek} className="p-0.5">
-                      <div className="h-9" />
-                    </td>
-                  );
-                }
-
-                const isPracticed = isPracticedDay(dayOfMonth);
-                const isTodayDay = isToday(dayOfMonth);
-
-                return (
-                  <td key={dayOfWeek} className="p-0.5">
-                    <button
-                      className={`
-                        w-full h-9 rounded border-2 transition-all duration-200 text-sm font-bold
-                        ${
-                          isPracticed
-                            ? 'bg-primary text-white border-textPrimary'
-                            : isTodayDay
-                            ? 'bg-primary/10 border-primary text-primary'
-                            : 'text-textSecondary border-transparent hover:border-primary/50 hover:bg-primary/5'
-                        }
-                      `}
-                      onClick={() => console.log(`Selected: ${dayOfMonth}`)}
-                      aria-label={`Date ${dayOfMonth}`}
-                    >
-                      {dayOfMonth}
-                    </button>
-                  </td>
-                );
-              })}
-            </tr>
+      {/* 달력 그리드 */}
+      <div className="grid grid-cols-7 gap-1 p-2">
+        {/* 빈 날짜들 */}
+        {Array(firstDayOfMonth)
+          .fill(null)
+          .map((_, index) => (
+            <div key={`empty-${index}`} className="h-10 w-full" />
           ))}
-        </tbody>
-      </table>
+
+        {/* 실제 날짜들 */}
+        {Array.from({ length: daysInMonth }, (_, dayIndex) => {
+          const dayOfMonth = dayIndex + 1;
+          const isPracticed = isPracticedDay(dayOfMonth);
+          const isTodayDay = isToday(dayOfMonth);
+
+          return (
+            <button
+              key={dayOfMonth}
+              className={`
+                h-10 w-full flex items-center justify-center rounded-lg border-2 transition-all duration-300 text-sm font-bold
+                focus:outline-none
+                ${
+                  isPracticed
+                    ? 'bg-success text-white border-success '
+                    : isTodayDay
+                    ? 'bg-accent border-accent text-white font-bold '
+                    : 'text-secondary border-transparent hover:bg-primary/5 hover:text-text-primary active:bg-primary/10'
+                }
+              `}
+              onClick={() => console.log(`Selected: ${dayOfMonth}`)}
+              aria-label={`Date ${dayOfMonth}, ${
+                isPracticed ? 'practiced' : isTodayDay ? 'today' : 'regular day'
+              }`}
+            >
+              {dayOfMonth}
+            </button>
+          );
+        })}
+
+        {/* 6주 완성 위해 빈 셀 채우기 */}
+        {Array(42 - (firstDayOfMonth + daysInMonth))
+          .fill(null)
+          .map((_, index) => (
+            <div key={`fill-${index}`} className="h-10 w-full" />
+          ))}
+      </div>
 
       {/* 범례 */}
-      <div className="px-4 py-3 border-t-2 border-textPrimary/10 bg-white">
+      <div className="p-3 border-t-2 border-border-subtle ">
         <div className="flex items-center justify-between text-xs">
           {/* 연습일 */}
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded border-2 border-textPrimary bg-primary" />
-            <span className="font-sans font-medium text-textPrimary">
-              Practice days ({practiceCount})
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-success border-2 border-success ">
+              <span className="text-white text-xs font-bold">✓</span>
+            </div>
+            <span className="font-sans font-medium text-text-primary">
+              Practice days
             </span>
           </div>
 
           {/* 오늘 */}
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded border-2 border-primary bg-primary/10" />
-            <span className="font-sans font-medium text-textPrimary">
+          <div className="flex items-center gap-3 font-display">
+            <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-accent border-2 border-accent ">
+              <span className="text-white text-xs font-bold">•</span>
+            </div>
+            <span className="font-sans font-medium text-text-primary">
               Today
             </span>
           </div>

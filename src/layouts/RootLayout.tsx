@@ -18,6 +18,10 @@ const NAV_ITEMS = [
 
 export function RootLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const location = useLocation();
+
+  // 연습 페이지('/talk')에서는 패딩을 적용하지 않음
+  const isTalkPage = location.pathname.startsWith('/talk');
 
   return (
     <div className="min-h-screen bg-bg-main font-sans text-text-primary">
@@ -85,7 +89,7 @@ export function RootLayout() {
           )}
         </header>
 
-        <main className="flex-1 p-2">
+        <main className={`flex-1 ${isTalkPage ? '' : 'p-2'}`}>
           <Outlet />
         </main>
 

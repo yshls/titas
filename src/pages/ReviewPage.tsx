@@ -16,7 +16,7 @@ type MissedWordItemProps = {
   word: string;
   count: number;
   rank: number;
-} & { errors: WeakSpot[] };
+};
 
 /**
  * 틀린 단어 항목 컴포넌트
@@ -101,7 +101,6 @@ function NoDataPlaceholder() {
 export function ReviewPage() {
   const practiceLogs = useAppStore((state) => state.practiceLogs);
   const navigate = useNavigate();
-  const [wordForPractice] = useState<string | null>(null);
   // 약점 단어 계산
   const missedWordCounts = useMemo(() => {
     const counts: Record<string, number> = {}; // 단어별 횟수 기록

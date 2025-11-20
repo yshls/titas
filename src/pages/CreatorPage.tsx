@@ -24,7 +24,6 @@ const SPEAKERS = [
 export function CreatorPage() {
   const navigate = useNavigate();
   const saveNewScript = useAppStore((state) => state.saveNewScript);
-  const currentScripts = useAppStore((state) => state.allScripts);
 
   const [activeSpeakerId, setActiveSpeakerId] = useState<string>(
     SPEAKERS[0].id

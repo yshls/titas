@@ -192,7 +192,7 @@ export function TalkPage() {
                 toast.dismiss(t.id);
                 handleRetryPractice();
               }}
-              className="flex-1 px-4 py-2 bg-accent text-white rounded-lg font-display font-bold text-sm hover:bg-accent/90"
+              className="flex-1 px-4 py-2 border border-accent bg-accent/20 text-accent rounded-lg font-display font-bold text-sm hover:bg-accent/30 whitespace-nowrap"
             >
               Retry
             </button>
@@ -201,7 +201,7 @@ export function TalkPage() {
                 toast.dismiss(t.id);
                 handleEndPractice();
               }}
-              className="flex-1 px-4 py-2 bg-primary text-white rounded-lg font-display font-bold text-sm hover:bg-primary/90"
+              className="flex-1 px-4 py-2 border border-primary bg-primary/20 text-primary rounded-lg font-display font-bold text-sm hover:bg-primary/30 whitespace-nowrap"
             >
               Save &amp; Exit
             </button>
@@ -209,7 +209,7 @@ export function TalkPage() {
         </div>
       ),
       {
-        duration: 10000, // 10초 후 자동 닫힘
+        duration: 10000,
         position: 'top-center',
       }
     );

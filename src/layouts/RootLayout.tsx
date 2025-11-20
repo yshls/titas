@@ -6,8 +6,9 @@ import {
   MdBarChart,
   MdMenu,
 } from 'react-icons/md';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
+import { useAppStore } from '@/store/appStore';
 
 const NAV_ITEMS = [
   { to: '/', text: 'Dashboard', icon: <MdDashboard /> },
@@ -17,6 +18,12 @@ const NAV_ITEMS = [
 ];
 
 export function RootLayout() {
+  const loadInitialData = useAppStore((state) => state.loadInitialData);
+
+  useEffect(() => {
+    loadInitialData();
+  }, [loadInitialData]);
+
   const [drawerOpen, setDrawerOpen] = useState(false);
   const location = useLocation();
 

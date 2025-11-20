@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useAppStore } from '@/store/appStore';
 import { useTitle } from '@/hooks/useTitle';
 import {
@@ -15,19 +15,9 @@ export function GrowthHubPage() {
 
   const allScripts = useAppStore((state) => state.allScripts);
   const practiceLogs = useAppStore((state) => state.practiceLogs);
-  const loadInitialData = useAppStore((state) => state.loadInitialData);
 
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
-
-  // 초기 데이터
-  useEffect(() => {
-    const hasUsedApp = localStorage.getItem('titas-storage');
-
-    if (allScripts.length === 0 && !hasUsedApp) {
-      loadInitialData();
-    }
-  }, [loadInitialData, allScripts.length]);
 
   const practicedDays = useMemo(() => {
     return practiceLogs.map((log) => new Date(log.date));

@@ -16,7 +16,7 @@ type MissedWordItemProps = {
   word: string;
   count: number;
   rank: number;
-};
+} & { errors: WeakSpot[] };
 
 /**
  * 틀린 단어 항목 컴포넌트
@@ -32,7 +32,7 @@ function MissedWordItem({ word, count, rank }: MissedWordItemProps) {
       >
         <div className="flex items-center gap-4 flex-1">
           <div className="shrink-0 w-10 h-10 rounded-lg border-2 border-border-default flex items-center justify-center bg-primary/10">
-            <span className="font-display text-lg font-black text-text-primary">
+            <span className="font-display text-lg font-black text-primary">
               {rank}
             </span>
           </div>
@@ -52,7 +52,7 @@ function MissedWordItem({ word, count, rank }: MissedWordItemProps) {
             >
               <MdVolumeUp
                 className={`w-5 h-5 transition-colors ${
-                  isSpeaking ? 'text-primary' : 'text-text-secondary'
+                  isSpeaking ? 'text-primary' : 'text-text-primary'
                 }`}
               />
             </button>

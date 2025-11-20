@@ -1,4 +1,4 @@
-import toast from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast';
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '@/store/appStore';
@@ -123,7 +123,7 @@ export function CreatorPage() {
 
   const activeSpeaker = SPEAKERS.find((s) => s.id === activeSpeakerId);
 
-  // 자동 스크롤
+  // 스크롤
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({
       behavior: 'smooth',
@@ -136,6 +136,7 @@ export function CreatorPage() {
       role="main"
       aria-label="Script creator"
     >
+      <Toaster position="top-center" />
       {/* 사이드바 */}
       <aside
         className="lg:w-80 shrink-0 space-y-4 flex flex-col "

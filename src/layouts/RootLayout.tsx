@@ -85,12 +85,12 @@ export function RootLayout() {
           )}
         </header>
 
-        <main className="flex-1 p-4">
+        <main className="flex-1 p-2">
           <Outlet />
         </main>
 
         <footer>
-          <p className="font-sans text-sm text-text-muted text-center py-4">
+          <p className="font-sans text-sm text-text-muted text-center py-2">
             © 2025 TiTaS. All rights reserved.
           </p>
         </footer>
@@ -99,7 +99,7 @@ export function RootLayout() {
   );
 }
 
-// 네비게이션 링크
+// 네비게이션
 function NavLink({
   to,
   text,

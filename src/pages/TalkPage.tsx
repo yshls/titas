@@ -117,7 +117,8 @@ export function TalkPage() {
         timestamp: Date.now(),
         original: part.status === 'removed' ? part.value : '',
         spoken: part.status === 'added' ? part.value : '',
-        scriptId: script[0]?.id || 'NEW_SESSION',
+        scriptId: location.state?.scriptId || 'NEW_SESSION',
+        lineContent: currentLine.originalLine,
       }));
     setSessionErrors((prev) => [...prev, ...newErrors]);
 

@@ -145,6 +145,15 @@ export function GrowthHubPage() {
 
       {/* 모바일 */}
       <div className="md:hidden space-y-6">
+        {/* 달력 */}
+        <CompactCalendar
+          practicedDays={practicedDays}
+          currentMonth={currentMonth}
+          currentYear={currentYear}
+          onPrevMonth={handlePrevMonth}
+          onNextMonth={handleNextMonth}
+        />
+
         {/* 통계 */}
         <div className="flex flex-col gap-4">
           <SquareStatCard
@@ -163,15 +172,6 @@ export function GrowthHubPage() {
             icon={<MdFormatListBulleted />}
           />
         </div>
-
-        {/* 달력 */}
-        <CompactCalendar
-          practicedDays={practicedDays}
-          currentMonth={currentMonth}
-          currentYear={currentYear}
-          onPrevMonth={handlePrevMonth}
-          onNextMonth={handleNextMonth}
-        />
 
         {/* 최근 활동 */}
         {practiceLogs.length > 0 ? (

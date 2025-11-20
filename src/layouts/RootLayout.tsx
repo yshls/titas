@@ -7,6 +7,7 @@ import {
   MdMenu,
 } from 'react-icons/md';
 import { useState } from 'react';
+import { Toaster } from 'react-hot-toast';
 
 const NAV_ITEMS = [
   { to: '/', text: 'Dashboard', icon: <MdDashboard /> },
@@ -20,6 +21,7 @@ export function RootLayout() {
 
   return (
     <div className="min-h-screen bg-bg-main font-sans text-text-primary">
+      <Toaster position="top-center" />
       <div className="w-full max-w-[1200px] mx-auto flex flex-col min-h-screen">
         <header className="border-border-default border-b-2 bg-bg-main">
           <div className="flex items-center justify-between px-3 py-2">

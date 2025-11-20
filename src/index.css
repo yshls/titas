@@ -9,21 +9,21 @@
   /* 배경 */
   --bg-main: #f2f1ed;
 
-  /* 주요 컬러 */
+  /* 색상 */
   --color-primary: #8b7355;
   --color-accent: #d95f2b;
   
-  /* Status */
+  /* 상태 */
   --color-success: #67b99a;
   --color-error: #db6b6b;
 
-  /* Border */
+  /* 테두리 */
   --color-border-subtle: #e8dcc8;
   --color-border-default: #c5b8a3;
   --color-border-strong: #b89e82;
   --color-border-dashed: #d4b89e;
 
-  /* Speaker 별 채색 */
+  /* 화자 */
   --color-speaker1: #e4e9f7;
   --color-speaker2: #d1efed;
   --color-speaker3: #ffe5c7;

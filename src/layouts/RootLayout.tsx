@@ -132,14 +132,15 @@ function NavLink({
       to={to}
       onClick={onClick}
       className={`
-        flex items-center gap-3 px-3 py-2 rounded-lg
+        flex items-center gap-3 rounded-lg
         transition-all duration-300
         font-display font-bold uppercase text-sm
         border-2
         focus:outline-none
+        ${isDrawer ? 'px-4 py-3' : 'px-3 py-2'}
         ${
           isActive
-            ? 'bg-primary/50 text-white border-border-strong'
+            ? 'bg-primary text-white border-primary'
             : 'bg-white text-primary border-border-default hover:bg-primary/10'
         }
       `}

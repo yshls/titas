@@ -20,8 +20,11 @@ export function GrowthHubPage() {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
+  // 초기 데이터
   useEffect(() => {
-    if (allScripts.length === 0) {
+    const hasUsedApp = localStorage.getItem('titas-storage');
+
+    if (allScripts.length === 0 && !hasUsedApp) {
       loadInitialData();
     }
   }, [loadInitialData, allScripts.length]);

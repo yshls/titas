@@ -25,16 +25,16 @@ export function RootLayout() {
       <div className="w-full max-w-[1200px] mx-auto flex flex-col min-h-screen">
         <header className="border-border-default border-b-2 bg-bg-main">
           <div className="flex items-center justify-between px-3 py-2">
-            {/* 로고 - 왼쪽 고정 */}
+            {/* 로고 */}
             <Link
               to="/"
-              className="flex items-center hover:scale-105 transition-all duration-200 focus:outline-none font-display text-2xl font-black text-accent"
+              className="flex items-center hover:scale-105 transition-all duration-200 focus:outline-none font-display text-4xl font-extrabold text-text-primary"
               aria-label="Go to dashboard"
             >
               TiTas
             </Link>
 
-            {/* 데스크탑 네비게이션 - 중앙~오른쪽 */}
+            {/* 데스크탑 메뉴 */}
             <nav
               className="hidden lg:flex items-center gap-3"
               aria-label="Main navigation"
@@ -44,7 +44,7 @@ export function RootLayout() {
               ))}
             </nav>
 
-            {/* 모바일 메뉴 버튼 - 오른쪽 */}
+            {/* 모바일 메뉴 버튼 */}
             <button
               className="lg:hidden p-2 rounded-md hover:bg-primary/10 "
               aria-label="Open menu"
@@ -55,7 +55,7 @@ export function RootLayout() {
             </button>
           </div>
 
-          {/* 모바일 드로어 */}
+          {/* 모바일 메뉴 */}
           {drawerOpen && (
             <div
               className="fixed inset-0 bg-black/30 z-50"
@@ -99,7 +99,7 @@ export function RootLayout() {
   );
 }
 
-// 내비게이션 링크
+// 네비게이션 링크
 function NavLink({
   to,
   text,
@@ -128,7 +128,7 @@ function NavLink({
         focus:outline-none
         ${
           isActive
-            ? 'bg-primary text-white border-primary'
+            ? 'bg-primary/50 text-white border-border-strong'
             : 'bg-white text-primary border-border-default hover:bg-primary/10'
         }
       `}

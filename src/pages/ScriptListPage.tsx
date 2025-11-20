@@ -114,11 +114,11 @@ export function ScriptListPage() {
 
   return (
     <div className="min-h-full" role="main" aria-label="Scripts library">
-      <header className="mb-6 flex items-baseline justify-between">
-        <h1 className="font-display text-4xl font-black text-accent uppercase">
+      <header className="mb-6 flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-4">
+        <h1 className="font-display text-3xl sm:text-4xl font-black text-accent uppercase text-center sm:text-left">
           My Scripts
         </h1>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center justify-center sm:justify-end gap-4">
           <div className="relative" ref={sortMenuRef}>
             <button
               onClick={() => setIsSortMenuOpen(!isSortMenuOpen)}
@@ -163,22 +163,25 @@ export function ScriptListPage() {
 
       {allScripts.length === 0 ? (
         <section
-          className="text-center py-16 px-6 bg-white rounded-2xl border-2 border-border-dashed"
+          className="text-center py-12 sm:py-16 px-4 sm:px-6 bg-white rounded-2xl border-2 border-border-dashed"
           role="status"
           aria-live="polite"
         >
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-primary border-2 border-border-default mb-4">
-            <MdLibraryBooks className="w-8 h-8 text-white" aria-hidden="true" />
+          <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-primary border-2 border-border-default mb-4">
+            <MdLibraryBooks
+              className="w-7 h-7 sm:w-8 sm:h-8 text-white"
+              aria-hidden="true"
+            />
           </div>
-          <h2 className="font-display text-2xl font-black text-accent mb-2 uppercase">
+          <h2 className="font-display text-xl sm:text-2xl font-black text-accent mb-2 uppercase">
             No Scripts Yet
           </h2>
-          <p className="font-sans text-base font-medium text-secondary mb-6 max-w-md mx-auto">
+          <p className="font-sans text-sm sm:text-base font-medium text-secondary mb-6 max-w-md mx-auto">
             Create your first practice script to get started!
           </p>
           <button
             onClick={() => navigate('/create')}
-            className="font-display inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl border-2 border-border-default font-bold uppercase text-sm transition-transform duration-300 focus:outline-none"
+            className="font-display inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 bg-primary text-white rounded-xl border-2 border-border-default font-bold uppercase text-sm transition-transform duration-300 focus:outline-none"
             aria-label="Create your first script"
           >
             <MdAdd className="w-5 h-5" aria-hidden="true" />
@@ -200,7 +203,7 @@ export function ScriptListPage() {
               role="listitem"
               aria-label={`Script: ${script.title}`}
             >
-              <div className="p-3 flex-1">
+              <div className="p-4 flex-1">
                 <h2 className="font-display text-lg font-black text-text-primary uppercase line-clamp-2 mb-2">
                   {script.title}
                 </h2>
@@ -212,7 +215,7 @@ export function ScriptListPage() {
                 </div>
               </div>
 
-              <div className="p-3 bg-primary/5 border-t-2 border-border-default flex items-center justify-between">
+              <div className="p-2 sm:p-3 bg-primary/5 border-t-2 border-border-default flex items-center justify-between">
                 <button
                   onClick={() => handlePracticeClick(script)}
                   className="font-display flex items-center justify-center gap-2 px-4 py-2 bg-primary/10 text-text-primary rounded-lg border-2 border-primary/20 font-bold uppercase text-sm hover:bg-primary/20 transition-all duration-300 focus:outline-none"

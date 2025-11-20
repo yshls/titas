@@ -20,7 +20,7 @@ export function RootLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const location = useLocation();
 
-  // 연습 페이지('/talk')에서는 패딩을 적용하지 않음
+  // 연습 페이지
   const isTalkPage = location.pathname.startsWith('/talk');
 
   return (

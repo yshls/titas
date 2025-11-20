@@ -1,30 +1,41 @@
 @import 'tailwindcss';
 
 @theme {
-  --font-family-sans: 'Inter', system-ui, sans-serif;
-  --font-family-display: 'Shantell Sans', cursive;
+  /* 폰트 */
+  --font-family-sans: 'Inter', system-ui, sans-serif;
+  --font-family-display: 'Shantell Sans', cursive;
 
-  --bg-main: #f4f1ec;
 
-  --color-primary: #a55f3e;
-  --color-accent: #b89e82;
+  /* 배경 */
+  --bg-main: #f2f1ed;
 
-  --color-success: #6ab78c;
+  /* 주요 컬러 */
+  --color-primary: #8b7355;
+  --color-accent: #d95f2b;
+  
+  /* Status */
+  --color-success: #67b99a;
   --color-error: #db6b6b;
 
+  /* Border */
+  --color-border-subtle: #e8dcc8;
+  --color-border-default: #c5b8a3;
+  --color-border-strong: #b89e82;
+  --color-border-dashed: #d4b89e;
+
+  /* Speaker 별 채색 */
   --color-speaker1: #e4e9f7;
   --color-speaker2: #d1efed;
   --color-speaker3: #ffe5c7;
   --color-speaker4: #ffeaea;
 
-  --bg-card: #faf9f7;
-  --border-default: #d4c8b0;
-  --border-strong: #b89e82;
-
-  --text-primary: #2c2a26;
-  --text-secondary: #6b655d;
-  --text-muted: #a8a098;
+  /* 텍스트 */
+  --color-text-primary: #2d3136;
+  --color-text-secondary: #7b7872;
+  --color-text-muted: #b7b7a8;
 }
+
+
 
 @layer base {
   body {
@@ -66,6 +77,9 @@
     background-color: var(--color-accent);
   }
 
+  .border-subtle {
+    border-color: var(--color-border-subtle);
+  }
   .border-default {
     border-color: var(--border-default);
   }
@@ -73,11 +87,14 @@
     border-color: var(--border-strong);
   }
 
-  .text-main {
+  .text-primary {
     color: var(--text-primary);
   }
-  .text-sub {
+  .text-secondary {
     color: var(--text-secondary);
+  }
+  .text-accent {
+    color: var(--color-accent);
   }
 
   .border-b-wavy {
@@ -112,7 +129,7 @@
     font-size: 0.875rem;
     font-weight: 500;
     text-transform: uppercase;
-    transition: all 0.15s ease;
+    transition: all 0.3s ease;
     outline: none;
     border: 2px solid var(--border-default);
     border-radius: 0.5rem;

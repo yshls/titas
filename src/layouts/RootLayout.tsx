@@ -21,29 +21,18 @@ export function RootLayout() {
   return (
     <div className="min-h-screen bg-bg-main font-sans text-text-primary">
       <div className="w-full max-w-[1200px] mx-auto flex flex-col min-h-screen">
-        {/* 헤더 */}
         <header className="border-text-primary border-b-2 bg-bg-main">
           <div className="flex items-center justify-between px-3 py-2">
-            {/* 모바일 메뉴버튼 */}
-            <button
-              className="lg:hidden p-2 rounded-md  hover:bg-primary/10 focus:ring-2 focus:ring-primary transition"
-              aria-label="Open menu"
-              onClick={() => setDrawerOpen(true)}
-              tabIndex={0}
-            >
-              <MdMenu className="w-7 h-7 text-primary" />
-            </button>
-
-            {/* 로고 */}
+            {/* 로고 - 왼쪽 고정 */}
             <Link
               to="/"
-              className="flex items-center hover:scale-105 transition-all duration-200 focus:outline-none font-display text-4xl font-black text-text-primary"
+              className="flex items-center hover:scale-105 transition-all duration-200 focus:outline-none font-display text-2xl font-black text-accent"
               aria-label="Go to dashboard"
             >
               TiTas
             </Link>
 
-            {/* 데스크탑 내비 */}
+            {/* 데스크탑 네비게이션 - 중앙~오른쪽 */}
             <nav
               className="hidden lg:flex items-center gap-3"
               aria-label="Main navigation"
@@ -52,6 +41,16 @@ export function RootLayout() {
                 <NavLink key={to} to={to} text={text} icon={icon} />
               ))}
             </nav>
+
+            {/* 모바일 메뉴 버튼 - 오른쪽 */}
+            <button
+              className="lg:hidden p-2 rounded-md hover:bg-primary/10 "
+              aria-label="Open menu"
+              onClick={() => setDrawerOpen(true)}
+              tabIndex={0}
+            >
+              <MdMenu className="w-7 h-7 text-primary" />
+            </button>
           </div>
 
           {/* 모바일 드로어 */}
@@ -84,12 +83,10 @@ export function RootLayout() {
           )}
         </header>
 
-        {/* 메인 컨텐츠 */}
         <main className="flex-1 p-4">
           <Outlet />
         </main>
 
-        {/* 푸터 */}
         <footer>
           <p className="font-sans text-sm text-text-muted text-center py-4">
             © 2025 TiTaS. All rights reserved.
@@ -130,7 +127,7 @@ function NavLink({
         ${
           isActive
             ? 'bg-primary text-white border-primary'
-            : 'bg-white text-primary border-default hover:bg-primary/10'
+            : 'bg-white text-primary border-border-default hover:bg-primary/10'
         }
       `}
       aria-current={isActive ? 'page' : undefined}

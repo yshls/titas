@@ -131,7 +131,7 @@ export function CreatorPage() {
 
   return (
     <div
-      className="flex flex-col lg:flex-row h-screen gap-4"
+      className="flex flex-col lg:flex-row gap-4"
       role="main"
       aria-label="Script creator"
     >
@@ -290,7 +290,7 @@ export function CreatorPage() {
           </div>
         </div>
       </aside>
-      <main className="flex-1 flex flex-col min-h-0">
+      <main className="flex-1 flex flex-col ">
         {/* 대화 목록 */}
         <div
           className="lg:mt-20

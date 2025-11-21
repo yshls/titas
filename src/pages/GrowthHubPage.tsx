@@ -1,6 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useAppStore, type AppState } from '@/store/appStore';
-import { Link } from 'react-router-dom';
 import { useTitle } from '@/hooks/useTitle';
 import type { PracticeLog, ScriptData } from '@/utils/types';
 import {

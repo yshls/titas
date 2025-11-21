@@ -104,8 +104,9 @@ export function TalkPage() {
   const processUserInput = (inputText: string) => {
     if (!currentLine || !isMyTurn || feedbackMap[currentLineIndex]) return;
 
+    // 비교 전, 원본 대사에서 문장 부호를 제거하여 정확도 향상
     const originalLineForDiff = currentLine.originalLine.replace(
-      /[.,\/#!$%\^&\*;:{}=\-_`~()]/g,
+      /[.,?!\/#!$%\^&\*;:{}=\-_`~()]/g,
       ''
     );
     const diffResult = checkWordDiff(originalLineForDiff, inputText);

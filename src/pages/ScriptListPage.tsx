@@ -64,13 +64,13 @@ export function ScriptListPage() {
                       setDeletingId(null);
                     }, 300);
                   }}
-                  className="w-full px-4 py-2 text-sm font-bold text-white uppercase bg-error rounded-lg"
+                  className="w-full px-3 py-2 text-sm font-bold text-white uppercase bg-error rounded-lg"
                 >
                   Delete
                 </button>
                 <button
                   onClick={() => toast.dismiss(t.id)}
-                  className="w-full px-4 py-2 text-sm font-bold text-text-secondary uppercase bg-gray-100 hover:bg-gray-200 rounded-lg"
+                  className="w-full px-3 py-2 text-sm font-bold text-text-secondary uppercase bg-gray-100 hover:bg-gray-200 rounded-lg"
                 >
                   Cancel
                 </button>
@@ -166,7 +166,7 @@ export function ScriptListPage() {
 
       {allScripts.length === 0 ? (
         <section
-          className="text-center py-12 sm:py-16 px-4 sm:px-6 bg-white rounded-2xl border-2 border-border-dashed"
+          className="text-center py-12 sm:py-16 px-3 sm:px-6 bg-white rounded-2xl border-2 border-border-dashed"
           role="status"
           aria-live="polite"
         >
@@ -206,7 +206,7 @@ export function ScriptListPage() {
               role="listitem"
               aria-label={`Script: ${script.title}`}
             >
-              <div className="p-4 flex-1">
+              <div className="p-3 flex-1">
                 <h2 className="font-display text-lg font-black text-text-primary uppercase line-clamp-2 mb-2">
                   {script.title}
                 </h2>
@@ -221,7 +221,7 @@ export function ScriptListPage() {
               <div className="p-2 sm:p-3 bg-primary/5 border-t-2 border-border-default flex items-center justify-between">
                 <button
                   onClick={() => handlePracticeClick(script)}
-                  className="font-display flex items-center justify-center gap-2 px-4 py-2 bg-primary/10 text-text-primary rounded-lg border-2 border-primary/20 font-bold uppercase text-sm hover:bg-primary/20 transition-all duration-300 focus:outline-none"
+                  className="font-display flex items-center justify-center gap-2 px-3 py-2 bg-primary/10 text-text-primary rounded-lg border-2 border-primary/20 font-bold uppercase text-sm hover:bg-primary/20 transition-all duration-300 focus:outline-none"
                   aria-label={`Start practicing ${script.title}`}
                 >
                   <MdPlayArrow className="w-5 h-5" aria-hidden="true" />

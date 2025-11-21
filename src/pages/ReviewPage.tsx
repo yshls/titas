@@ -69,7 +69,7 @@ function MissedWordItem({
           </div>
         </div>
 
-        <div className="flex items-center self-start sm:self-center gap-2 px-2 sm:px-4 py-1 sm:py-2 rounded-lg border-2 border-border-default bg-accent/10 sm:min-w-32">
+        <div className="flex items-center self-start sm:self-center gap-2 px-2 sm:px-3 py-1 sm:py-2 rounded-lg border-2 border-border-default bg-accent/10 sm:min-w-32">
           <MdTrendingDown
             className="w-4 h-4 sm:w-5 sm:h-5 text-accent"
             aria-hidden="true"
@@ -103,7 +103,7 @@ function NoDataPlaceholder() {
       </p>
       <Link
         to="/"
-        className="font-display inline-flex items-center gap-2 px-4 py-3 bg-primary text-white rounded-xl border-2 border-border-default font-bold uppercase transition-transform duration-300 focus:outline-none"
+        className="font-display inline-flex items-center gap-2 px-3 py-3 bg-primary text-white rounded-xl border-2 border-border-default font-bold uppercase transition-transform duration-300 focus:outline-none"
       >
         Start Practicing
       </Link>
@@ -152,7 +152,7 @@ export function ReviewPage() {
       </header>
 
       <div className="bg-white rounded-2xl border-2 border-border-default overflow-hidden">
-        <div className="p-4 border-b-2 border-border-default bg-primary ">
+        <div className="p-3 border-b-2 border-border-default bg-primary ">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-white rounded-xl border-2 border-border-default">
               <MdBarChart className="w-7 h-7 text-primary" aria-hidden="true" />
@@ -168,7 +168,7 @@ export function ReviewPage() {
           </div>
         </div>
 
-        <div className="p-4">
+        <div className="p-3">
           {missedWordCounts.length > 0 ? ( // 조건부 렌더링
             <ol className="space-y-4">
               {missedWordCounts.slice(0, TOP_WORDS_COUNT).map((item, index) => (

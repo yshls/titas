@@ -16,9 +16,9 @@ import {
 
 // 화자
 const SPEAKERS = [
-  { id: 'Speaker 1', hex: '#e4e9f7', name: 'Person A' },
-  { id: 'Speaker 2', hex: '#d1efed', name: 'Person B' },
-  { id: 'Speaker 3', hex: '#ffe5c7', name: 'Person C' },
+  { id: 'Speaker 1', hex: '#E2F0D9', name: 'Person A' },
+  { id: 'Speaker 2', hex: '#DAE8FC', name: 'Person B' },
+  { id: 'Speaker 3', hex: '#FFF2CC', name: 'Person C' },
 ];
 
 export function CreatorPage() {
@@ -170,7 +170,7 @@ export function CreatorPage() {
                 onBlur={() => setIsEditingTitle(false)}
                 onKeyDown={(e) => e.key === 'Enter' && setIsEditingTitle(false)}
                 placeholder="Untitled Script"
-                className="flex-1 min-w-0 px-4 py-2.5 rounded-xl border-2 border-border-default bg-white text-primary font-bold focus:outline-none "
+                className="flex-1 min-w-0 px-3 py-2.5 rounded-xl border-2 border-border-default bg-white text-primary font-bold focus:outline-none "
                 autoFocus
                 aria-label="Edit script title"
               />
@@ -185,7 +185,7 @@ export function CreatorPage() {
           ) : (
             <div
               onClick={() => setIsEditingTitle(true)}
-              className="w-full group flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary/10 hover:bg-primary/20 transition-colors duration-300 border-2 border-border-default cursor-pointer"
+              className="w-full group flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-primary/10 hover:bg-primary/20 transition-colors duration-300 border-2 border-border-default cursor-pointer"
               aria-label="Edit script title"
             >
               <span className="font-black text-accent">
@@ -265,7 +265,7 @@ export function CreatorPage() {
           <button
             onClick={handleSaveScript}
             disabled={scriptLines.length === 0}
-            className="w-full flex items-center justify-center gap-2 px-4 py-4 rounded-2xl bg-primary text-white border-2 border-border-default transition-colors duration-300 font-display font-black uppercase disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none"
+            className="w-full flex items-center justify-center gap-2 px-3 py-3 rounded-2xl bg-primary text-white border-2 border-border-default transition-colors duration-300 font-display font-black uppercase disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none"
             aria-label="Save script"
           >
             <MdSave className="w-6 h-6" aria-hidden="true" />
@@ -274,7 +274,7 @@ export function CreatorPage() {
           <button
             onClick={handleStartPractice}
             disabled={scriptLines.length === 0}
-            className="w-full flex items-center justify-center gap-2 px-4 py-4 rounded-2xl bg-white text-text-primary border-2 border-border-default transition-colors duration-300 font-display font-black uppercase disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none"
+            className="w-full flex items-center justify-center gap-2 px-3 py-3 rounded-2xl bg-white text-text-primary border-2 border-border-default transition-colors duration-300 font-display font-black uppercase disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none"
             aria-label="Start practice session"
           >
             <MdPlayArrow className="w-6 h-6" aria-hidden="true" />
@@ -412,7 +412,7 @@ export function CreatorPage() {
           <button
             onClick={handleSaveScript}
             disabled={scriptLines.length === 0}
-            className="w-full flex items-center justify-center gap-2 px-4 py-4 rounded-2xl bg-primary text-white border-2 border-border-default transition-colors duration-300 font-display font-black uppercase disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none"
+            className="w-full flex items-center justify-center gap-2 px-3 py-3 rounded-2xl bg-primary text-white border-2 border-border-default transition-colors duration-300 font-display font-black uppercase disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none"
             aria-label="Save script (mobile)"
           >
             <MdSave className="w-6 h-6" aria-hidden="true" />
@@ -421,7 +421,7 @@ export function CreatorPage() {
           <button
             onClick={handleStartPractice}
             disabled={scriptLines.length === 0}
-            className="w-full flex items-center justify-center gap-2 px-4 py-4 rounded-2xl bg-white text-text-primary border-2 border-border-default transition-colors duration-300 font-display font-black uppercase disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none"
+            className="w-full flex items-center justify-center gap-2 px-3 py-3 rounded-2xl bg-white text-text-primary border-2 border-border-default transition-colors duration-300 font-display font-black uppercase disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none"
             aria-label="Start practice session (mobile)"
           >
             <MdPlayArrow className="w-6 h-6" aria-hidden="true" />

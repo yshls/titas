@@ -154,7 +154,7 @@ function NavLink({
           font-display font-bold uppercase text-sm
           border-2
           focus:outline-none
-          ${isDrawer ? 'px-4 py-3' : 'px-3 py-2'}
+          ${isDrawer ? 'px-3 py-3' : 'px-3 py-2'}
           bg-white text-primary border-border-default hover:bg-primary/10
         `}
         tabIndex={0}
@@ -175,7 +175,7 @@ function NavLink({
         font-display font-bold uppercase text-sm
         border-2
         focus:outline-none
-        ${isDrawer ? 'px-4 py-3' : 'px-3 py-2'}
+        ${isDrawer ? 'px-3 py-3' : 'px-3 py-2'}
         ${
           isActive
             ? 'bg-primary/50 text-white border-primary'

@@ -198,7 +198,7 @@ export function TalkPage() {
                 toast.dismiss(t.id);
                 handleRetryPractice();
               }}
-              className="flex-1 px-4 py-2 border border-accent bg-accent/20 text-accent rounded-lg font-display font-bold text-sm hover:bg-accent/30 whitespace-nowrap"
+              className="flex-1 px-3 py-2 border border-accent bg-accent/20 text-accent rounded-lg font-display font-bold text-sm hover:bg-accent/30 whitespace-nowrap"
             >
               Retry
             </button>
@@ -207,7 +207,7 @@ export function TalkPage() {
                 toast.dismiss(t.id);
                 handleEndPractice();
               }}
-              className="flex-1 px-4 py-2 border border-primary bg-primary/20 text-primary rounded-lg font-display font-bold text-sm hover:bg-primary/30 whitespace-nowrap"
+              className="flex-1 px-3 py-2 border border-primary bg-primary/20 text-primary rounded-lg font-display font-bold text-sm hover:bg-primary/30 whitespace-nowrap"
             >
               Save &amp; Exit
             </button>
@@ -282,7 +282,7 @@ export function TalkPage() {
       <Toaster position="top-center" />
 
       {/* 상단 바 */}
-      <div className="bg-border-subtle/30 border-b px-4 border-border-default py-2 flex-shrink-0">
+      <div className="bg-border-subtle/30 border-b px-3 border-border-default py-2 flex-shrink-0">
         <div className="mx-auto flex flex-wrap items-center justify-between gap-y-2">
           {/* 왼쪽: Speaker 라디오 버튼 그룹 */}
           <div className="flex items-center gap-3">
@@ -342,7 +342,7 @@ export function TalkPage() {
       {/* 대화 */}
       <div
         ref={chatContainerRef}
-        className="flex-1 overflow-y-auto  py-4 px-2"
+        className="flex-1 overflow-y-auto  py-3 px-2"
         style={{ maxHeight: 'calc(100vh - 200px)' } as React.CSSProperties}
       >
         <div className="mx-auto space-y-3">
@@ -415,7 +415,7 @@ export function TalkPage() {
       </div>
 
       {/* 하단 */}
-      <div className="bg-bg-main border-t-2 border-border-default px-4 py-4 flex-shrink-0">
+      <div className="bg-bg-main border-t-2 border-border-default p-3 flex-shrink-0">
         <div className="max-w-4xl mx-auto">
           {inputMode === 'keyboard' && (
             <div className="mb-4 flex gap-3">
@@ -429,7 +429,7 @@ export function TalkPage() {
                     ? 'Type your line here...'
                     : 'Please wait...'
                 }
-                className="flex-1 px-4 py-3 border-2 border-border-default rounded-xl focus:outline-none focus:ring-1 focus:ring-border-strong focus:border-ring-border-strong text-sm bg-white"
+                className="flex-1 px-3 py-3 border-2 border-border-default rounded-xl focus:outline-none focus:ring-1 focus:ring-border-strong focus:border-ring-border-strong text-sm bg-white"
                 autoFocus
                 disabled={!isMyTurn || !!feedbackMap[currentLineIndex]}
               />

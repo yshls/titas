@@ -89,7 +89,7 @@ function MissedWordItem({
 function NoDataPlaceholder() {
   return (
     <div className="text-center py-12">
-      <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary/10 border-2 border-border-default mb-6">
+      <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary/10 border-2 border-border-default mb-3">
         <MdBarChart
           className="w-10 h-10 text-text-primary"
           aria-hidden="true"
@@ -98,7 +98,7 @@ function NoDataPlaceholder() {
       <h3 className="font-display text-2xl font-black text-accent mb-3 uppercase">
         No Data Yet
       </h3>
-      <p className="font-sans text-lg font-medium text-text-secondary mb-6">
+      <p className="font-sans text-lg font-medium text-text-secondary mb-3">
         No weakness data yet. Keep practicing!
       </p>
       <Link

@@ -104,7 +104,11 @@ export function TalkPage() {
   const processUserInput = (inputText: string) => {
     if (!currentLine || !isMyTurn || feedbackMap[currentLineIndex]) return;
 
-    const diffResult = checkWordDiff(currentLine.originalLine, inputText);
+    const originalLineForDiff = currentLine.originalLine.replace(
+      /[.,\/#!$%\^&\*;:{}=\-_`~()]/g,
+      ''
+    );
+    const diffResult = checkWordDiff(originalLineForDiff, inputText);
     setFeedbackMap((prev) => ({ ...prev, [currentLineIndex]: diffResult }));
     setUserInputMap((prev) => ({ ...prev, [currentLineIndex]: inputText }));
     setShowHint(false);

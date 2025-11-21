@@ -140,7 +140,7 @@ function NavLink({
         ${isDrawer ? 'px-4 py-3' : 'px-3 py-2'}
         ${
           isActive
-            ? 'bg-primary text-white border-primary'
+            ? 'bg-primary/50 text-white border-primary'
             : 'bg-white text-primary border-border-default hover:bg-primary/10'
         }
       `}

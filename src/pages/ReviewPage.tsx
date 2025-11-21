@@ -48,7 +48,7 @@ function MissedWordItem({
           </div>
 
           <div className="min-w-0 flex items-center gap-2">
-            <span className="font-display text-lg sm:text-xl font-black text-text-primary uppercase block">
+            <span className="font-display text-lg sm:text-xl font-bold text-text-primary  block">
               {word}
             </span>
             <button
@@ -74,7 +74,7 @@ function MissedWordItem({
             className="w-4 h-4 sm:w-5 sm:h-5 text-accent"
             aria-hidden="true"
           />
-          <span className="font-display text-sm sm:text-lg font-black text-text-primary">
+          <span className="font-display text-sm sm:text-lg font-bold text-text-primary">
             {count} {count === 1 ? 'miss' : 'misses'}
           </span>
         </div>

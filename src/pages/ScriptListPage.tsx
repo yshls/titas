@@ -117,7 +117,7 @@ export function ScriptListPage() {
 
   return (
     <div className="min-h-full" role="main" aria-label="Scripts library">
-      <header className="mb-6 flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-4">
+      <header className="mb-3 flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-4">
         <h1 className="font-display text-3xl sm:text-4xl font-black text-accent uppercase text-center sm:text-left">
           My Scripts
         </h1>
@@ -179,7 +179,7 @@ export function ScriptListPage() {
           <h2 className="font-display text-xl sm:text-2xl font-black text-accent mb-2 uppercase">
             No Scripts Yet
           </h2>
-          <p className="font-sans text-sm sm:text-base font-medium text-secondary mb-6 max-w-md mx-auto">
+          <p className="font-sans text-sm sm:text-base font-medium text-secondary mb-3 max-w-md mx-auto">
             Create your first practice script to get started!
           </p>
           <button
@@ -207,7 +207,7 @@ export function ScriptListPage() {
               aria-label={`Script: ${script.title}`}
             >
               <div className="p-3 flex-1">
-                <h2 className="font-display text-lg font-black text-text-primary uppercase line-clamp-2 mb-2">
+                <h2 className="font-display text-lg font-bold text-text-primary line-clamp-2 mb-2">
                   {script.title}
                 </h2>
                 <div className="flex items-center gap-2 text-xs text-text-secondary font-medium">
@@ -221,7 +221,7 @@ export function ScriptListPage() {
               <div className="p-2 sm:p-3 bg-primary/5 border-t-2 border-border-default flex items-center justify-between">
                 <button
                   onClick={() => handlePracticeClick(script)}
-                  className="font-display flex items-center justify-center gap-2 px-3 py-2 bg-primary/10 text-text-primary rounded-lg border-2 border-primary/20 font-bold uppercase text-sm hover:bg-primary/20 transition-all duration-300 focus:outline-none"
+                  className="font-display flex items-center justify-center gap-2 px-3 py-2 bg-primary/10 text-text-primary rounded-lg border-2 border-primary/20 font-semibold uppercase text-sm hover:bg-primary/20 transition-all duration-300 focus:outline-none"
                   aria-label={`Start practicing ${script.title}`}
                 >
                   <MdPlayArrow className="w-5 h-5" aria-hidden="true" />

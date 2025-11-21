@@ -1,48 +1,47 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 const synth = window.speechSynthesis;
 
 export function useTTS() {
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
 
-  // 언마운트 시 음성 중단
+  const populateVoiceList = useCallback(() => {
+    if (synth) {
+      setVoices(synth.getVoices());
+    }
+  }, []);
+
   useEffect(() => {
+    populateVoiceList();
+    if (synth && synth.onvoiceschanged !== undefined) {
+      synth.onvoiceschanged = populateVoiceList;
+    }
     return () => {
       if (synth) {
         synth.cancel();
       }
     };
-  }, []);
+  }, [populateVoiceList]);
 
-  /**
-   * 텍스트 음성 재생
-   * @param text 변환할 텍스트
-   * @param onEnd 재생 완료 콜백
-   */
-
-  const speak = (text: string, onEnd?: () => void) => {
+  const speak = (text: string, voiceURI: string | null, onEnd?: () => void) => {
     if (!synth || isSpeaking) return;
     if (text.trim() === '') return;
 
     const utterance = new SpeechSynthesisUtterance(text);
-
     utterance.lang = 'en-US';
 
-    utterance.onstart = () => {
-      setIsSpeaking(true);
-    };
+    if (voiceURI) {
+      const selectedVoice = voices.find((v) => v.voiceURI === voiceURI);
+      if (selectedVoice) utterance.voice = selectedVoice;
+    }
 
+    utterance.onstart = () => setIsSpeaking(true);
     utterance.onend = () => {
       setIsSpeaking(false);
-      if (onEnd) {
-        onEnd();
-      }
+      onEnd?.();
     };
-
-    utterance.onerror = (event: SpeechSynthesisErrorEvent) => {
-      console.error('Speech Synthesis Error:', event.error);
-      setIsSpeaking(false);
-    };
+    utterance.onerror = () => setIsSpeaking(false);
 
     synth.speak(utterance);
   };
@@ -50,5 +49,6 @@ export function useTTS() {
   return {
     speak,
     isSpeaking,
+    voices,
   };
 }

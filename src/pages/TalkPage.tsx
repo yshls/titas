@@ -8,7 +8,13 @@ import { useTTS } from '@/utils/useTTS';
 import { useSpeechRecognition } from '@/utils/useSpeechRecognition';
 import { useAppStore } from '@/store/appStore';
 import { FiMic } from 'react-icons/fi';
-import { MdKeyboard, MdLightbulb, MdSend, MdPerson } from 'react-icons/md';
+import {
+  MdKeyboard,
+  MdLightbulb,
+  MdSend,
+  MdPerson,
+  MdRecordVoiceOver,
+} from 'react-icons/md';
 
 export function TalkPage() {
   const location = useLocation();
@@ -46,9 +52,15 @@ export function TalkPage() {
   const [typedInput, setTypedInput] = useState('');
   const [showHint, setShowHint] = useState(false);
   const [sessionErrors, setSessionErrors] = useState<WeakSpot[]>([]);
+  const [selectedVoiceURI, setSelectedVoiceURI] = useState<string | null>(null);
 
   const { transcript, isListening, startListening } = useSpeechRecognition();
-  const { speak, isSpeaking } = useTTS();
+  const { speak, isSpeaking, voices } = useTTS();
+
+  const englishVoices = useMemo(
+    () => voices.filter((v: SpeechSynthesisVoice) => v.lang.startsWith('en-')),
+    [voices]
+  );
 
   const currentLine = script[currentLineIndex];
   const isFinished = currentLineIndex >= script.length;
@@ -79,7 +91,7 @@ export function TalkPage() {
       isPracticeStarted &&
       !isFinished
     ) {
-      speak(currentLine.originalLine, () => {
+      speak(currentLine.originalLine, selectedVoiceURI, () => {
         setCurrentLineIndex((prev) => prev + 1);
       });
     }
@@ -91,6 +103,7 @@ export function TalkPage() {
     isPracticeStarted,
     isFinished,
     speak,
+    selectedVoiceURI,
   ]);
 
   useEffect(() => {
@@ -292,7 +305,7 @@ export function TalkPage() {
                 }}
                 className="flex items-center gap-1 focus:outline-none"
                 role="radio"
-                aria-checked={userSpeakerId === id}
+                aria-checked={userSpeakerId === id ? 'true' : 'false'}
                 aria-label={`Select ${id}`}
                 tabIndex={0}
               >
@@ -325,6 +338,27 @@ export function TalkPage() {
               </button>
             ))}
           </div>
+
+          {/* 음성 선택 */}
+          <div className="flex items-center gap-2">
+            <MdRecordVoiceOver className="w-4 h-4 text-text-secondary" />
+            <select
+              value={selectedVoiceURI || ''}
+              onChange={(e) => setSelectedVoiceURI(e.target.value)}
+              className="bg-transparent text-xs font-bold text-text-secondary focus:outline-none"
+              aria-label="Select TTS voice"
+            >
+              <option value="" disabled>
+                Default Voice
+              </option>
+              {englishVoices.map((voice: SpeechSynthesisVoice) => (
+                <option key={voice.voiceURI} value={voice.voiceURI}>
+                  {voice.name} ({voice.lang})
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* 오른쪽: 진행 정보 */}
           <div className="flex items-center gap-2 text-xs text-text-secondary font-sans">
             <span className="font-bold shrink-0">Role: {userSpeakerId}</span>

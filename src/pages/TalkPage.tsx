@@ -15,6 +15,8 @@ import {
   MdSend,
   MdPerson,
   MdRecordVoiceOver,
+  MdReplay,
+  MdClose,
 } from 'react-icons/md';
 
 export function TalkPage() {
@@ -54,6 +56,11 @@ export function TalkPage() {
   const [showHint, setShowHint] = useState(false);
   const [sessionErrors, setSessionErrors] = useState<WeakSpot[]>([]);
   const [selectedVoiceURI, setSelectedVoiceURI] = useState<string | null>(null);
+  const [showResultModal, setShowResultModal] = useState(false);
+  const [practiceResult, setPracticeResult] = useState<{
+    accuracy: number;
+    timeSpent: number;
+  } | null>(null);
 
   const { transcript, isListening, startListening } = useSpeechRecognition();
   const { speak, isSpeaking, voices } = useTTS();
@@ -160,17 +167,43 @@ export function TalkPage() {
   };
 
   const handleEndPractice = () => {
+    // 정확도 계산
+    const userLines = Object.keys(feedbackMap).map(Number);
+    let totalCorrectWords = 0;
+    let totalWordsInSpokenLines = 0;
+
+    userLines.forEach((lineIndex) => {
+      const diff = feedbackMap[lineIndex];
+      if (diff) {
+        totalCorrectWords += diff.filter(
+          (part) => part.status === 'correct'
+        ).length;
+        totalWordsInSpokenLines += diff.filter(
+          (part) => part.status !== 'added'
+        ).length;
+      }
+    });
+
+    const finalAccuracy =
+      totalWordsInSpokenLines > 0
+        ? Math.round((totalCorrectWords / totalWordsInSpokenLines) * 100)
+        : 0;
+
+    const timeSpent = Math.floor((Date.now() - sessionStartTime) / 1000);
+
     const newLogEntry: PracticeLog = {
       id: crypto.randomUUID(),
       date: Date.now(),
       scriptId: location.state?.scriptId || 'NEW_SESSION',
-      accuracy: 0,
-      timeSpent: Math.floor((Date.now() - sessionStartTime) / 1000),
+      accuracy: finalAccuracy,
+      timeSpent: timeSpent,
       errors: sessionErrors,
     };
     addNewPracticeLog(newLogEntry);
-    toast.success('Practice saved!', { duration: 2000, icon: '✅' });
-    setTimeout(() => navigate('/'), 2000);
+
+    // 결과 모달을 위한 상태 업데이트
+    setPracticeResult({ accuracy: finalAccuracy, timeSpent: timeSpent });
+    setShowResultModal(true);
   };
 
   const handleStartPractice = (speakerId: string) => {
@@ -185,6 +218,7 @@ export function TalkPage() {
     setUserInputMap({});
     setSessionStartTime(Date.now());
     setSessionErrors([]);
+    setShowResultModal(false);
   };
 
   const handleRetryPractice = () => {
@@ -193,43 +227,12 @@ export function TalkPage() {
     setUserInputMap({});
     setSessionStartTime(Date.now());
     setSessionErrors([]);
+    setShowResultModal(false);
     toast('Restarting...', { icon: '🔄', duration: 1500 });
   };
 
   const handleCompletePractice = () => {
-    toast(
-      (t) => (
-        <div className="flex flex-col gap-3 p-2">
-          <p className="font-display font-bold text-text-primary text-center">
-            Practice Complete! 🎉
-          </p>
-          <div className="flex gap-2">
-            <button
-              onClick={() => {
-                toast.dismiss(t.id);
-                handleRetryPractice();
-              }}
-              className="flex-1 px-3 py-2 border border-accent bg-accent/20 text-accent rounded-lg font-display font-bold text-sm hover:bg-accent/30 whitespace-nowrap"
-            >
-              Retry
-            </button>
-            <button
-              onClick={() => {
-                toast.dismiss(t.id);
-                handleEndPractice();
-              }}
-              className="flex-1 px-3 py-2 border border-primary bg-primary/20 text-primary rounded-lg font-display font-bold text-sm hover:bg-primary/30 whitespace-nowrap"
-            >
-              Save &amp; Exit
-            </button>
-          </div>
-        </div>
-      ),
-      {
-        duration: 10000,
-        position: 'top-center',
-      }
-    );
+    handleEndPractice(); // 연습이 끝나면 바로 저장 및 결과 계산
   };
 
   useEffect(() => {
@@ -290,6 +293,67 @@ export function TalkPage() {
 
   return (
     <div className="h-screen flex flex-col bg-bg-main ">
+      {/* 결과 모달 */}
+      {showResultModal && practiceResult && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="relative bg-white rounded-2xl p-6 sm:p-8 text-center max-w-sm w-full animate-enter">
+            <button
+              onClick={() => setShowResultModal(false)}
+              className="absolute top-3 right-3 p-1 rounded-full hover:bg-gray-100 transition-colors"
+              aria-label="Close results and review conversation"
+            >
+              <MdClose className="w-6 h-6 text-text-secondary" />
+            </button>
+            <h2 className="font-display text-3xl font-black text-accent uppercase mb-2">
+              Practice Complete!
+            </h2>
+            <p className="text-text-secondary mb-3">
+              Well done! Here are your results.
+            </p>
+
+            <div className="grid grid-cols-2 gap-4 mb-8">
+              {/* 정확도 */}
+              <div className="flex flex-col items-center justify-center bg-primary/5 p-4 rounded-xl border-2 border-border-default">
+                <p className="font-display text-4xl font-black text-success">
+                  {practiceResult.accuracy}%
+                </p>
+                <p className="text-xs font-bold text-text-secondary uppercase mt-1">
+                  Accuracy
+                </p>
+              </div>
+              {/* 소요 시간 */}
+              <div className="flex flex-col items-center justify-center bg-primary/5 p-4 rounded-xl border-2 border-border-default">
+                <p className="font-display text-4xl font-black text-primary">
+                  {Math.floor(practiceResult.timeSpent / 60)}
+                  <span className="text-2xl">m</span>{' '}
+                  {practiceResult.timeSpent % 60}
+                  <span className="text-2xl">s</span>
+                </p>
+                <p className="text-xs font-bold text-text-secondary uppercase mt-1">
+                  Time Spent
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={handleRetryPractice}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-accent/10 text-accent rounded-xl border-2 border-border-default font-bold uppercase text-sm"
+              >
+                <MdReplay className="w-5 h-5" />
+                Retry
+              </button>
+              <button
+                onClick={() => navigate('/scripts')}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary text-white rounded-xl border-2 border-border-default font-bold uppercase text-sm"
+              >
+                Back to List
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Toaster position="top-center" />
 
       {/* 상단 바 */}

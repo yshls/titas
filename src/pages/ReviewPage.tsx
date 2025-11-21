@@ -3,12 +3,7 @@ import { useAppStore } from '@/store/appStore';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTTS } from '@/utils/useTTS';
 import type { WeakSpot } from '@/utils/types';
-import {
-  MdTrendingDown,
-  MdBarChart,
-  MdPlayArrow,
-  MdVolumeUp,
-} from 'react-icons/md';
+import { MdTrendingDown, MdBarChart, MdVolumeUp } from 'react-icons/md';
 
 const TOP_WORDS_COUNT = 10; // 표시할 상위 단어 개수
 
@@ -37,7 +32,7 @@ function MissedWordItem({
       onClick={onClick}
       className={`bg-white rounded-xl border-2 transition-all duration-200 hover:scale-[1.02] cursor-pointer ${
         isSelected
-          ? 'border-primary ring-2 ring-primary'
+          ? 'border-primary ring-1 ring-primary'
           : 'border-border-default'
       }`}
     >
@@ -128,7 +123,13 @@ export function ReviewPage() {
 
     const missedWords = allErrors
       .filter((error) => error.original)
-      .map((error) => error.original.toLowerCase().trim());
+      .map((error) =>
+        error.original
+          .toLowerCase()
+          .trim()
+          .replace(/[.,?!]+$/, '')
+      )
+      .filter(Boolean); // 빈 문자열이 된 항목 제거
 
     for (const word of missedWords) {
       // 단어 횟수 계산
@@ -166,34 +167,6 @@ export function ReviewPage() {
             </div>
           </div>
         </div>
-
-        {wordForPractice && (
-          <div className="p-4 bg-primary/5 border-t-2 border-border-default">
-            <button
-              onClick={() => {
-                const sentencesToPractice = practiceLogs
-                  .flatMap((log) => log.errors)
-                  .filter(
-                    (e): e is WeakSpot & { lineContent: string } =>
-                      typeof (e as any).lineContent === 'string' &&
-                      (e as any).original?.toLowerCase().trim() ===
-                        wordForPractice.toLowerCase()
-                  )
-                  .map((e) => ({
-                    id: e.id,
-                    originalLine: e.lineContent,
-                    speakerId: 'Practice',
-                  }));
-
-                navigate('/talk', { state: { lines: sentencesToPractice } }); // 연습 페이지로 이동
-              }}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary text-white rounded-xl font-bold uppercase text-sm hover:bg-primary/90 transition-colors"
-            >
-              <MdPlayArrow className="w-5 h-5" />
-              Practice Sentences for "{wordForPractice}"
-            </button>
-          </div>
-        )}
 
         <div className="p-4">
           {missedWordCounts.length > 0 ? ( // 조건부 렌더링

@@ -5,7 +5,7 @@ import {
   MdLibraryBooks,
   MdBarChart,
   MdMenu,
-  MdOutlineEmail,
+  MdOutlineFeedback,
 } from 'react-icons/md';
 import { useEffect, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
@@ -100,12 +100,14 @@ export function RootLayout() {
           <div className="font-sans text-xs text-text-muted text-center py-6 space-y-2">
             <p>© 2025 TiTaS. All rights reserved.</p>
             <a
-              href="mailto:shluxnsal01@gmail.com"
+              href="https://forms.gle/ijjHBFn7TQ3FYico7"
               className="inline-flex items-center gap-1.5 text-text-secondary hover:text-primary transition-colors group"
+              target="_blank"
+              rel="noopener noreferrer"
             >
-              <MdOutlineEmail className="w-4 h-4" />
+              <MdOutlineFeedback className="w-4 h-4" />
               <span className="font-bold group-hover:underline">
-                피드백 보내기
+                피드백 남기기
               </span>
             </a>
           </div>
@@ -131,34 +133,6 @@ function NavLink({
 }) {
   const location = useLocation();
   const isActive = location.pathname === to;
-
-  // 피드백 이메일 링크
-  const subject = encodeURIComponent('[TiTaS 피드백/문의]');
-  const body = encodeURIComponent(
-    `안녕하세요, TiTaS 팀.\n서비스에 대한 소중한 의견을 남겨주셔서 감사합니다.\n\n\n- 피드백 유형: (예: 버그 리포트, 기능 제안, 칭찬, 기타)\n\n- 내용:\n\n\n`
-  );
-  const mailtoLink = `mailto:shluxnsal01@gmail.com?subject=${subject}&body=${body}`;
-
-  if (to === 'feedback') {
-    return (
-      <a
-        href={mailtoLink}
-        className={`
-          flex items-center gap-3 rounded-lg
-          transition-all duration-300
-          font-display font-bold uppercase text-sm
-          border
-          focus:outline-none
-          ${isDrawer ? 'px-3 py-3' : 'px-3 py-2'}
-          bg-white text-primary border-border-default hover:bg-primary/10
-        `}
-        tabIndex={0}
-      >
-        <span className="text-primary">{icon}</span>
-        <span>{text}</span>
-      </a>
-    );
-  }
 
   return (
     <Link

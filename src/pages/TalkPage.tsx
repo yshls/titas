@@ -46,7 +46,6 @@ export function TalkPage() {
   const [typedInput, setTypedInput] = useState('');
   const [showHint, setShowHint] = useState(false);
   const [sessionErrors, setSessionErrors] = useState<WeakSpot[]>([]);
-  const [showSpeakerSelector, setShowSpeakerSelector] = useState(false);
 
   const { transcript, isListening, startListening } = useSpeechRecognition();
   const { speak, isSpeaking } = useTTS();
@@ -54,7 +53,6 @@ export function TalkPage() {
   const currentLine = script[currentLineIndex];
   const isFinished = currentLineIndex >= script.length;
   const isMyTurn = currentLine?.speakerId === userSpeakerId;
-  const progress = (currentLineIndex / script.length) * 100;
 
   const DIFF_COLOR_MAP = {
     correct: 'text-success font-bold',
@@ -173,7 +171,6 @@ export function TalkPage() {
     setUserInputMap({});
     setSessionStartTime(Date.now());
     setSessionErrors([]);
-    setShowSpeakerSelector(false);
   };
 
   const handleRetryPractice = () => {

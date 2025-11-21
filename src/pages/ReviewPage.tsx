@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useAppStore } from '@/store/appStore';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useTTS } from '@/utils/useTTS';
 import type { WeakSpot } from '@/utils/types';
 import { MdTrendingDown, MdBarChart, MdVolumeUp } from 'react-icons/md';
@@ -113,7 +113,6 @@ function NoDataPlaceholder() {
 
 export function ReviewPage() {
   const practiceLogs = useAppStore((state) => state.practiceLogs);
-  const navigate = useNavigate();
   const [wordForPractice, setWordForPractice] = useState<string | null>(null);
   // 약점 단어 계산
   const missedWordCounts = useMemo(() => {

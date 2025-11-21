@@ -44,7 +44,7 @@ export function ScriptListPage() {
         <div
           className={`${
             t.visible ? 'animate-enter' : 'animate-leave'
-          } max-w-md w-full bg-white shadow-lg rounded-2xl pointer-events-auto flex ring-1 ring-border-default ring-opacity-5 p-4`}
+          } max-w-md w-full bg-white shadow-lg rounded-2xl pointer-events-auto flex  p-3`}
         >
           <div className="flex-1 w-0">
             <div className="flex flex-col items-center text-center">
@@ -59,7 +59,10 @@ export function ScriptListPage() {
                   onClick={() => {
                     setDeletingId(scriptId);
                     toast.dismiss(t.id);
-                    setTimeout(() => deleteScript(scriptId), 300);
+                    setTimeout(() => {
+                      deleteScript(scriptId);
+                      setDeletingId(null); // 애니메이션 상태 초기화
+                    }, 300);
                   }}
                   className="w-full px-4 py-2 text-sm font-bold text-white uppercase bg-error rounded-lg"
                 >

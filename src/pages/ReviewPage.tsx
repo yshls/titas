@@ -143,7 +143,7 @@ export function ReviewPage() {
   }, [practiceLogs]);
 
   return (
-    <div className="min-h-full p-2 sm:p-4">
+    <div className="min-h-full">
       <header className="mb-4 text-center md:text-left">
         <h1 className="font-display text-4xl font-black text-accent uppercase">
           My Weak Spots

@@ -17,7 +17,6 @@ const NAV_ITEMS = [
   { to: '/scripts', text: 'Scripts', icon: <MdLibraryBooks /> },
   { to: '/review', text: 'Review', icon: <MdBarChart /> },
 ];
-
 export function RootLayout() {
   const loadInitialData = useAppStore((state) => state.loadInitialData);
 
@@ -27,17 +26,14 @@ export function RootLayout() {
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const location = useLocation();
-
-  // 연습 페이지
   const isTalkPage = location.pathname.startsWith('/talk');
 
   return (
     <div className="min-h-screen bg-bg-main font-sans text-text-primary">
       <Toaster position="top-center" />
-      <div className="w-full max-w-[1200px] mx-auto flex flex-col min-h-screen">
+      <div className="w-full max-w-[1200px] mx-auto flex flex-col min-h-dvh">
         <header className="border-border-default border-b-2 bg-bg-main">
           <div className="flex items-center justify-between px-3 py-2">
-            {/* 로고 */}
             <Link
               to="/"
               className="flex items-center hover:scale-105 transition-all duration-200 focus:outline-none"
@@ -46,7 +42,6 @@ export function RootLayout() {
               <img src="/titas_logo.png" alt="TiTaS Logo" className="h-8" />
             </Link>
 
-            {/* 데스크탑 메뉴 */}
             <nav
               className="hidden lg:flex items-center gap-3"
               aria-label="Main navigation"
@@ -56,7 +51,6 @@ export function RootLayout() {
               ))}
             </nav>
 
-            {/* 모바일 메뉴 버튼 */}
             <button
               className="lg:hidden p-2 rounded-md hover:bg-primary/10 "
               aria-label="Open menu"
@@ -67,7 +61,6 @@ export function RootLayout() {
             </button>
           </div>
 
-          {/* 모바일 메뉴 */}
           {drawerOpen && (
             <div
               className="fixed inset-0 bg-black/30 z-50"

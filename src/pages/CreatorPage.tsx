@@ -90,18 +90,21 @@ export function CreatorPage() {
             <div className="flex mt-4 gap-2">
               <button
                 onClick={() => {
-                  navigate('/talk/practice', {
-                    state: { lines: newScript.lines },
+                  navigate(`/talk/${newScript.id}`, {
+                    state: { lines: newScript.lines, scriptId: newScript.id },
                   });
                   toast.dismiss(t.id);
                 }}
-                className="w-full px-3 py-2 text-sm font-bold text-primary uppercase bg-accent/10 hover:bg-accent/20 rounded-lg transition-colors"
+                className="flex-1 px-4 py-2 border border-accent bg-accent/20 text-accent rounded-lg font-display font-bold text-sm hover:bg-accent/30 whitespace-nowrap"
               >
                 Practice Now
               </button>
               <button
-                onClick={() => toast.dismiss(t.id)}
-                className="w-full px-3 py-2 text-sm font-bold text-text-secondary uppercase bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                onClick={() => {
+                  navigate('/create');
+                  toast.dismiss(t.id);
+                }}
+                className="flex-1 px-4 py-2 border border-primary bg-primary/20 text-primary rounded-lg font-display font-bold text-sm hover:bg-primary/30 whitespace-nowrap"
               >
                 New Script
               </button>

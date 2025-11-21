@@ -77,7 +77,7 @@ export function CreatorPage() {
       <div
         className={`${
           t.visible ? 'animate-enter' : 'animate-leave'
-        } max-w-md w-full bg-white shadow-lg rounded-2xl pointer-events-auto flex ring-1 ring-border-strong ring-opacity-5 p-3`}
+        } max-w-md w-full bg-white shadow-lg rounded-2xl pointer-events-auto flex  p-3`}
       >
         <div className="flex-1 w-0">
           <div className="flex flex-col">
@@ -95,7 +95,7 @@ export function CreatorPage() {
                   });
                   toast.dismiss(t.id);
                 }}
-                className="w-full px-3 py-2 text-sm font-bold text-primary uppercase bg-primary/10 hover:bg-primary/20 rounded-lg transition-colors"
+                className="w-full px-3 py-2 text-sm font-bold text-primary uppercase bg-accent/10 hover:bg-accent/20 rounded-lg transition-colors"
               >
                 Practice Now
               </button>

@@ -1,10 +1,15 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useAppStore, type AppState } from '@/store/appStore';
+import { Link } from 'react-router-dom';
 import { useTitle } from '@/hooks/useTitle';
 import type { PracticeLog, ScriptData } from '@/utils/types';
 import {
   MdTrendingUp,
   MdLibraryBooks,
+  MdBarChart,
+  MdEdit,
+  MdMic,
+  MdClose,
   MdFormatListBulleted,
   MdCheckCircle,
   MdChevronLeft,
@@ -14,6 +19,7 @@ import {
 export function GrowthHubPage() {
   useTitle('Dashboard');
 
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const allScripts = useAppStore((state: AppState) => state.allScripts);
   const practiceLogs = useAppStore((state: AppState) => state.practiceLogs);
 
@@ -23,6 +29,14 @@ export function GrowthHubPage() {
   const practicedDays = useMemo(() => {
     return practiceLogs.map((log: PracticeLog) => new Date(log.date));
   }, [practiceLogs]);
+
+  useEffect(() => {
+    const hasVisited = localStorage.getItem('titas_has_visited');
+    if (!hasVisited) {
+      setShowOnboarding(true);
+      localStorage.setItem('titas_has_visited', 'true');
+    }
+  }, []);
 
   const avgAccuracy = useMemo(() => {
     if (practiceLogs.length === 0) return 0;
@@ -60,6 +74,70 @@ export function GrowthHubPage() {
 
   return (
     <div className="min-h-full pb-3" role="main" aria-label="Dashboard">
+      {showOnboarding && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-3">
+          <div className="relative bg-white rounded-2xl p-3 sm:p-8 text-center max-w-2xl w-full animate-enter">
+            <button
+              onClick={() => setShowOnboarding(false)}
+              className="absolute top-3 right-3 p-1 rounded-full hover:bg-gray-100 transition-colors"
+              aria-label="Close Onboarding"
+            >
+              <MdClose className="w-6 h-6 text-text-secondary" />
+            </button>
+            <img
+              src="/titas_logo.png"
+              alt="TiTaS Logo"
+              className="h-10 mx-auto mb-2"
+            />
+            <h2 className="font-display text-2xl sm:text-3xl font-black text-accent uppercase mb-2">
+              Welcome to TiTaS!
+            </h2>
+            <p className="text-text-secondary mb-6 max-w-md mx-auto">
+              TiTaS는 '실전 회화 근육'을 만드는 훈련장입니다. <br />
+              아래 3단계로 말하기 실력을 키워보세요.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center mb-8">
+              <div className="bg-primary/5 p-3 rounded-xl border border-border-default">
+                <MdEdit className="w-8 h-8 text-text-primary mx-auto mb-2" />
+                <p className="font-display font-bold text-text-primary">
+                  1. Create
+                </p>
+                <p className="text-xs text-text-secondary mt-1">
+                  연습할 대본을 직접 만드세요.
+                </p>
+              </div>
+              <div className="bg-primary/5 p-3 rounded-xl border border-border-default">
+                <MdMic className="w-8 h-8 text-text-primary mx-auto mb-2" />
+                <p className="font-display font-bold text-text-primary">
+                  2. Practice
+                </p>
+                <p className="text-xs text-text-secondary mt-1">
+                  역할을 골라
+                  <br /> 실전처럼 연습하세요.
+                </p>
+              </div>
+              <div className="bg-primary/5 p-3 rounded-xl border border-border-default">
+                <MdBarChart className="w-8 h-8 text-text-primary mx-auto mb-2" />
+                <p className="font-display font-bold text-text-primary">
+                  3. Review
+                </p>
+                <p className="text-xs text-text-secondary mt-1">
+                  자주 틀리는 단어를 <br /> 확인하세요.
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowOnboarding(false)}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3 bg-primary text-white rounded-xl border border-border-default font-bold uppercase text-sm hover:scale-105 transition-transform"
+            >
+              훈련 시작하기!
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 헤더 */}
       <header className="mb-4 text-center md:text-left">
         <h1 className="font-display text-4xl font-black text-accent mb-2 uppercase tracking-tight">

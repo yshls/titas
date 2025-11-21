@@ -102,7 +102,7 @@ function NoDataPlaceholder() {
         No weakness data yet. Keep practicing!
       </p>
       <Link
-        to="/"
+        to="/scripts"
         className="font-display inline-flex items-center gap-2 px-3 py-3 bg-primary text-white rounded-xl border-2 border-border-default font-bold uppercase transition-transform duration-300 focus:outline-none"
       >
         Start Practicing

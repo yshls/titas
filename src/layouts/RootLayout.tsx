@@ -5,6 +5,7 @@ import {
   MdLibraryBooks,
   MdBarChart,
   MdMenu,
+  MdOutlineEmail,
 } from 'react-icons/md';
 import { useEffect, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
@@ -101,18 +102,17 @@ export function RootLayout() {
         </main>
 
         <footer>
-          <div className="font-sans text-xs text-text-muted text-center py-6 space-y-1">
+          <div className="font-sans text-xs text-text-muted text-center py-6 space-y-2">
             <p>© 2025 TiTaS. All rights reserved.</p>
-            <p>
-              서비스 개선을 위한{' '}
-              <a
-                href="mailto:shluxnsal01@gmail.com"
-                className="font-bold text-text-secondary hover:underline"
-              >
-                피드백
-              </a>
-              을 보내주세요.
-            </p>
+            <a
+              href="mailto:shluxnsal01@gmail.com"
+              className="inline-flex items-center gap-1.5 text-text-secondary hover:text-primary transition-colors group"
+            >
+              <MdOutlineEmail className="w-4 h-4" />
+              <span className="font-bold group-hover:underline">
+                피드백 보내기
+              </span>
+            </a>
           </div>
         </footer>
       </div>

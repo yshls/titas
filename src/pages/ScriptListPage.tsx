@@ -1,4 +1,4 @@
-import { useAppStore } from '@/store/appStore';
+import { useAppStore, type AppState } from '@/store/appStore';
 import { useNavigate } from 'react-router-dom';
 import type { ScriptData } from '@/utils/types';
 import {
@@ -22,9 +22,9 @@ const SORT_OPTIONS = [
 ];
 
 export function ScriptListPage() {
-  const allScripts = useAppStore((state) => state.allScripts);
+  const allScripts = useAppStore((state: AppState) => state.allScripts);
   const navigate = useNavigate();
-  const deleteScript = useAppStore((state) => state.deleteScript);
+  const deleteScript = useAppStore((state: AppState) => state.deleteScript);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState('date-desc');
   const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
@@ -140,7 +140,7 @@ export function ScriptListPage() {
 
             {/* 정렬 메뉴 */}
             {isSortMenuOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border-2 border-border-default z-10">
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-border-default z-10">
                 <div className="p-2">
                   {SORT_OPTIONS.map((option) => (
                     <button
@@ -166,11 +166,11 @@ export function ScriptListPage() {
 
       {allScripts.length === 0 ? (
         <section
-          className="text-center py-12 sm:py-16 px-3 sm:px-6 bg-white rounded-2xl border-2 border-border-dashed"
+          className="text-center py-12 sm:py-16 px-3 sm:px-6 bg-white rounded-2xl border border-border-dashed"
           role="status"
           aria-live="polite"
         >
-          <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-primary border-2 border-border-default mb-4">
+          <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-primary border border-border-default mb-4">
             <MdLibraryBooks
               className="w-7 h-7 sm:w-8 sm:h-8 text-white"
               aria-hidden="true"
@@ -184,7 +184,7 @@ export function ScriptListPage() {
           </p>
           <button
             onClick={() => navigate('/create')}
-            className="font-display inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 bg-primary text-white rounded-xl border-2 border-border-default font-bold uppercase text-sm transition-transform duration-300 focus:outline-none"
+            className="font-display inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 bg-primary text-white rounded-xl border border-border-default font-bold uppercase text-sm transition-transform duration-300 focus:outline-none"
             aria-label="Create your first script"
           >
             <MdAdd className="w-5 h-5" aria-hidden="true" />
@@ -200,7 +200,7 @@ export function ScriptListPage() {
           {sortedScripts.map((script) => (
             <article
               key={script.id}
-              className={`group bg-white rounded-2xl border-2 border-border-default flex flex-col transition-all duration-300 ${
+              className={`group bg-white rounded-2xl border border-border-default flex flex-col transition-all duration-300 ${
                 deletingId === script.id ? 'opacity-0 scale-95' : ''
               }`}
               role="listitem"
@@ -218,10 +218,10 @@ export function ScriptListPage() {
                 </div>
               </div>
 
-              <div className="p-2 sm:p-3 bg-primary/5 border-t-2 border-border-default flex items-center justify-between">
+              <div className="p-2 sm:p-3 bg-primary/5 border-t border-border-default flex items-center justify-between">
                 <button
                   onClick={() => handlePracticeClick(script)}
-                  className="font-display flex items-center justify-center gap-2 px-3 py-2 bg-primary/10 text-text-primary rounded-lg border-2 border-primary/20 font-semibold uppercase text-sm hover:bg-primary/20 transition-all duration-300 focus:outline-none"
+                  className="font-display flex items-center justify-center gap-2 px-3 py-2 bg-primary/10 text-text-primary rounded-lg border border-primary/20 font-semibold uppercase text-sm hover:bg-primary/20 transition-all duration-300 focus:outline-none"
                   aria-label={`Start practicing ${script.title}`}
                 >
                   <MdPlayArrow className="w-5 h-5" aria-hidden="true" />

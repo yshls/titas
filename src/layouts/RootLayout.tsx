@@ -9,7 +9,7 @@ import {
 } from 'react-icons/md';
 import { useEffect, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
-import { useAppStore } from '@/store/appStore';
+import { useAppStore, type AppState } from '@/store/appStore';
 
 const NAV_ITEMS = [
   { to: '/', text: 'Dashboard', icon: <MdDashboard /> },
@@ -18,7 +18,9 @@ const NAV_ITEMS = [
   { to: '/review', text: 'Review', icon: <MdBarChart /> },
 ];
 export function RootLayout() {
-  const loadInitialData = useAppStore((state) => state.loadInitialData);
+  const loadInitialData = useAppStore(
+    (state: AppState) => state.loadInitialData
+  );
 
   useEffect(() => {
     loadInitialData();
@@ -31,8 +33,8 @@ export function RootLayout() {
   return (
     <div className="min-h-screen bg-bg-main font-sans text-text-primary">
       <Toaster position="top-center" />
-      <div className="w-full max-w-[1200px] mx-auto flex flex-col min-h-dvh">
-        <header className="border-border-default border-b-2 bg-bg-main">
+      <div className="w-full max-w-6xl mx-auto flex flex-col min-h-dvh">
+        <header className="border-border-default border-b bg-bg-main">
           <div className="flex items-center justify-between px-3 py-2">
             <Link
               to="/"
@@ -145,7 +147,7 @@ function NavLink({
           flex items-center gap-3 rounded-lg
           transition-all duration-300
           font-display font-bold uppercase text-sm
-          border-2
+          border
           focus:outline-none
           ${isDrawer ? 'px-3 py-3' : 'px-3 py-2'}
           bg-white text-primary border-border-default hover:bg-primary/10
@@ -166,7 +168,7 @@ function NavLink({
         flex items-center gap-3 rounded-lg
         transition-all duration-300
         font-display font-bold uppercase text-sm
-        border-2
+        border
         focus:outline-none
         ${isDrawer ? 'px-3 py-3' : 'px-3 py-2'}
         ${

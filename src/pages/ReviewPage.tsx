@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
-import { useAppStore } from '@/store/appStore';
+import { useAppStore, type AppState } from '@/store/appStore';
 import { Link } from 'react-router-dom';
 import { useTTS } from '@/utils/useTTS';
-import type { WeakSpot } from '@/utils/types';
+import type { PracticeLog, WeakSpot } from '@/utils/types';
 import { MdTrendingDown, MdBarChart, MdVolumeUp } from 'react-icons/md';
 
 const TOP_WORDS_COUNT = 10; // 표시할 상위 단어 개수
@@ -30,7 +30,7 @@ function MissedWordItem({
   return (
     <li
       onClick={onClick}
-      className={`bg-white rounded-xl border-2 transition-all duration-200 hover:scale-[1.02] cursor-pointer ${
+      className={`bg-white rounded-xl border transition-all  cursor-pointer ${
         isSelected
           ? 'border-primary ring-1 ring-primary'
           : 'border-border-default'
@@ -41,7 +41,7 @@ function MissedWordItem({
         role="button"
       >
         <div className="flex items-center gap-4 flex-1">
-          <div className="shrink-0 w-10 h-10 rounded-lg border-2 border-border-default flex items-center justify-center bg-primary/10">
+          <div className="shrink-0 w-10 h-10 rounded-lg border border-border-default flex items-center justify-center bg-primary/10">
             <span className="font-display text-lg font-black text-text-primary">
               {rank}
             </span>
@@ -54,7 +54,7 @@ function MissedWordItem({
             <button
               onClick={(e) => {
                 e.stopPropagation(); // 이벤트 전파 방지
-                speak(word);
+                speak(word, null); // 두 번째 인자로 null을 전달하여 기본 음성 사용
               }}
               disabled={isSpeaking}
               className="p-1 rounded-full hover:bg-primary/10 disabled:opacity-50"
@@ -69,7 +69,7 @@ function MissedWordItem({
           </div>
         </div>
 
-        <div className="flex items-center self-start sm:self-center gap-2 px-2 sm:px-3 py-1 sm:py-2 rounded-lg border-2 border-border-default bg-accent/10 sm:min-w-32">
+        <div className="flex items-center self-start sm:self-center gap-2 px-2 sm:px-3 py-1 sm:py-2 rounded-lg border border-border-default bg-accent/10 sm:min-w-32">
           <MdTrendingDown
             className="w-4 h-4 sm:w-5 sm:h-5 text-accent"
             aria-hidden="true"
@@ -89,7 +89,7 @@ function MissedWordItem({
 function NoDataPlaceholder() {
   return (
     <div className="text-center py-12">
-      <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary/10 border-2 border-border-default mb-3">
+      <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary/10 border border-border-default mb-3">
         <MdBarChart
           className="w-10 h-10 text-text-primary"
           aria-hidden="true"
@@ -103,7 +103,7 @@ function NoDataPlaceholder() {
       </p>
       <Link
         to="/scripts"
-        className="font-display inline-flex items-center gap-2 px-3 py-3 bg-primary text-white rounded-xl border-2 border-border-default font-bold uppercase transition-transform duration-300 focus:outline-none"
+        className="font-display inline-flex items-center gap-2 px-3 py-3 bg-primary text-white rounded-xl border border-border-default font-bold uppercase transition-transform duration-300 focus:outline-none"
       >
         Start Practicing
       </Link>
@@ -112,13 +112,15 @@ function NoDataPlaceholder() {
 }
 
 export function ReviewPage() {
-  const practiceLogs = useAppStore((state) => state.practiceLogs);
+  const practiceLogs = useAppStore((state: AppState) => state.practiceLogs);
   const [wordForPractice, setWordForPractice] = useState<string | null>(null);
   // 약점 단어 계산
   const missedWordCounts = useMemo(() => {
     const counts: Record<string, number> = {}; // 단어별 횟수 기록
 
-    const allErrors: WeakSpot[] = practiceLogs.flatMap((log) => log.errors);
+    const allErrors: WeakSpot[] = practiceLogs.flatMap(
+      (log: PracticeLog) => log.errors
+    );
 
     const missedWords = allErrors
       .filter((error) => error.original)
@@ -150,10 +152,10 @@ export function ReviewPage() {
         </h1>
       </header>
 
-      <div className="bg-white rounded-2xl border-2 border-border-default overflow-hidden">
-        <div className="p-3 border-b-2 border-border-default bg-primary ">
+      <div className="bg-white rounded-2xl border border-border-default overflow-hidden">
+        <div className="p-3 border-b border-border-default bg-primary ">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-white rounded-xl border-2 border-border-default">
+            <div className="p-3 bg-white rounded-xl border border-border-default">
               <MdBarChart className="w-7 h-7 text-primary" aria-hidden="true" />
             </div>
             <div>

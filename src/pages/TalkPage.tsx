@@ -6,7 +6,7 @@ import type { DiffResult } from '@/utils/diffChecker';
 import { checkWordDiff } from '@/utils/diffChecker';
 import { useTTS } from '@/utils/useTTS';
 import { useSpeechRecognition } from '@/utils/useSpeechRecognition';
-import { useAppStore } from '@/store/appStore';
+import { useAppStore, type AppState } from '@/store/appStore';
 import { FiMic } from 'react-icons/fi';
 import {
   MdKeyboard,
@@ -22,7 +22,9 @@ import {
 export function TalkPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const addNewPracticeLog = useAppStore((state) => state.addNewPracticeLog);
+  const addNewPracticeLog = useAppStore(
+    (state: AppState) => state.addNewPracticeLog
+  );
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
   const initialScriptLines: DialogueLine[] = useMemo(() => {
@@ -266,7 +268,7 @@ export function TalkPage() {
                   onClick={() => {
                     handleStartPractice(id);
                   }}
-                  className="bg-white rounded-xl border-2 border-border-default p-5 hover:border-primary transition-all min-h-[120px] flex flex-col items-center justify-center gap-3"
+                  className="bg-white rounded-xl border-1 border-border-default p-5 hover:border-primary transition-all min-h-[120px] flex flex-col items-center justify-center gap-3"
                 >
                   <div
                     className="w-12 h-12 rounded-full flex items-center justify-center"
@@ -313,7 +315,7 @@ export function TalkPage() {
 
             <div className="grid grid-cols-2 gap-4 mb-8">
               {/* 정확도 */}
-              <div className="flex flex-col items-center justify-center bg-primary/5 p-4 rounded-xl border-2 border-border-default">
+              <div className="flex flex-col items-center justify-center bg-primary/5 p-4 rounded-xl border border-border-default">
                 <p className="font-display text-4xl font-black text-success">
                   {practiceResult.accuracy}%
                 </p>
@@ -322,7 +324,7 @@ export function TalkPage() {
                 </p>
               </div>
               {/* 소요 시간 */}
-              <div className="flex flex-col items-center justify-center bg-primary/5 p-4 rounded-xl border-2 border-border-default">
+              <div className="flex flex-col items-center justify-center bg-primary/5 p-4 rounded-xl border border-border-default">
                 <p className="font-display text-4xl font-black text-primary">
                   {Math.floor(practiceResult.timeSpent / 60)}
                   <span className="text-2xl">m</span>{' '}
@@ -338,14 +340,14 @@ export function TalkPage() {
             <div className="flex flex-col sm:flex-row gap-3">
               <button
                 onClick={handleRetryPractice}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-accent/10 text-accent rounded-xl border-2 border-border-default font-bold uppercase text-sm"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-accent/10 text-accent rounded-xl border border-border-default font-bold uppercase text-sm"
               >
                 <MdReplay className="w-5 h-5" />
                 Retry
               </button>
               <button
                 onClick={() => navigate('/scripts')}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary text-white rounded-xl border-2 border-border-default font-bold uppercase text-sm"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary text-white rounded-xl border border-border-default font-bold uppercase text-sm"
               >
                 Back to List
               </button>
@@ -539,7 +541,7 @@ export function TalkPage() {
                     ? 'Type your line here...'
                     : 'Please wait...'
                 }
-                className="flex-1 px-3 py-3 border-2 border-border-default rounded-xl focus:outline-none focus:ring-1 focus:ring-border-strong focus:border-ring-border-strong text-sm bg-white"
+                className="flex-1 px-3 py-3 border border-border-default rounded-xl focus:outline-none focus:ring-1 focus:ring-border-strong focus:border-ring-border-strong text-sm bg-white"
                 autoFocus
                 disabled={!isMyTurn || !!feedbackMap[currentLineIndex]}
               />
@@ -567,7 +569,7 @@ export function TalkPage() {
               className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
                 inputMode === 'keyboard'
                   ? 'bg-primary text-white '
-                  : 'bg-bg-main text-text-secondary border-2 border-border-default hover:border-primary hover:bg-white'
+                  : 'bg-bg-main text-text-secondary border border-border-default hover:border-primary hover:bg-white'
               }`}
               aria-label={
                 inputMode === 'keyboard'
@@ -591,7 +593,7 @@ export function TalkPage() {
               className={`w-16 h-16 rounded-full flex items-center justify-center transition-all ${
                 isListening
                   ? 'bg-error text-white animate-pulse scale-105'
-                  : 'bg-white text-text-primary border-2 border-primary hover:bg-primary hover:text-white '
+                  : 'bg-white text-text-primary border border-primary hover:bg-primary hover:text-white '
               } disabled:opacity-30 disabled:cursor-not-allowed disabled:border-border-subtle disabled:text-text-muted disabled:shadow-none`}
               aria-label={isListening ? 'Listening...' : 'Tap to speak'}
             >
@@ -604,7 +606,7 @@ export function TalkPage() {
               className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
                 showHint
                   ? 'bg-accent text-white '
-                  : 'bg-bg-main text-text-secondary border-2 border-border-default hover:border-accent hover:bg-white'
+                  : 'bg-bg-main text-text-secondary border border-border-default hover:border-accent hover:bg-white'
               } disabled:opacity-30 disabled:cursor-not-allowed`}
               aria-label={showHint ? 'Hide hint' : 'Show hint'}
             >

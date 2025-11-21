@@ -1,7 +1,7 @@
 import toast, { Toaster } from 'react-hot-toast';
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAppStore } from '@/store/appStore';
+import { useAppStore, type AppState } from '@/store/appStore';
 import type { DialogueLine, ScriptData } from '@/utils/types';
 import { parseScript } from '@/utils/parser';
 import {
@@ -23,7 +23,7 @@ const SPEAKERS = [
 
 export function CreatorPage() {
   const navigate = useNavigate();
-  const saveNewScript = useAppStore((state) => state.saveNewScript);
+  const saveNewScript = useAppStore((state: AppState) => state.saveNewScript);
 
   const [activeSpeakerId, setActiveSpeakerId] = useState<string>(
     SPEAKERS[0].id
@@ -153,7 +153,7 @@ export function CreatorPage() {
           </p>
         </header>
         <section
-          className="bg-white rounded-2xl border-2 border-border-default p-3"
+          className="bg-white rounded-2xl border border-border-default p-3"
           aria-labelledby="title-section"
         >
           <label
@@ -173,13 +173,13 @@ export function CreatorPage() {
                 onBlur={() => setIsEditingTitle(false)}
                 onKeyDown={(e) => e.key === 'Enter' && setIsEditingTitle(false)}
                 placeholder="Untitled Script"
-                className="flex-1 min-w-0 px-3 py-2.5 rounded-xl border-2 border-border-default bg-white text-primary font-bold focus:outline-none "
+                className="flex-1 min-w-0 px-3 py-2.5 rounded-xl border border-border-default bg-white text-primary font-bold focus:outline-none "
                 autoFocus
                 aria-label="Edit script title"
               />
               <button
                 onClick={() => setIsEditingTitle(false)}
-                className="shrink-0 p-2.5 rounded-xl bg-primary text-text-primary border-2 border-border-default hover:bg-primary-hover transition-colors duration-300 font-black"
+                className="shrink-0 p-2.5 rounded-xl bg-primary text-text-primary border border-border-default hover:bg-primary-hover transition-colors duration-300 font-black"
                 aria-label="Confirm title"
               >
                 <MdCheck className="w-5 h-5" aria-hidden="true" />
@@ -188,7 +188,7 @@ export function CreatorPage() {
           ) : (
             <div
               onClick={() => setIsEditingTitle(true)}
-              className="w-full group flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-primary/10 hover:bg-primary/20 transition-colors duration-300 border-2 border-border-default cursor-pointer"
+              className="w-full group flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-primary/10 hover:bg-primary/20 transition-colors duration-300 border border-border-default cursor-pointer"
               aria-label="Edit script title"
             >
               <span className="font-black text-accent">
@@ -199,7 +199,7 @@ export function CreatorPage() {
           )}
         </section>
         <section
-          className="bg-white rounded-2xl border-2 border-border-default p-3"
+          className="bg-white rounded-2xl border border-border-default p-3"
           aria-labelledby="speakers-section"
         >
           <h2
@@ -217,17 +217,17 @@ export function CreatorPage() {
               <button
                 key={speaker.id}
                 onClick={() => setActiveSpeakerId(speaker.id)}
-                className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 border-border-default transition-colors duration-300 ${
+                className={`w-full flex items-center gap-3 p-3 rounded-xl border border-border-default transition-colors duration-300 ${
                   activeSpeakerId === speaker.id
                     ? 'bg-primary/10 border-primary'
                     : 'bg-white hover:bg-primary/5'
                 }`}
                 role="radio"
-                aria-checked={activeSpeakerId === speaker.id ? 'true' : 'false'}
+                aria-checked={activeSpeakerId === speaker.id}
                 aria-label={`Select ${speaker.name}`}
               >
                 <div
-                  className="w-5 h-5 rounded-full border-2 border-border-default shrink-0"
+                  className="w-5 h-5 rounded-full border border-border-default shrink-0"
                   style={
                     { backgroundColor: speaker.hex } as React.CSSProperties
                   }
@@ -268,7 +268,7 @@ export function CreatorPage() {
           <button
             onClick={handleSaveScript}
             disabled={scriptLines.length === 0}
-            className="w-full flex items-center justify-center gap-2 px-3 py-3 rounded-2xl bg-primary text-white border-2 border-border-default transition-colors duration-300 font-display font-black uppercase disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none"
+            className="w-full flex items-center justify-center gap-2 px-3 py-3 rounded-2xl bg-primary text-white border border-border-default transition-colors duration-300 font-display font-black uppercase disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none"
             aria-label="Save script"
           >
             <MdSave className="w-6 h-6" aria-hidden="true" />
@@ -277,13 +277,13 @@ export function CreatorPage() {
           <button
             onClick={handleStartPractice}
             disabled={scriptLines.length === 0}
-            className="w-full flex items-center justify-center gap-2 px-3 py-3 rounded-2xl bg-white text-text-primary border-2 border-border-default transition-colors duration-300 font-display font-black uppercase disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none"
+            className="w-full flex items-center justify-center gap-2 px-3 py-3 rounded-2xl bg-white text-text-primary border border-border-default transition-colors duration-300 font-display font-black uppercase disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none"
             aria-label="Start practice session"
           >
             <MdPlayArrow className="w-6 h-6" aria-hidden="true" />
             Start Practice
           </button>
-          <div className="bg-primary/5 rounded-2xl border-2 border-border-default p-3 flex justify-between items-center">
+          <div className="bg-primary/5 rounded-2xl border border-border-default p-3 flex justify-between items-center">
             <span className="text-sm font-display font-black text-text-secondary uppercase">
               Total Lines
             </span>
@@ -302,7 +302,7 @@ export function CreatorPage() {
     max-h-[90vh]
     overflow-y-auto
     bg-white
-    border-2
+    border
     border-border-default
     rounded-2xl
     p-3
@@ -313,7 +313,7 @@ export function CreatorPage() {
           <div className="h-full overflow-y-auto pr-2">
             {scriptLines.length === 0 ? ( // 초기 상태
               <div className="flex flex-col items-center justify-center min-h-full text-center">
-                <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary border-2 border-border-default mb-4">
+                <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary border border-border-default mb-4">
                   <MdEdit className="w-10 h-10 text-white" aria-hidden="true" />
                 </div>
                 <h3 className="text-2xl font-display font-black text-accent mb-3 uppercase">
@@ -329,12 +329,12 @@ export function CreatorPage() {
                 {scriptLines.map((line, index) => (
                   <article
                     key={line.id}
-                    className="group flex items-center gap-4 p-3 rounded-2xl border-2 border-border-default bg-white transition-all duration-300"
+                    className="group flex items-center gap-4 p-3 rounded-2xl border border-border-default bg-white transition-all duration-300"
                     role="article"
                     aria-label={`Line ${index + 1} from ${line.speakerId}`}
                   >
                     <div
-                      className="w-4 h-4 rounded-full border-2 border-border-default shrink-0"
+                      className="w-4 h-4 rounded-full border border-border-default shrink-0"
                       style={
                         {
                           backgroundColor: line.speakerColor,
@@ -352,7 +352,7 @@ export function CreatorPage() {
                     </div>
                     <button
                       onClick={() => handleDeleteLine(line.id)}
-                      className="opacity-0 group-hover:opacity-100 p-2 rounded-lg border-2 border-border-default text-text-primary hover:bg-error/10 hover:text-error transition-all duration-300"
+                      className="opacity-0 group-hover:opacity-100 p-2 rounded-lg border border-border-default text-text-primary hover:bg-error/10 hover:text-error transition-all duration-300"
                       aria-label={`Delete line ${index + 1}`}
                     >
                       <MdDelete className="w-5 h-5" aria-hidden="true" />
@@ -366,13 +366,13 @@ export function CreatorPage() {
           </div>
         </div>
         <div
-          className="bg-white rounded-2xl border-2 border-border-default p-3"
+          className="bg-white rounded-2xl border border-border-default p-3"
           role="form"
           aria-label="Add new dialogue line"
         >
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <div
-              className="flex items-center justify-center sm:justify-start gap-2 px-3 py-2 sm:py-3 rounded-xl border-2 border-border-default shrink-0"
+              className="flex items-center justify-center sm:justify-start gap-2 px-3 py-2 sm:py-3 rounded-xl border border-border-default shrink-0"
               style={
                 { backgroundColor: activeSpeaker?.hex } as React.CSSProperties
               }
@@ -393,7 +393,7 @@ export function CreatorPage() {
                 onChange={(e) => setCurrentLineInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleAddLine()}
                 placeholder="Type dialogue and press Enter..."
-                className="flex-1 w-full p-3 rounded-xl border-2 border-border-default bg-white text-text-primary font-bold focus:outline-none placeholder:text-secondary/50 caret-textPrimary"
+                className="flex-1 w-full p-3 rounded-xl border border-border-default bg-white text-text-primary font-bold focus:outline-none placeholder:text-secondary/50 caret-textPrimary"
                 aria-describedby="input-help"
               />
               <span id="input-help" className="sr-only">
@@ -402,7 +402,7 @@ export function CreatorPage() {
               <button
                 onClick={handleAddLine}
                 disabled={!currentLineInput.trim()}
-                className="p-3 rounded-xl bg-primary text-white border-2 border-border-default transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none shrink-0"
+                className="p-3 rounded-xl bg-primary text-white border border-border-default transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none shrink-0"
                 aria-label="Add dialogue line"
               >
                 <MdAdd className="w-7 h-7" aria-hidden="true" />
@@ -415,7 +415,7 @@ export function CreatorPage() {
           <button
             onClick={handleSaveScript}
             disabled={scriptLines.length === 0}
-            className="w-full flex items-center justify-center gap-2 px-3 py-3 rounded-2xl bg-primary text-white border-2 border-border-default transition-colors duration-300 font-display font-black uppercase disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none"
+            className="w-full flex items-center justify-center gap-2 px-3 py-3 rounded-2xl bg-primary text-white border border-border-default transition-colors duration-300 font-display font-black uppercase disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none"
             aria-label="Save script (mobile)"
           >
             <MdSave className="w-6 h-6" aria-hidden="true" />
@@ -424,13 +424,13 @@ export function CreatorPage() {
           <button
             onClick={handleStartPractice}
             disabled={scriptLines.length === 0}
-            className="w-full flex items-center justify-center gap-2 px-3 py-3 rounded-2xl bg-white text-text-primary border-2 border-border-default transition-colors duration-300 font-display font-black uppercase disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none"
+            className="w-full flex items-center justify-center gap-2 px-3 py-3 rounded-2xl bg-white text-text-primary border border-border-default transition-colors duration-300 font-display font-black uppercase disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none"
             aria-label="Start practice session (mobile)"
           >
             <MdPlayArrow className="w-6 h-6" aria-hidden="true" />
             Start Practice
           </button>
-          <div className="bg-primary/5 rounded-2xl border-2 border-border-default p-3 flex justify-between items-center">
+          <div className="bg-primary/5 rounded-2xl border border-border-default p-3 flex justify-between items-center">
             <span className="text-sm font-display font-black text-text-secondary uppercase">
               Total Lines
             </span>

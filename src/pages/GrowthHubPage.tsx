@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
-import { useAppStore } from '@/store/appStore';
+import { useAppStore, type AppState } from '@/store/appStore';
 import { useTitle } from '@/hooks/useTitle';
+import type { PracticeLog, ScriptData } from '@/utils/types';
 import {
   MdTrendingUp,
   MdLibraryBooks,
@@ -13,24 +14,30 @@ import {
 export function GrowthHubPage() {
   useTitle('Dashboard');
 
-  const allScripts = useAppStore((state) => state.allScripts);
-  const practiceLogs = useAppStore((state) => state.practiceLogs);
+  const allScripts = useAppStore((state: AppState) => state.allScripts);
+  const practiceLogs = useAppStore((state: AppState) => state.practiceLogs);
 
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
   const practicedDays = useMemo(() => {
-    return practiceLogs.map((log) => new Date(log.date));
+    return practiceLogs.map((log: PracticeLog) => new Date(log.date));
   }, [practiceLogs]);
 
   const avgAccuracy = useMemo(() => {
     if (practiceLogs.length === 0) return 0;
-    const total = practiceLogs.reduce((acc, log) => acc + log.accuracy, 0);
+    const total = practiceLogs.reduce(
+      (acc: number, log: PracticeLog) => acc + log.accuracy,
+      0
+    );
     return total / practiceLogs.length;
   }, [practiceLogs]);
 
   const totalLines = useMemo(() => {
-    return allScripts.reduce((acc, script) => acc + script.lines.length, 0);
+    return allScripts.reduce(
+      (acc: number, script: ScriptData) => acc + script.lines.length,
+      0
+    );
   }, [allScripts]);
 
   const handlePrevMonth = () => {
@@ -96,7 +103,7 @@ export function GrowthHubPage() {
 
           {/* 최근 활동 */}
           {practiceLogs.length > 0 ? (
-            <div className="bg-white rounded-2xl border-2 border-border-default p-4 ">
+            <div className="bg-white rounded-2xl border border-border-default p-4 ">
               <div className="flex items-center gap-3 mb-3">
                 <div className="p-2 bg-success/10 rounded-lg">
                   <MdCheckCircle className="w-7 h-7 text-success" />
@@ -117,8 +124,8 @@ export function GrowthHubPage() {
               </p>
             </div>
           ) : (
-            <div className="bg-white rounded-2xl border-2 border-border-dashed border-dashed p-8 text-center ">
-              <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary border-2 border-border-default mb-4 ">
+            <div className="bg-white rounded-2xl border border-border-dashed border-dashed p-8 text-center ">
+              <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary border border-border-default mb-4 ">
                 <MdLibraryBooks className="w-10 h-10 text-white" />
               </div>
               <h3 className="font-display text-2xl font-black text-accent mb-3 uppercase">
@@ -165,7 +172,7 @@ export function GrowthHubPage() {
 
         {/* 최근 활동 */}
         {practiceLogs.length > 0 ? (
-          <div className="bg-accent/10 rounded-2xl border-2 border-border-default p-3 ">
+          <div className="bg-accent/10 rounded-2xl border border-border-default p-3 ">
             <div className="flex items-center gap-2 mb-2">
               <div className="p-1.5 bg-success/10 rounded-lg">
                 <MdCheckCircle className="w-5 h-5 text-success" />
@@ -182,8 +189,8 @@ export function GrowthHubPage() {
             </p>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl border-2 border-border-dashed p-6 text-center ">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-primary border-2 border-border-default mb-3 ">
+          <div className="bg-white rounded-2xl border border-border-dashed p-6 text-center ">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-primary border border-border-default mb-3 ">
               <MdLibraryBooks className="w-8 h-8 text-white" />
             </div>
             <h3 className="font-display text-lg font-black text-accent mb-2 uppercase">
@@ -210,10 +217,10 @@ function SquareStatCard({
   icon: React.ReactNode;
 }) {
   return (
-    <article className="bg-white rounded-2xl border-2 border-border-default p-4 flex flex-row gap-4 items-center transition-transform duration-300">
+    <article className="bg-white rounded-2xl border border-border-default p-4 flex flex-row gap-4 items-center transition-transform duration-300">
       {/* 아이콘 */}
       <div className="shrink-0">
-        <div className="p-3 bg-primary/10 rounded-xl border-2 border-border-default">
+        <div className="p-3 bg-primary/10 rounded-xl border border-border-default">
           <span className="text-primary text-2xl">{icon}</span>
         </div>
       </div>
@@ -283,9 +290,9 @@ function CompactCalendar({
   };
 
   return (
-    <section className="bg-white rounded-2xl border-2 border-border-default overflow-hidden ">
+    <section className="bg-white rounded-2xl border border-border-default overflow-hidden ">
       {/* 헤더 */}
-      <div className="p-3 border-b-2 border-border-default bg-primary">
+      <div className="p-3 border-b border-border-default bg-primary">
         <div className="flex items-center justify-between">
           <button
             onClick={onPrevMonth}
@@ -308,7 +315,7 @@ function CompactCalendar({
       </div>
 
       {/* 요일 */}
-      <div className="grid grid-cols-7 border-b-2 border-border-subtle bg-primary/5 ">
+      <div className="grid grid-cols-7 border-b border-border-subtle bg-primary/5 ">
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
           <div
             key={day}
@@ -338,7 +345,7 @@ function CompactCalendar({
             <button
               key={dayOfMonth}
               className={`
-                h-10 w-full flex items-center justify-center rounded-lg border-2 transition-all duration-300 text-sm font-bold
+                h-10 w-full flex items-center justify-center rounded-lg border transition-all duration-300 text-sm font-bold
                 focus:outline-none
                 ${
                   isPracticed
@@ -367,11 +374,11 @@ function CompactCalendar({
       </div>
 
       {/* 범례 */}
-      <div className="p-3 border-t-2 border-border-subtle ">
+      <div className="p-3 border-t border-border-subtle ">
         <div className="flex items-center justify-between text-xs">
           {/* 연습일 */}
           <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-success border-2 border-success ">
+            <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-success border border-success ">
               <span className="text-white text-xs font-bold">✓</span>
             </div>
             <span className="font-sans font-medium text-text-primary">
@@ -381,7 +388,7 @@ function CompactCalendar({
 
           {/* 오늘 */}
           <div className="flex items-center gap-3 font-display">
-            <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-accent border-2 border-accent ">
+            <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-accent border border-accent ">
               <span className="text-white text-xs font-bold">•</span>
             </div>
             <span className="font-sans font-medium text-text-primary">

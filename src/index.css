@@ -52,6 +52,11 @@
   h6 {
     font-family: var(--font-family-display);
   }
+
+  ::selection {
+    background-color: var(--color-text-secondary);
+    color: white;
+  }
 }
 
 @layer utilities {

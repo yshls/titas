@@ -61,7 +61,7 @@ export function ScriptListPage() {
                     toast.dismiss(t.id);
                     setTimeout(() => {
                       deleteScript(scriptId);
-                      setDeletingId(null); // 애니메이션 상태 초기화
+                      setDeletingId(null);
                     }, 300);
                   }}
                   className="w-full px-4 py-2 text-sm font-bold text-white uppercase bg-error rounded-lg"

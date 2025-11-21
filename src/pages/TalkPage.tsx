@@ -11,6 +11,7 @@ import { FiMic } from 'react-icons/fi';
 import {
   MdKeyboard,
   MdLightbulb,
+  MdVolumeUp,
   MdSend,
   MdPerson,
   MdRecordVoiceOver,
@@ -386,13 +387,27 @@ export function TalkPage() {
                   key={line.id || idx}
                   className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}
                 >
-                  <div
-                    className="max-w-[80%] md:max-w-[70%] p-3 rounded-xl border border-border-default"
+                  <button
+                    onClick={() =>
+                      !isSpeaking && speak(line.originalLine, selectedVoiceURI)
+                    }
+                    disabled={isSpeaking}
+                    className="group max-w-[80%] md:max-w-[70%] p-3 rounded-xl border border-border-default text-left transition-colors hover:border-primary disabled:cursor-not-allowed"
                     style={{ backgroundColor: speakerColors[line.speakerId] }}
                   >
-                    <p className="font-display font-bold text-xs uppercase text-text-primary mb-1">
-                      {line.speakerId}
-                    </p>
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="font-display font-bold text-xs uppercase text-text-primary">
+                        {line.speakerId}
+                      </p>
+                      <MdVolumeUp
+                        className={`w-4 h-4 text-text-secondary/50 transition-opacity duration-300 ${
+                          isSpeaking
+                            ? 'opacity-50'
+                            : 'opacity-40 group-hover:opacity-100'
+                        }`}
+                      />
+                    </div>
+
                     <div className="font-sans text-sm text-text-primary">
                       {isUser ? (
                         <>
@@ -438,7 +453,7 @@ export function TalkPage() {
                         <p>{line.originalLine}</p>
                       )}
                     </div>
-                  </div>
+                  </button>
                 </div>
               );
             })}

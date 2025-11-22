@@ -1,33 +1,27 @@
 # TiTaS (Tiki-Taka Script)
 
-> **"눈으로만 하는 공부는 그만."**
+> **"눈으로만 하는 공부는 그만."**<br>
 > 머리로 이해하는 영어가 아닌, 입이 기억하는 '실전 회화 근육'을 만드는 훈련장입니다.
 
 <br>
 
-<div align="center">
+<div align="left">
 
-  <a href="여기에_배포_URL_입력">
-    <img src="https://img.shields.io/badge/Website-Visit%20TiTaS-5661F6?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Website"/>
-  </a>
+[**🌐 TiTaS 웹사이트 방문하기**](https://tikitaka-script.vercel.app/)
+<br/>
+[**📝 개발 노트(Dev Notes) 보러가기**](https://recordoftheday.tistory.com/category/%F0%9F%8F%8D%EF%B8%8F%20%EC%9A%B0%ED%85%8C%EC%BD%94-%ED%94%84%EB%A6%AC%EC%BD%94%EC%8A%A4/%ED%94%84%EB%A6%AC%EC%BD%94%EC%8A%A4%204%7E5%EC%A3%BC%EC%B0%A8)
 
-  <a href="여기에_블로그_URL_입력">
-    <img src="https://img.shields.io/badge/Blog-Dev%20Log-11B868?style=for-the-badge&logo=velog&logoColor=white" alt="Blog"/>
-  </a>
-  
 </div>
 
 <br>
 
-## 시연 영상 (Demo)
+## 🎬 시연 영상 (Demo)
 
 ![TiTaS Demo Preview](여기에_시연_GIF_또는_이미지_경로.gif)
 
-[👉 유튜브에서 고화질 풀영상 보기](여기에_유튜브_링크_입력)
-
 <br>
 
-## 1. 프로젝트 소개 (Introduction)
+## 🚀 1. 프로젝트 소개 (Introduction)
 
 TiTaS는 눈으로 보고 이해하는 수동적 학습이 아닌, **정해진 대본(Script)을 기반으로 직접 소리 내어 뱉어보는 '능동적 훈련(Tiki-Taka)'을 위해 설계되었습니다.**
 
@@ -35,27 +29,27 @@ TiTaS는 눈으로 보고 이해하는 수동적 학습이 아닌, **정해진 �
 
 <br>
 
-## 2. 핵심 문제 정의 (The Problem)
+## 🧐 2. 핵심 문제 정의 (The Problem)
 
 기존의 눈으로 보는 학습 방식과 도구들은 다음과 같은 3가지 명확한 한계를 가집니다.
 
-1. **'말하기' 기회의 부재**: 읽기(Reading)와 듣기(Listening)에는 강하지만, 실제 상황처럼 대사를 주고받는 **'롤플레잉(Role-Play)'** 경험은 부족합니다.
-2. **객관적 피드백의 부재**: 내가 뱉은 문장이 대본과 정확히 일치하는지, 발음은 정확한지 **객관적인 데이터로 확인하기 어렵습니다.**
-3. **데이터의 휘발성**: 연습 기록이 남지 않아, 내가 자주 틀리는 단어가 무엇인지 파악하고 개선하는 **'개인화된 분석'** 이 불가능합니다.
+1. **🚫 '말하기' 기회의 부재**: 읽기(Reading)와 듣기(Listening)에는 강하지만, 실제 상황처럼 대사를 주고받는 **'롤플레잉(Role-Play)'** 경험은 부족합니다.
+2. **📉 객관적 피드백의 부재**: 내가 뱉은 문장이 대본과 정확히 일치하는지, 발음은 정확한지 **객관적인 데이터로 확인하기 어렵습니다.**
+3. **🌬️ 데이터의 휘발성**: 연습 기록이 남지 않아, 내가 자주 틀리는 단어가 무엇인지 파악하고 개선하는 **'개인화된 분석'** 이 불가능합니다.
 
 <br>
 
-## 3. 주요 기능 (Functional Requirements)
+## ✨ 3. 주요 기능 (Functional Requirements)
 
 TiTaS는 다음 핵심 기능을 통해 위 문제들을 해결합니다.
 
-### 1. 대본 생성 및 관리 (Script Management)
+### 📝 1. 대본 생성 및 관리 (Script Management)
 
 - **맞춤 대본 작성**: 학습하고 싶은 대본의 제목과 내용을 직접 작성합니다.
-- **다중 화자 설정**: ''Speaker 1', 'Speaker 2', 'Speaker 3' 여러 명의 화자를 설정하고, 각 화자별 대사를 입력합니다.
+- **다중 화자 설정**: 'Speaker 1', 'Speaker 2' 등 여러 명의 화자를 설정하고, 각 화자별 대사를 입력합니다.
 - **대본 정렬**: 생성된 모든 대본을 목록에서 확인하고, 최신순, 오래된순, 제목순으로 정렬할 수 있습니다.
 
-### 2. 역할극 기반 말하기 연습 (Role-Play Practice)
+### 🎭 2. 역할극 기반 말하기 연습 (Role-Play Practice)
 
 - **역할 선택**: 연습을 시작하기 전, 사용자가 직접 연기할 역할을 선택하여 몰입감을 높입니다.
 - **자동 대사 읽기 (TTS)**: 선택하지 않은 상대방 역할의 대사는 시스템이 자동으로 읽어주어 실제 대화 환경을 조성합니다.
@@ -65,43 +59,41 @@ TiTaS는 다음 핵심 기능을 통해 위 문제들을 해결합니다.
   - **단어 단위 분석**: 사용자의 발음을 원문과 단어 단위로 비교하여, 정확한 단어, 틀린 단어, 빠뜨린 단어를 색상으로 명확하게 구분하여 보여줍니다.
 - **연습 제어**: 연습 중 힌트를 보거나, 연습 완료 후에는 다시 도전하거나 대화 내용을 복습하는 등 유연한 학습 제어 기능을 제공합니다.
 
-### 3. 학습 성과 분석 및 리뷰 (Progress Analysis & Review)
+### 📊 3. 학습 성과 분석 및 리뷰 (Progress Analysis & Review)
 
-#### 학습 대시보드 (Growth Hub)
-
+#### 📅 학습 대시보드 (Growth Hub)
 - **연습 캘린더**: 어떤 날에 연습했는지 한눈에 볼 수 있는 커스텀 캘린더를 제공하여 꾸준한 학습을 유도합니다.
 - **핵심 지표**: 평균 정확도, 총 대본 수, 총 대사 라인 수 등 주요 성과 지표를 시각화하여 성장을 직관적으로 보여줍니다.
 
-#### 약점 분석 (My Weak Spots)
-
+#### 🎯 약점 분석 (My Weak Spots)
 - **핵심 약점 분석**: 모든 연습 기록을 분석하여 가장 많이 틀리는 단어 Top 10을 추출하고, 단어의 발음을 바로 들어볼 수 있습니다.
 
-### 4. 사용자 경험 (User Experience)
+### 📱 4. 사용자 경험 (User Experience)
 
 - **데이터 영속성**: 모든 대본과 연습 기록은 로컬 스토리지(Local Storage)에 저장되어, 브라우저 종료 후에도 데이터가 유지됩니다.
 - **반응형 디자인**: 데스크톱, 태블릿, 모바일 등 모든 디바이스 환경에 최적화된 UI를 제공합니다.
 
 <br>
 
-## 4. 기술 스택 (Tech Stack)
+## 🛠️ 4. 기술 스택 (Tech Stack)
 
-| Category               | Stack                             |
-| :--------------------- | :-------------------------------- |
-| **Main**               | `React` `TypeScript` `Vite`       |
-| **Core Engine**        | `Web Speech API` (음성 인식/합성) |
-| **State Management**   | `Zustand`                         |
-| **Styling**            | `Tailwind CSS`                    |
-| **Linting/Formatting** | `ESLint` `Prettier`               |
+| Category | Stack |
+| :--- | :--- |
+| **Main** | `React` `TypeScript` `Vite` |
+| **Core Engine** | `Web Speech API` (음성 인식/합성) |
+| **State Management** | `Zustand` |
+| **Styling** | `Tailwind CSS` |
+| **Linting/Formatting** | `ESLint` `Prettier` |
 
 <br>
 
-## 5. 시작하기 (Getting Started)
+## 🏃 5. 시작하기 (Getting Started)
 
 ### 설치 및 실행 (Installation)
 
 ```bash
 # 1. 저장소 복제
-git clone https://github.com/yshls/titas.git
+git clone [https://github.com/yshls/titas.git](https://github.com/yshls/titas.git)
 
 # 2. 프로젝트 폴더로 이동
 cd titas
@@ -111,5 +103,3 @@ npm install
 
 # 4. 개발 서버 실행
 npm run dev
-
-```

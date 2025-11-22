@@ -76,8 +76,8 @@ export function CreatorPage() {
     toast.custom((t) => (
       <div
         className={`${
-          t.visible ? 'animate-enter' : 'animate-leave'
-        } max-w-md w-full bg-white shadow-lg rounded-2xl pointer-events-auto flex  p-3`}
+          t.visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
+        } transform transition-all duration-300 max-w-md w-full bg-white shadow-lg rounded-2xl pointer-events-auto flex p-3  `}
       >
         <div className="flex-1 w-0">
           <div className="flex flex-col">
@@ -95,16 +95,17 @@ export function CreatorPage() {
                     state: { lines: newScript.lines, scriptId: newScript.id },
                   });
                 }}
-                className="flex-1 px-4 py-2 border border-accent bg-accent/20 text-accent rounded-lg font-display font-bold text-sm hover:bg-accent/30 whitespace-nowrap"
+                className="flex-1 px-4 py-2 border border-accent bg-accent/20 text-accent rounded-lg font-display font-bold text-sm hover:bg-accent/30 whitespace-nowrap transition-colors"
               >
                 Practice Now
               </button>
               <button
                 onClick={() => {
                   toast.dismiss(t.id);
+
                   navigate('/create');
                 }}
-                className="flex-1 px-4 py-2 border border-primary bg-primary/20 text-primary rounded-lg font-display font-bold text-sm hover:bg-primary/30 whitespace-nowrap"
+                className="flex-1 px-4 py-2 border border-primary bg-primary/20 text-primary rounded-lg font-display font-bold text-sm hover:bg-primary/30 whitespace-nowrap transition-colors"
               >
                 New Script
               </button>

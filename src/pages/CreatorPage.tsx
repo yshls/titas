@@ -90,10 +90,10 @@ export function CreatorPage() {
             <div className="flex mt-4 gap-2">
               <button
                 onClick={() => {
+                  toast.dismiss(t.id);
                   navigate(`/talk/${newScript.id}`, {
                     state: { lines: newScript.lines, scriptId: newScript.id },
                   });
-                  toast.dismiss(t.id);
                 }}
                 className="flex-1 px-4 py-2 border border-accent bg-accent/20 text-accent rounded-lg font-display font-bold text-sm hover:bg-accent/30 whitespace-nowrap"
               >
@@ -101,8 +101,8 @@ export function CreatorPage() {
               </button>
               <button
                 onClick={() => {
-                  navigate('/create');
                   toast.dismiss(t.id);
+                  navigate('/create');
                 }}
                 className="flex-1 px-4 py-2 border border-primary bg-primary/20 text-primary rounded-lg font-display font-bold text-sm hover:bg-primary/30 whitespace-nowrap"
               >

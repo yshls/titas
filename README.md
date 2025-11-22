@@ -15,11 +15,13 @@
 
 <br>
 
+<!-- <br>
+
 ## 🎬 시연 영상 (Demo)
 
 ![TiTaS Demo Preview](여기에_시연_GIF_또는_이미지_경로.gif)
 
-<br>
+<br> -->
 
 ## 🚀 1. 프로젝트 소개 (Introduction)
 

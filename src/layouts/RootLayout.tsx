@@ -29,6 +29,7 @@ export function RootLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const location = useLocation();
   const isTalkPage = location.pathname.startsWith('/talk');
+  const isScriptDetailPage = location.pathname.startsWith('/script');
 
   return (
     <div className="min-h-screen bg-bg-main font-sans text-text-primary">
@@ -92,7 +93,9 @@ export function RootLayout() {
           )}
         </header>
 
-        <main className={`flex-1 ${isTalkPage ? '' : 'p-2'}`}>
+        <main
+          className={`flex-1 ${isTalkPage || isScriptDetailPage ? '' : 'p-2'}`}
+        >
           <Outlet />
         </main>
 

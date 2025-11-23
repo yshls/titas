@@ -116,7 +116,7 @@ export function ScriptListPage() {
   }, [allScripts, sortBy]);
 
   return (
-    <div className="min-h-full" role="main" aria-label="Scripts library">
+    <div className="min-h-full p-2" role="main" aria-label="Scripts library">
       <header className="mb-3 flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-4">
         <h1 className="font-display text-3xl sm:text-4xl font-black text-accent uppercase text-center sm:text-left">
           My Scripts
@@ -206,7 +206,15 @@ export function ScriptListPage() {
               role="listitem"
               aria-label={`Script: ${script.title}`}
             >
-              <div className="p-3 flex-1">
+              <div
+                className="p-3 flex-1 cursor-pointer"
+                onClick={() => navigate(`/script/${script.id}`)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) =>
+                  e.key === 'Enter' && navigate(`/script/${script.id}`)
+                }
+              >
                 <h2 className="font-display text-lg font-bold text-text-primary line-clamp-2 mb-2">
                   {script.title}
                 </h2>

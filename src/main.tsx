@@ -9,6 +9,7 @@ import { CreatorPage } from '@/pages/CreatorPage';
 import { TalkPage } from '@/pages/TalkPage';
 import { ReviewPage } from '@/pages/ReviewPage';
 import { ScriptListPage } from '@/pages/ScriptListPage';
+import { ScriptDetailPage } from '@/pages/ScriptDetailPage';
 
 const router = createBrowserRouter([
   {
@@ -20,6 +21,7 @@ const router = createBrowserRouter([
       { path: '/talk/:scriptId', element: <TalkPage /> },
       { path: '/review', element: <ReviewPage /> },
       { path: '/scripts', element: <ScriptListPage /> },
+      { path: '/script/:id', element: <ScriptDetailPage /> },
     ],
   },
 ]);

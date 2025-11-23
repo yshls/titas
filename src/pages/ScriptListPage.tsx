@@ -44,7 +44,7 @@ export function ScriptListPage() {
         <div
           className={`${
             t.visible ? 'animate-enter' : 'animate-leave'
-          } max-w-md w-full bg-white shadow-lg rounded-2xl pointer-events-auto flex  p-3`}
+          } max-w-md w-full bg-white  shadow-lg rounded-2xl pointer-events-auto flex  p-3`}
         >
           <div className="flex-1 w-0">
             <div className="flex flex-col items-center text-center">
@@ -57,10 +57,10 @@ export function ScriptListPage() {
               <div className="flex mt-4 gap-3 w-full">
                 <button
                   onClick={() => {
+                    deleteScript(scriptId);
                     setDeletingId(scriptId);
                     toast.dismiss(t.id);
                     setTimeout(() => {
-                      deleteScript(scriptId);
                       setDeletingId(null);
                     }, 300);
                   }}
@@ -140,7 +140,7 @@ export function ScriptListPage() {
 
             {/* 정렬 메뉴 */}
             {isSortMenuOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-border-default z-10">
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl  border border-border-default z-10">
                 <div className="p-2">
                   {SORT_OPTIONS.map((option) => (
                     <button
@@ -200,50 +200,55 @@ export function ScriptListPage() {
           {sortedScripts.map((script) => (
             <article
               key={script.id}
-              className={`group bg-white rounded-2xl border border-border-default flex flex-col transition-all duration-300 ${
+              className={`relative group bg-white rounded-2xl border border-border-default flex flex-col transition-all duration-300  hover:-translate-y-1 ${
                 deletingId === script.id ? 'opacity-0 scale-95' : ''
               }`}
               role="listitem"
               aria-label={`Script: ${script.title}`}
             >
-              <div
-                className="p-3 flex-1 cursor-pointer"
-                onClick={() => navigate(`/script/${script.id}`)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) =>
-                  e.key === 'Enter' && navigate(`/script/${script.id}`)
-                }
-              >
+              {/* 상단: 내용 영역 */}
+              <div className="p-3 flex-1">
+                <div className="flex justify-between items-start mb-2">
+                  <p className="text-xs font-bold text-text-secondary">
+                    {new Date(script.createdAt).toLocaleDateString()}
+                  </p>
+                  <span className="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-bold text-primary bg-primary/10 rounded-full">
+                    <MdNotes className="w-3 h-3" />
+                    {script.lines.length} lines
+                  </span>
+                </div>
                 <h2 className="font-display text-lg font-bold text-text-primary line-clamp-2 mb-2">
                   {script.title}
                 </h2>
-                <div className="flex items-center gap-2 text-xs text-text-secondary font-medium">
-                  <MdNotes className="w-4 h-4" />
-                  <span>{script.lines.length} lines</span>
-                  <span className="text-text-muted">•</span>
-                  <span>{new Date(script.createdAt).toLocaleDateString()}</span>
-                </div>
               </div>
 
-              <div className="p-2 sm:p-3 bg-primary/5 border-t border-border-default flex items-center justify-between">
-                <button
-                  onClick={() => handlePracticeClick(script)}
-                  className="font-display flex items-center justify-center gap-2 px-3 py-2 bg-primary/10 text-text-primary rounded-lg border border-primary/20 font-semibold uppercase text-sm hover:bg-primary/20 transition-all duration-300 focus:outline-none"
-                  aria-label={`Start practicing ${script.title}`}
-                >
-                  <MdPlayArrow className="w-5 h-5" aria-hidden="true" />
-                  Practice
-                </button>
-                <div className="flex items-center gap-1">
+              {/* 하단: 버튼 영역 */}
+              <div className="p-2 border-t border-border-default flex items-center justify-end gap-2">
+                <div className="flex items-center gap-2">
                   <button
-                    onClick={() => handleDeleteClick(script.id, script.title)}
-                    className="p-2 rounded-lg hover:bg-error/10 text-text-secondary hover:text-error transition-colors"
-                    aria-label={`Delete ${script.title}`}
+                    onClick={() => navigate(`/script/${script.id}`)}
+                    className="font-display flex items-center justify-center gap-2 px-3 py-2 bg-primary/10 text-text-primary rounded-lg border border-primary/20 font-semibold uppercase text-xs hover:bg-primary/20 transition-colors"
+                    aria-label={`View full script of ${script.title}`}
                   >
-                    <MdDelete className="w-5 h-5" />
+                    <MdNotes className="w-4 h-4" aria-hidden="true" />
+                    View
+                  </button>
+                  <button
+                    onClick={() => handlePracticeClick(script)}
+                    className="font-display flex items-center justify-center gap-2 px-3 py-2 bg-primary text-white rounded-lg border border-primary/20 font-semibold uppercase text-xs hover:bg-primary/90 transition-colors"
+                    aria-label={`Start practicing ${script.title}`}
+                  >
+                    <MdPlayArrow className="w-4 h-4" aria-hidden="true" />
+                    Practice
                   </button>
                 </div>
+                <button
+                  onClick={() => handleDeleteClick(script.id, script.title)}
+                  className="p-2 rounded-lg hover:bg-error/10 text-text-secondary hover:text-error transition-colors"
+                  aria-label={`Delete ${script.title}`}
+                >
+                  <MdDelete className="w-5 h-5" aria-hidden="true" />
+                </button>
               </div>
             </article>
           ))}

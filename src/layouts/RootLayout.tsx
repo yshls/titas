@@ -100,7 +100,7 @@ export function RootLayout() {
         </main>
 
         <footer>
-          <div className="font-sans text-xs text-text-muted text-center py-6 space-y-2">
+          <div className="font-sans text-xs text-text-muted text-center py-3 space-y-2">
             <p>© 2025 TiTaS. All rights reserved.</p>
             <a
               href="https://forms.gle/ijjHBFn7TQ3FYico7"

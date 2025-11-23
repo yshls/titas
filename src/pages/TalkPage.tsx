@@ -268,7 +268,7 @@ export function TalkPage() {
                   onClick={() => {
                     handleStartPractice(id);
                   }}
-                  className="bg-white rounded-xl border-1 border-border-default p-5 hover:border-primary transition-all min-h-[120px] flex flex-col items-center justify-center gap-3"
+                  className="bg-white rounded-xl border border-border-default p-5 hover:border-primary transition-all min-h-[120px] flex flex-col items-center justify-center gap-3"
                 >
                   <div
                     className="w-12 h-12 rounded-full flex items-center justify-center"
@@ -458,7 +458,9 @@ export function TalkPage() {
                       !isSpeaking && speak(line.originalLine, selectedVoiceURI)
                     }
                     disabled={isSpeaking}
-                    className="group max-w-[80%] md:max-w-[70%] p-3 rounded-xl border border-border-default text-left transition-colors hover:border-primary disabled:cursor-not-allowed"
+                    className={`group relative max-w-[90%] md:max-w-[75%] p-2 rounded-2xl border text-left transition-colors border-border-default hover:border-primary disabled:cursor-not-allowed ${
+                      isUser ? 'rounded-tr-none' : 'rounded-tl-none'
+                    }`}
                     style={{ backgroundColor: speakerColors[line.speakerId] }}
                   >
                     <div className="flex items-center justify-between mb-1">

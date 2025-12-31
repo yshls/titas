@@ -10,6 +10,7 @@ import {
 import { useEffect, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { useAppStore, type AppState } from '@/store/appStore';
+import { Analytics } from '@vercel/analytics/react';
 
 const NAV_ITEMS = [
   { to: '/', text: 'Dashboard', icon: <MdDashboard /> },
@@ -34,6 +35,7 @@ export function RootLayout() {
   return (
     <div className="min-h-screen bg-bg-main font-sans text-text-primary">
       <Toaster position="top-center" />
+      <Analytics />
       <div className="w-full max-w-6xl mx-auto flex flex-col min-h-dvh">
         <header className="border-border-default border-b bg-bg-main">
           <div className="flex items-center justify-between px-3 py-2">

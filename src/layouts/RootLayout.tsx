@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { useAppStore, type AppState } from '@/store/appStore';
 import { Analytics } from '@vercel/analytics/react';
+import Login from '@/components/Login';
 
 const NAV_ITEMS = [
   { to: '/', text: 'Dashboard', icon: <MdDashboard /> },
@@ -55,7 +56,9 @@ export function RootLayout() {
                 <NavLink key={to} to={to} text={text} icon={icon} />
               ))}
             </nav>
-
+            <div className="flex items-center gap-4">
+              <Login />
+            </div>
             <button
               className="lg:hidden p-2 rounded-md hover:bg-primary/10 "
               aria-label="Open menu"

@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { useAppStore, type AppState } from '@/store/appStore';
 import { Analytics } from '@vercel/analytics/react';
+import Login from '@/components/Login';
 
 const NAV_ITEMS = [
   { to: '/', text: 'Dashboard', icon: <MdDashboard /> },
@@ -55,7 +56,9 @@ export function RootLayout() {
                 <NavLink key={to} to={to} text={text} icon={icon} />
               ))}
             </nav>
-
+            <div className="hidden lg:flex items-center gap-4">
+              <Login />
+            </div>
             <button
               className="lg:hidden p-2 rounded-md hover:bg-primary/10 "
               aria-label="Open menu"
@@ -75,6 +78,9 @@ export function RootLayout() {
                 className="absolute top-0 left-0 w-64 h-full bg-white border-r border-border-default p-6 z-60"
                 onClick={(e) => e.stopPropagation()}
               >
+                <div className="mb-6 lg:hidden">
+                  <Login />
+                </div>
                 <nav
                   className="flex flex-col gap-3"
                   aria-label="Mobile main menu"

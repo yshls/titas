@@ -89,19 +89,6 @@ TiTaS는 다음 핵심 기능을 통해 위 문제들을 해결합니다.
 
 <br>
 
-## 🏃 5. 시작하기 (Getting Started)
 
-### 설치 및 실행 (Installation)
 
-```bash
-# 1. 저장소 복제
-git clone [https://github.com/yshls/titas.git](https://github.com/yshls/titas.git)
 
-# 2. 프로젝트 폴더로 이동
-cd titas
-
-# 3. 의존성 패키지 설치
-npm install
-
-# 4. 개발 서버 실행
-npm run dev

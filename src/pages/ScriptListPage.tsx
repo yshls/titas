@@ -10,9 +10,11 @@ import {
   MdSort,
   MdCheck,
   MdExpandMore,
+  MdCloudDone,
 } from 'react-icons/md';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import toast from 'react-hot-toast';
+import { supabase } from '../supabaseClient'; // Supabase 객체 임포트
 
 const SORT_OPTIONS = [
   { value: 'date-desc', label: 'Newest' },
@@ -28,23 +30,39 @@ export function ScriptListPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState('date-desc');
   const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // 로그인 상태 추가
   const sortMenuRef = useRef<HTMLDivElement>(null);
 
-  // 연습
+  // 세션 상태 확인
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsLoggedIn(!!session);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // 연습 클릭
   const handlePracticeClick = (script: ScriptData) => {
     navigate(`/talk/${script.id}`, {
       state: { lines: script.lines, scriptId: script.id },
     });
   };
 
-  // 삭제
+  // 삭제 클릭
   const handleDeleteClick = (scriptId: string, scriptTitle: string) => {
     toast.custom(
       (t) => (
         <div
           className={`${
             t.visible ? 'animate-enter' : 'animate-leave'
-          } max-w-md w-full bg-white  shadow-lg rounded-2xl pointer-events-auto flex  p-3`}
+          } max-w-md w-full bg-white shadow-lg rounded-2xl pointer-events-auto flex p-3`}
         >
           <div className="flex-1 w-0">
             <div className="flex flex-col items-center text-center">
@@ -60,9 +78,7 @@ export function ScriptListPage() {
                     deleteScript(scriptId);
                     setDeletingId(scriptId);
                     toast.dismiss(t.id);
-                    setTimeout(() => {
-                      setDeletingId(null);
-                    }, 300);
+                    setTimeout(() => setDeletingId(null), 300);
                   }}
                   className="w-full px-3 py-2 text-sm font-bold text-white uppercase bg-error rounded-lg"
                 >
@@ -83,7 +99,7 @@ export function ScriptListPage() {
     );
   };
 
-  // 메뉴 닫기
+  // 외부 클릭 시 정렬 메뉴 닫기
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -94,12 +110,10 @@ export function ScriptListPage() {
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [sortMenuRef]);
 
-  // 정렬
+  // 정렬 로직
   const sortedScripts = useMemo(() => {
     const scripts = [...allScripts];
     switch (sortBy) {
@@ -138,9 +152,8 @@ export function ScriptListPage() {
               />
             </button>
 
-            {/* 정렬 메뉴 */}
             {isSortMenuOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl  border border-border-default z-10">
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl border border-border-default z-10 shadow-xl">
                 <div className="p-2">
                   {SORT_OPTIONS.map((option) => (
                     <button
@@ -166,47 +179,54 @@ export function ScriptListPage() {
 
       {allScripts.length === 0 ? (
         <section
-          className="text-center py-12 sm:py-16 px-3 sm:px-6 bg-white rounded-2xl border border-border-dashed"
+          className="text-center py-16 px-6 bg-white rounded-3xl border border-dashed border-gray-200 flex flex-col items-center"
           role="status"
           aria-live="polite"
         >
-          <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-primary border border-border-default mb-4">
-            <MdLibraryBooks
-              className="w-7 h-7 sm:w-8 sm:h-8 text-white"
-              aria-hidden="true"
-            />
+          <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6">
+            {isLoggedIn ? (
+              <MdLibraryBooks className="w-10 h-10 text-gray-300" />
+            ) : (
+              <MdCloudDone className="w-10 h-10 text-[#D95F2B]/40" />
+            )}
           </div>
-          <h2 className="font-display text-xl sm:text-2xl font-black text-accent mb-2 uppercase">
-            No Scripts Yet
+
+          <h2 className="font-display text-2xl font-black text-accent mb-3 uppercase italic">
+            {isLoggedIn ? 'No Scripts Yet' : 'Welcome Back!'}
           </h2>
-          <p className="font-sans text-sm sm:text-base font-medium text-secondary mb-3 max-w-md mx-auto">
-            Create your first practice script to get started!
+
+          <p className="font-sans text-sm sm:text-base font-medium text-secondary mb-8 max-w-sm mx-auto leading-relaxed">
+            {isLoggedIn
+              ? 'Create your first practice script to get started!'
+              : '로그인하면 이전에 저장한 학습 기록과 스크립트를 안전하게 불러올 수 있습니다.'}
           </p>
-          <button
-            onClick={() => navigate('/create')}
-            className="font-display inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 bg-primary text-white rounded-xl border border-border-default font-bold uppercase text-sm transition-transform duration-300 focus:outline-none"
-            aria-label="Create your first script"
-          >
-            <MdAdd className="w-5 h-5" aria-hidden="true" />
-            Create Script
-          </button>
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button
+              onClick={() => navigate('/create')}
+              className={`px-8 py-3 font-bold rounded-xl uppercase text-sm transition-all active:scale-95 ${
+                isLoggedIn
+                  ? 'bg-primary text-white shadow-lg'
+                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+              }`}
+            >
+              + Create Script
+            </button>
+          </div>
         </section>
       ) : (
         <div
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
           role="list"
-          aria-label="List of practice scripts"
         >
           {sortedScripts.map((script) => (
             <article
               key={script.id}
-              className={`relative group bg-white rounded-2xl border border-border-default flex flex-col transition-all duration-300  hover:-translate-y-1 ${
+              className={`relative group bg-white rounded-2xl border border-border-default flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
                 deletingId === script.id ? 'opacity-0 scale-95' : ''
               }`}
               role="listitem"
-              aria-label={`Script: ${script.title}`}
             >
-              {/* 상단: 내용 영역 */}
               <div className="p-3 flex-1">
                 <div className="flex justify-between items-start mb-2">
                   <p className="text-xs font-bold text-text-secondary">
@@ -222,32 +242,26 @@ export function ScriptListPage() {
                 </h2>
               </div>
 
-              {/* 하단: 버튼 영역 */}
               <div className="p-2 border-t border-border-default flex items-center justify-end gap-2">
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => navigate(`/script/${script.id}`)}
                     className="font-display flex items-center justify-center gap-2 px-3 py-2 bg-primary/10 text-text-primary rounded-lg border border-primary/20 font-semibold uppercase text-xs hover:bg-primary/20 transition-colors"
-                    aria-label={`View full script of ${script.title}`}
                   >
-                    <MdNotes className="w-4 h-4" aria-hidden="true" />
-                    View
+                    <MdNotes className="w-4 h-4" /> View
                   </button>
                   <button
                     onClick={() => handlePracticeClick(script)}
                     className="font-display flex items-center justify-center gap-2 px-3 py-2 bg-primary text-white rounded-lg border border-primary/20 font-semibold uppercase text-xs hover:bg-primary/90 transition-colors"
-                    aria-label={`Start practicing ${script.title}`}
                   >
-                    <MdPlayArrow className="w-4 h-4" aria-hidden="true" />
-                    Practice
+                    <MdPlayArrow className="w-4 h-4" /> Practice
                   </button>
                 </div>
                 <button
                   onClick={() => handleDeleteClick(script.id, script.title)}
                   className="p-2 rounded-lg hover:bg-error/10 text-text-secondary hover:text-error transition-colors"
-                  aria-label={`Delete ${script.title}`}
                 >
-                  <MdDelete className="w-5 h-5" aria-hidden="true" />
+                  <MdDelete className="w-5 h-5" />
                 </button>
               </div>
             </article>

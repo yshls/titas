@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import type { ScriptData } from '@/utils/types';
 import {
   MdLibraryBooks,
-  MdAdd,
   MdDelete,
   MdNotes,
   MdPlayArrow,
@@ -51,7 +50,7 @@ export function ScriptListPage() {
   // 연습 클릭
   const handlePracticeClick = (script: ScriptData) => {
     navigate(`/talk/${script.id}`, {
-      state: { lines: script.lines, scriptId: script.id },
+      state: { lines: script.lines, scriptId: script.id, title: script.title },
     });
   };
 

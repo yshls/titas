@@ -201,7 +201,10 @@ export function TalkPage() {
       timeSpent: timeSpent,
       errors: sessionErrors,
     };
-    addNewPracticeLog(newLogEntry);
+    addNewPracticeLog(
+      newLogEntry,
+      location.state?.title || 'Practice Session'
+    );
 
     // 결과 모달을 위한 상태 업데이트
     setPracticeResult({ accuracy: finalAccuracy, timeSpent: timeSpent });

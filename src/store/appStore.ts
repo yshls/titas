@@ -1,74 +1,95 @@
 import { create } from 'zustand';
+import type { User } from '@supabase/supabase-js';
 import type { DialogueLine, ScriptData, PracticeLog } from '@/utils/types';
 import type { DiffResult } from '@/utils/diffChecker';
 
-// DB 서비스 (Supabase/Local)
 import {
-  fetchScripts,
-  saveScriptToDB,
-  deleteScriptFromDB,
-  fetchLogs,
-  saveLogToDB,
-} from '@/services/dbService';
+  loadAllScripts,
+  saveScript,
+  loadPracticeLogs,
+  addPracticeLog,
+  deleteScript as deleteScriptStorage,
+} from '@/utils/storageService';
 
+// 상태 타입 정의
 export interface AppState {
+  // --- 기존 데이터 상태 ---
   allScripts: ScriptData[];
   practiceLogs: PracticeLog[];
+
+  // --- 임시 상태 (연습 중) ---
   currentScript: DialogueLine[];
   spokenText: string;
   lastDiffResult: DiffResult[];
 
-  // 비동기 액션 (DB 연동)
-  loadInitialData: () => Promise<void>;
-  saveNewScript: (script: ScriptData) => Promise<void>;
-  addNewPracticeLog: (
-    logEntry: PracticeLog,
-    scriptTitle: string
-  ) => Promise<void>;
-  deleteScript: (scriptId: string) => Promise<void>;
+  // --- 유저(로그인) 상태 ---
+  user: User | null; // 로그인 안 했으면 null, 했으면 유저 정보
+  setUser: (user: User | null) => void; // 유저 정보 업데이트 함수
+
+  // --- 액션 (기능) ---
+  loadInitialData: () => void;
+  saveNewScript: (script: ScriptData) => void;
+  addNewPracticeLog: (logEntry: PracticeLog) => void;
 
   setSpokenText: (text: string) => void;
   recordDiffResult: (result: DiffResult[]) => void;
   loadScript: (script: DialogueLine[]) => void;
+  deleteScript: (scriptId: string) => void;
 }
 
+// 스토어 생성
 export const useAppStore = create<AppState>((set) => ({
+  // 초기값 설정
   allScripts: [],
   practiceLogs: [],
   currentScript: [],
   spokenText: '',
   lastDiffResult: [],
 
-  // 초기 데이터 로드 (앱 시작 시 실행)
-  loadInitialData: async () => {
-    const [scripts, logs] = await Promise.all([fetchScripts(), fetchLogs()]);
-    set({ allScripts: scripts, practiceLogs: logs });
+  //  유저 초기값 (로그인 전이니까 null)
+  user: null,
+
+  // 로드
+  loadInitialData: () => {
+    const scripts = loadAllScripts();
+    const logs = loadPracticeLogs();
+    set({
+      allScripts: scripts,
+      practiceLogs: logs,
+    });
+    console.log(
+      `[Store] Initial Data Loaded: ${scripts.length} scripts, ${logs.length} logs`,
+    );
   },
 
-  // 스크립트 저장 (DB 저장 후 목록 갱신)
-  saveNewScript: async (script) => {
-    await saveScriptToDB(script);
-    const updatedScripts = await fetchScripts(); // 최신 목록 불러오기
-    set({ allScripts: updatedScripts });
-  },
+  // 유저 정보 업데이트 함수
+  setUser: (user) => set({ user }),
 
-  // 연습 기록 저장 (DB 저장 후 로그 갱신)
-  addNewPracticeLog: async (logEntry, scriptTitle) => {
-    await saveLogToDB(logEntry, scriptTitle);
-    const updatedLogs = await fetchLogs(); // 최신 로그 불러오기
-    set({ practiceLogs: updatedLogs });
-  },
-
-  // 스크립트 삭제
-  deleteScript: async (scriptId) => {
-    await deleteScriptFromDB(scriptId);
+  // 저장
+  saveNewScript: (script) => {
+    saveScript(script);
     set((state) => ({
-      allScripts: state.allScripts.filter((s) => s.id !== scriptId),
+      allScripts: [...state.allScripts, script],
     }));
   },
 
-  // UI 상태 업데이트 (동기)
+  // 기록
+  addNewPracticeLog: (logEntry) => {
+    addPracticeLog(logEntry);
+    set((state) => ({
+      practiceLogs: [...state.practiceLogs, logEntry],
+    }));
+  },
+
+  // 업데이트
   setSpokenText: (text) => set({ spokenText: text }),
   recordDiffResult: (result) => set({ lastDiffResult: result }),
   loadScript: (script) => set({ currentScript: script }),
+
+  deleteScript: (scriptId: string) => {
+    deleteScriptStorage(scriptId);
+    set((state) => ({
+      allScripts: state.allScripts.filter((script) => script.id !== scriptId),
+    }));
+  },
 }));

@@ -63,7 +63,7 @@ export function GrowthHubPage() {
     if (practiceLogs.length === 0) return 0;
     const total = practiceLogs.reduce(
       (acc: number, log: PracticeLog) => acc + log.accuracy,
-      0
+      0,
     );
     return total / practiceLogs.length;
   }, [practiceLogs]);
@@ -72,7 +72,7 @@ export function GrowthHubPage() {
   const totalLines = useMemo(() => {
     return allScripts.reduce(
       (acc: number, script: ScriptData) => acc + script.lines.length,
-      0
+      0,
     );
   }, [allScripts]);
 
@@ -117,8 +117,9 @@ export function GrowthHubPage() {
               Welcome to TiTaS!
             </h2>
             <p className="text-text-secondary mb-6 max-w-md mx-auto">
-              TiTaS는 '실전 회화 근육'을 만드는 훈련장입니다. <br />
-              아래 3단계로 말하기 실력을 키워보세요.
+              TiTaS is a training ground to build your 'conversational muscles.'{' '}
+              <br />
+              Improve your speaking skills in just 3 steps.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center mb-8">
@@ -128,7 +129,7 @@ export function GrowthHubPage() {
                   1. Create
                 </p>
                 <p className="text-xs text-text-secondary mt-1">
-                  연습할 대본을 직접 만드세요.
+                  Create your own scripts to practice.
                 </p>
               </div>
               <div className="bg-primary/5 p-3 rounded-xl border border-border-default">
@@ -137,7 +138,7 @@ export function GrowthHubPage() {
                   2. Practice
                 </p>
                 <p className="text-xs text-text-secondary mt-1">
-                  역할을 골라 실전처럼 연습하세요.
+                  Pick a role and practice in a realistic setting.
                 </p>
               </div>
               <div className="bg-primary/5 p-3 rounded-xl border border-border-default">
@@ -146,7 +147,7 @@ export function GrowthHubPage() {
                   3. Review
                 </p>
                 <p className="text-xs text-text-secondary mt-1">
-                  자주 틀리는 단어를 확인하세요.
+                  Review the words you struggle with most.
                 </p>
               </div>
             </div>
@@ -155,7 +156,7 @@ export function GrowthHubPage() {
               onClick={() => setShowOnboarding(false)}
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3 bg-primary text-white rounded-xl border border-border-default font-bold uppercase text-sm hover:scale-105 transition-transform"
             >
-              훈련 시작하기!
+              Start Training!
             </button>
           </div>
         </div>
@@ -187,9 +188,9 @@ export function GrowthHubPage() {
                 </h4>
                 <span className="hidden md:block w-1 h-1 bg-gray-300 rounded-full" />
                 <p className="text-xs text-gray-500 font-medium leading-none">
-                  PC와 모바일,{' '}
-                  <span className="text-[#8D7B68] font-bold">어디서든</span>{' '}
-                  끊김 없이 연습하세요.
+                  Practice seamlessly on PC and mobile,{' '}
+                  <span className="text-[#8D7B68] font-bold">anywhere</span> you
+                  go.
                 </p>
               </div>
             </div>
@@ -411,7 +412,7 @@ function CompactCalendar({
       (practiced) =>
         practiced.getDate() === day &&
         practiced.getMonth() === currentMonth &&
-        practiced.getFullYear() === currentYear
+        practiced.getFullYear() === currentYear,
     );
 
   const isToday = (day: number) =>
@@ -472,8 +473,8 @@ function CompactCalendar({
                   isPracticed
                     ? 'bg-success text-white border-success'
                     : isT
-                    ? 'bg-accent border-accent text-white'
-                    : 'text-secondary border-transparent hover:bg-primary/5'
+                      ? 'bg-accent border-accent text-white'
+                      : 'text-secondary border-transparent hover:bg-primary/5'
                 }`}
             >
               {day}

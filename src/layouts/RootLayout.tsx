@@ -18,7 +18,7 @@ const LayoutWrapper = styled.div`
   min-height: 100vh;
   background-color: ${({ theme }) => theme.modes.light.background};
   color: ${({ theme }) => theme.modes.light.text};
-  font-family: 'lato', sans-serif;
+  font-family: 'Lato', 'Noto Sans KR', sans-serif;
   display: flex;
   flex-direction: column;
 `;

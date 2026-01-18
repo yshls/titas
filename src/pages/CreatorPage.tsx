@@ -3,444 +3,725 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore, type AppState } from '@/store/appStore';
 import type { DialogueLine, ScriptData } from '@/utils/types';
-import { parseScript } from '@/utils/parser';
+import styled from '@emotion/styled';
+import { useTheme } from '@emotion/react';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
   MdAdd,
   MdSave,
-  MdPlayArrow,
-  MdPerson,
   MdDelete,
   MdEdit,
   MdCheck,
+  MdRefresh,
 } from 'react-icons/md';
 
-// 화자
-const SPEAKERS = [
-  { id: 'Speaker 1', hex: '#E2F0D9', name: 'Person A' },
-  { id: 'Speaker 2', hex: '#DAE8FC', name: 'Person B' },
-  { id: 'Speaker 3', hex: '#FFF2CC', name: 'Person C' },
+// --- [상수] ---
+
+const INITIAL_SPEAKERS = [
+  { id: 'A', name: 'Person A', colorKey: 'blue50' },
+  { id: 'B', name: 'Person B', colorKey: 'red50' },
+  { id: 'C', name: 'Person C', colorKey: 'green50' },
 ];
+
+const SPEAKER_COLORS: Record<string, string> = {
+  blue50: '#e8f3ff',
+  red50: '#ffeeee',
+  green50: '#f0faf6',
+  grey50: '#f2f4f6',
+};
+
+// DialogueLine 타입에는 speakerColor가 없음, UI 표시를 위해 타입을 확장하여 사용
+type CreatorDialogueLine = DialogueLine & { speakerColor: string };
+
+// --- [스타일 컴포넌트] ---
+
+const PageContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 8px;
+  min-height: 100vh;
+  background-color: ${({ theme }) => theme.modes.light.background};
+  font-family: 'lato', sans-serif;
+
+  @media (min-width: 1024px) {
+    flex-direction: row;
+
+    gap: 32px;
+  }
+`;
+
+const Sidebar = styled.aside`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex-shrink: 0;
+
+  @media (min-width: 1024px) {
+    width: 320px;
+    position: sticky;
+    top: 24px;
+    height: calc(100vh - 48px);
+    overflow-y: auto;
+  }
+`;
+
+const Header = styled.header`
+  text-align: center;
+  margin-bottom: 8px;
+  @media (min-width: 1024px) {
+    text-align: left;
+  }
+`;
+
+const PageTitle = styled.h1`
+  font-size: 24px;
+  font-weight: 900;
+  color: ${({ theme }) => theme.colors.textMain};
+  text-transform: uppercase;
+  margin-bottom: 4px;
+`;
+
+const SectionCard = styled.section`
+  background-color: ${({ theme }) => theme.modes.light.cardBg};
+  border-radius: 12px;
+  border: 1px solid ${({ theme }) => theme.modes.light.border};
+  padding: 8px;
+`;
+
+const Label = styled.label`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.grey700};
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+`;
+
+const TitleInput = styled.input`
+  width: 100%;
+  padding: 8px 0;
+  border-radius: 0;
+  border: none;
+  border-bottom: 1px solid ${({ theme }) => theme.modes.light.border};
+  background-color: transparent;
+  color: ${({ theme }) => theme.colors.textMain};
+  font-weight: 700;
+  font-size: 16px;
+  outline: none;
+  transition: all 0.2s;
+
+  &:focus {
+    border-bottom-color: ${({ theme }) => theme.colors.textMain};
+  }
+
+  &::placeholder {
+    color: ${({ theme }) => theme.colors.textDisabled};
+  }
+`;
+
+const SpeakerRow = styled.div<{ isActive: boolean; activeBg: string }>`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 8px;
+  background-color: ${({ isActive, theme }) =>
+    isActive ? theme.colors.grey100 : 'transparent'};
+  transition: background-color 0.2s;
+  cursor: pointer;
+
+  &:hover {
+    background-color: ${({ isActive, theme }) =>
+      isActive ? theme.colors.grey100 : theme.colors.grey50};
+  }
+`;
+
+const SpeakerNameInput = styled.input`
+  flex: 1;
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: ${({ theme }) => theme.colors.textMain};
+  outline: none;
+  padding: 4px;
+  border-radius: 4px;
+
+  &:focus {
+    background-color: white;
+  }
+`;
+
+// 화자 색상 표시기 (원형)
+const SpeakerIndicator = styled.div<{ color: string }>`
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: ${({ color }) => color};
+  /* 테마의 border 색상을 사용하여 은은한 테두리 적용 */
+  border: 1px solid ${({ theme }) => theme.modes.light.border};
+  flex-shrink: 0;
+`;
+
+const Main = styled.main`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+
+  @media (min-width: 1024px) {
+    height: calc(100vh - 48px);
+  }
+`;
+
+const ScriptList = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  background-color: ${({ theme }) => theme.modes.light.cardBg};
+  border: 1px solid ${({ theme }) => theme.modes.light.border};
+  border-radius: 12px;
+  padding: 8px;
+  position: relative;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: ${({ theme }) => theme.colors.grey200};
+    border-radius: 10px;
+  }
+`;
+
+const DialogueItem = styled(motion.article)<{
+  speakerColor: string;
+  isEditing: boolean;
+}>`
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid ${({ theme }) => theme.modes.light.border};
+  background-color: ${({ isEditing, theme }) =>
+    isEditing ? theme.colors.grey50 : 'transparent'};
+  border-radius: ${({ isEditing }) => (isEditing ? '8px' : '0')};
+  border-bottom-color: ${({ isEditing }) => (isEditing ? 'transparent' : '')};
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  .content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .speaker-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: ${({ theme }) => theme.colors.grey700};
+
+    margin-bottom: 4px;
+  }
+
+  .text-display {
+    font-size: 16px;
+    font-weight: 500;
+    color: ${({ theme }) => theme.colors.textMain};
+    line-height: 1.6;
+    cursor: text;
+  }
+
+  .edit-input {
+    width: 100%;
+    font-size: 16px;
+    font-weight: 500;
+    color: ${({ theme }) => theme.colors.textMain};
+    background: transparent;
+    border: none;
+    outline: none;
+    resize: none;
+    line-height: 1.6;
+    font-family: inherit;
+    padding: 0;
+  }
+`;
+
+const InputSection = styled(SectionCard)`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  border-top: 1px solid ${({ theme }) => theme.modes.light.border};
+  border-radius: 12px;
+
+  @media (min-width: 640px) {
+    flex-direction: row;
+    align-items: center;
+  }
+`;
+
+const DialogueInput = styled.input`
+  flex: 1;
+  padding: 8px;
+  border-radius: 8px;
+
+  background-color: ${({ theme }) => theme.colors.grey100};
+  color: ${({ theme }) => theme.colors.textMain};
+  font-weight: 500;
+  font-size: 16px;
+  outline: none;
+  transition: all 0.2s;
+`;
+
+const ActionButton = styled.button<{
+  variant?: 'primary' | 'secondary' | 'danger';
+}>`
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 13px;
+  transition: all 0.2s;
+
+  ${({ variant, theme }) =>
+    variant === 'primary' &&
+    `
+    background-color: ${theme.colors.primary};
+    color: white;
+    &:hover { background-color: ${theme.colors.primaryHover}; }
+  `}
+
+  ${({ variant, theme }) =>
+    variant === 'secondary' &&
+    `
+    background-color: ${theme.colors.grey100};
+    color: ${theme.colors.textMain};
+    &:hover { background-color: ${theme.colors.grey200}; }
+  `}
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+`;
+
+const ActiveBadge = styled.div<{ color: string }>`
+  padding: 6px 12px;
+  border-radius: 6px;
+  background-color: ${({ color }) => color};
+  font-weight: 800;
+  font-size: 12px;
+  color: ${({ theme }) => theme.colors.textMain};
+  white-space: nowrap;
+`;
+
+// --- [로직] ---
+
+interface Speaker {
+  id: string;
+  name: string;
+  colorKey: string;
+}
 
 export function CreatorPage() {
   const navigate = useNavigate();
+  const theme = useTheme();
   const saveNewScript = useAppStore((state: AppState) => state.saveNewScript);
 
-  const [activeSpeakerId, setActiveSpeakerId] = useState<string>(
-    SPEAKERS[0].id
-  );
-  const [currentLineInput, setCurrentLineInput] = useState('');
-  const [scriptLines, setScriptLines] = useState<DialogueLine[]>([]);
-  const [scriptTitle, setScriptTitle] = useState('');
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [speakers, setSpeakers] = useState<Speaker[]>(INITIAL_SPEAKERS);
 
-  const speakerColorMap = SPEAKERS.reduce((acc, speaker) => {
-    acc[speaker.id] = speaker.hex;
-    return acc;
-  }, {} as Record<string, string>);
+  const [activeSpeakerId, setActiveSpeakerId] = useState<string>('A');
+  const [scriptLines, setScriptLines] = useState<CreatorDialogueLine[]>([]);
+  const [scriptTitle, setScriptTitle] = useState('');
+  const [lineInput, setLineInput] = useState('');
+  const [editingLineId, setEditingLineId] = useState<string | null>(null);
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // 임시 저장 불러오기
+  useEffect(() => {
+    const draft = localStorage.getItem('titas_draft');
+    if (draft) {
+      try {
+        const { title, lines, savedSpeakers } = JSON.parse(draft);
+        if (title) setScriptTitle(title);
+        if (lines) setScriptLines(lines);
+        if (savedSpeakers) setSpeakers(savedSpeakers);
+        toast('Draft restored', { icon: '📂', position: 'bottom-center' });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, []);
+
+  // 자동 임시 저장
+  useEffect(() => {
+    const draftData = {
+      title: scriptTitle,
+      lines: scriptLines,
+      savedSpeakers: speakers,
+    };
+    localStorage.setItem('titas_draft', JSON.stringify(draftData));
+  }, [scriptTitle, scriptLines, speakers]);
+
+  const handleSpeakerNameChange = (id: string, newName: string) => {
+    setSpeakers((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, name: newName } : s)),
+    );
+  };
+
+  const activeSpeaker = speakers.find((s) => s.id === activeSpeakerId);
+  const activeColor = SPEAKER_COLORS[activeSpeaker?.colorKey || 'grey50'];
 
   const handleAddLine = () => {
-    if (currentLineInput.trim() === '') return;
-    const newLines = parseScript(
-      `${activeSpeakerId}: ${currentLineInput}`,
-      speakerColorMap
+    if (!lineInput.trim()) return;
+    const newLine: CreatorDialogueLine = {
+      id: crypto.randomUUID(),
+      speakerId: activeSpeaker?.name || 'Unknown',
+      originalLine: lineInput,
+      speakerColor: SPEAKER_COLORS[activeSpeaker?.colorKey || 'grey50'],
+      isUserTurn: false,
+    };
+    setScriptLines((prev) => [...prev, newLine]);
+    setLineInput('');
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  };
+
+  const handleDeleteLine = (id: string) => {
+    setScriptLines((prev) => prev.filter((line) => line.id !== id));
+  };
+
+  const handleUpdateLine = (id: string, newText: string) => {
+    setScriptLines((prev) =>
+      prev.map((line) =>
+        line.id === id ? { ...line, originalLine: newText } : line,
+      ),
     );
-    setScriptLines([...scriptLines, ...newLines]);
-    setCurrentLineInput('');
   };
 
-  const handleDeleteLine = (lineId: string) => {
-    setScriptLines(scriptLines.filter((line) => line.id !== lineId));
+  const handleReset = () => {
+    toast(
+      (t) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span style={{ fontSize: '14px', fontWeight: 500 }}>
+            Clear all content?
+          </span>
+          <button
+            onClick={() => {
+              setScriptLines([]);
+              setScriptTitle('');
+              setSpeakers(INITIAL_SPEAKERS);
+              localStorage.removeItem('titas_draft');
+              toast.dismiss(t.id);
+            }}
+            style={{
+              backgroundColor: '#ef4444',
+              color: 'white',
+              padding: '6px 12px',
+              borderRadius: '6px',
+              fontSize: '12px',
+              fontWeight: 'bold',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            Clear
+          </button>
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            style={{
+              fontSize: '12px',
+              color: '#6b7684',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            Cancel
+          </button>
+        </div>
+      ),
+      { duration: 4000, style: { padding: '8px 12px' } },
+    );
   };
 
-  const handleSaveScript = () => {
-    if (scriptLines.length === 0) {
-      toast.error('At least one line of dialogue is required to save.');
+  const handleSave = async () => {
+    if (scriptLines.length === 0 || !scriptTitle.trim()) {
+      toast.error('Title and lines are required.');
       return;
     }
-    if (!scriptTitle.trim()) {
-      toast.error('Please enter a script title.');
-      return;
-    }
+
     const newScript: ScriptData = {
       id: crypto.randomUUID(),
       title: scriptTitle.trim(),
       createdAt: Date.now(),
       lines: scriptLines,
     };
-    saveNewScript(newScript);
-    setScriptLines([]);
-    setScriptTitle('');
 
-    // 저장 알림
-    toast.custom((t) => (
-      <div
-        className={`${
-          t.visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
-        } transform transition-all duration-300 max-w-md w-full bg-white shadow-lg rounded-2xl pointer-events-auto flex p-3  `}
-      >
-        <div className="flex-1 w-0">
-          <div className="flex flex-col">
-            <p className="text-base font-black text-accent font-display uppercase">
-              Script Saved
-            </p>
-            <p className="mt-1 text-sm text-text-secondary truncate">
-              "{newScript.title}"
-            </p>
-            <div className="flex mt-4 gap-2">
-              <button
-                onClick={() => {
-                  toast.dismiss(t.id);
-                  navigate(`/talk/${newScript.id}`, {
-                    state: { lines: newScript.lines, scriptId: newScript.id },
-                  });
-                }}
-                className="flex-1 px-4 py-2 border border-accent bg-accent/20 text-accent rounded-lg font-display font-bold text-sm hover:bg-accent/30 whitespace-nowrap transition-colors"
-              >
-                Practice Now
-              </button>
-              <button
-                onClick={() => {
-                  toast.dismiss(t.id);
+    try {
+      await saveNewScript(newScript);
 
-                  navigate('/create');
-                }}
-                className="flex-1 px-4 py-2 border border-primary bg-primary/20 text-primary rounded-lg font-display font-bold text-sm hover:bg-primary/30 whitespace-nowrap transition-colors"
-              >
-                New Script
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    ));
-  };
+      setScriptLines([]);
+      setScriptTitle('');
+      setSpeakers(INITIAL_SPEAKERS);
+      localStorage.removeItem('titas_draft');
 
-  const handleStartPractice = () => {
-    if (scriptLines.length === 0) {
-      toast.error('At least one line is required to start practice.');
-      return;
+      toast.success('Script Saved!', { icon: '✅' });
+      navigate(`/talk/${newScript.id}`, {
+        state: { lines: newScript.lines, scriptId: newScript.id },
+      });
+    } catch (error) {
+      console.error('Failed to save script:', error);
+      toast.error('Failed to save script.');
     }
-    navigate('/talk/practice', { state: { lines: scriptLines } });
   };
-
-  const activeSpeaker = SPEAKERS.find((s) => s.id === activeSpeakerId);
-
-  // 스크롤
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({
-      behavior: 'smooth',
-    });
-  }, [scriptLines]);
 
   return (
-    <div
-      className="flex flex-col lg:flex-row gap-4"
-      role="main"
-      aria-label="Script creator"
-    >
-      <Toaster position="top-center" />
-      {/* 사이드바 */}
-      <aside
-        className="lg:w-80 shrink-0 space-y-4 flex flex-col "
-        aria-label="Script settings and controls"
-      >
-        <header className="text-center lg:text-left">
-          <h1 className="text-4xl font-black text-accent mb-1 uppercase font-display">
-            Script Creator
-          </h1>
-          <p className="text-sm font-bold text-text-secondary">
-            Build your practice dialogue
-          </p>
-        </header>
-        <section
-          className="bg-white rounded-2xl border border-border-default p-3"
-          aria-labelledby="title-section"
-        >
-          <label
-            id="title-section"
-            htmlFor="script-title"
-            className="block text-sm font-black text-text-primary mb-3 uppercase tracking-wider font-display"
+    <PageContainer>
+      <Toaster
+        position="top-center"
+        containerStyle={{ zIndex: 99999 }}
+        toastOptions={{
+          style: {
+            fontSize: '14px',
+            borderRadius: '8px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+            padding: '12px',
+          },
+        }}
+      />
+
+      <Sidebar>
+        <Header>
+          <PageTitle>Studio</PageTitle>
+        </Header>
+
+        <SectionCard>
+          <Label>Title</Label>
+          <TitleInput
+            placeholder="e.g. Ordering Coffee"
+            value={scriptTitle}
+            onChange={(e) => setScriptTitle(e.target.value)}
+          />
+        </SectionCard>
+
+        <SectionCard>
+          <Label>
+            Characters
+            <span
+              style={{ fontSize: '10px', color: '#b0b8c1', fontWeight: 400 }}
+            >
+              Rename if needed
+            </span>
+          </Label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            {speakers.map((speaker) => {
+              const bgColor = SPEAKER_COLORS[speaker.colorKey];
+              const isActive = activeSpeakerId === speaker.id;
+
+              return (
+                <SpeakerRow
+                  key={speaker.id}
+                  isActive={isActive}
+                  activeBg={bgColor}
+                  onClick={() => setActiveSpeakerId(speaker.id)}
+                >
+                  {/* 화자 색상 표시 */}
+                  <SpeakerIndicator color={bgColor} />
+                  <SpeakerNameInput
+                    value={speaker.name}
+                    onChange={(e) =>
+                      handleSpeakerNameChange(speaker.id, e.target.value)
+                    }
+                    onClick={(e) => e.stopPropagation()}
+                    placeholder="Character Name"
+                  />
+                  {isActive && <MdCheck size={16} color="#333d4b" />}
+                </SpeakerRow>
+              );
+            })}
+          </div>
+        </SectionCard>
+
+        <div className="hidden lg:flex flex-col gap-3 mt-auto">
+          <ActionButton onClick={handleReset} variant="secondary">
+            <MdRefresh size={18} /> Reset
+          </ActionButton>
+          <ActionButton
+            onClick={handleSave}
+            variant="primary"
+            disabled={scriptLines.length === 0}
           >
-            Script Title
-          </label>
-          {isEditingTitle ? (
-            <div className="flex items-center gap-2">
-              <input
-                id="script-title"
-                type="text"
-                value={scriptTitle}
-                onChange={(e) => setScriptTitle(e.target.value)}
-                onBlur={() => setIsEditingTitle(false)}
-                onKeyDown={(e) => e.key === 'Enter' && setIsEditingTitle(false)}
-                placeholder="Untitled Script"
-                className="flex-1 min-w-0 px-3 py-2.5 rounded-xl border border-border-default bg-white text-primary font-bold focus:outline-none "
-                autoFocus
-                aria-label="Edit script title"
-              />
-              <button
-                onClick={() => setIsEditingTitle(false)}
-                className="shrink-0 p-2.5 rounded-xl bg-primary text-text-primary border border-border-default hover:bg-primary-hover transition-colors duration-300 font-black"
-                aria-label="Confirm title"
+            <MdSave size={18} /> Save Script
+          </ActionButton>
+        </div>
+      </Sidebar>
+
+      <Main>
+        <ScriptList ref={scrollContainerRef}>
+          {scriptLines.length === 0 ? (
+            <div
+              style={{
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: 0.4,
+              }}
+            >
+              <MdEdit size={40} color={theme.colors.textDisabled} />
+              <p
+                style={{
+                  marginTop: '16px',
+                  fontWeight: 600,
+                  fontSize: '14px',
+                }}
               >
-                <MdCheck className="w-5 h-5" aria-hidden="true" />
-              </button>
+                Start by typing a dialogue below
+              </p>
             </div>
           ) : (
-            <div
-              onClick={() => setIsEditingTitle(true)}
-              className="w-full group flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-primary/10 hover:bg-primary/20 transition-colors duration-300 border border-border-default cursor-pointer"
-              aria-label="Edit script title"
-            >
-              <span className="font-black text-accent">
-                {scriptTitle || 'Untitled Script'}
-              </span>
-              <MdEdit className="w-5 h-5 text-text-primary/50 group-hover:text-primary transition-colors" />
-            </div>
-          )}
-        </section>
-        <section
-          className="bg-white rounded-2xl border border-border-default p-3"
-          aria-labelledby="speakers-section"
-        >
-          <h2
-            id="speakers-section"
-            className="text-sm font-black text-text-primary mb-4 uppercase tracking-wider font-display"
-          >
-            Select Speaker
-          </h2>
-          <div
-            className="space-y-3"
-            role="radiogroup"
-            aria-label="Choose active speaker"
-          >
-            {SPEAKERS.map((speaker) => (
-              <button
-                key={speaker.id}
-                onClick={() => setActiveSpeakerId(speaker.id)}
-                className={`w-full flex items-center gap-3 p-3 rounded-xl border border-border-default transition-colors duration-300 ${
-                  activeSpeakerId === speaker.id
-                    ? 'bg-primary/10 border-primary'
-                    : 'bg-white hover:bg-primary/5'
-                }`}
-                role="radio"
-                aria-checked={activeSpeakerId === speaker.id}
-                aria-label={`Select ${speaker.name}`}
-              >
-                <div
-                  className="w-5 h-5 rounded-full border border-border-default shrink-0"
-                  style={
-                    { backgroundColor: speaker.hex } as React.CSSProperties
-                  }
-                  aria-hidden="true"
-                />
-                <div className="flex-1 text-left">
-                  <div
-                    className={`font-display font-black text-sm uppercase ${
-                      activeSpeakerId === speaker.id
-                        ? 'text-primary'
-                        : 'text-text-primary'
-                    }`}
-                  >
-                    {speaker.id}
-                  </div>
-                  <div
-                    className={`text-xs font-bold ${
-                      activeSpeakerId === speaker.id
-                        ? 'text-primary/90'
-                        : 'text-text-secondary'
-                    }`}
-                  >
-                    {speaker.name}
-                  </div>
-                </div>
-                {activeSpeakerId === speaker.id && (
-                  <MdPerson
-                    className="w-6 h-6 text-primary"
-                    aria-hidden="true"
+            <AnimatePresence initial={false}>
+              {scriptLines.map((line) => (
+                <DialogueItem
+                  key={line.id}
+                  speakerColor={line.speakerColor}
+                  isEditing={editingLineId === line.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setEditingLineId(line.id)}
+                >
+                  {/* 화자 색상 표시 (작게) */}
+                  <SpeakerIndicator
+                    color={line.speakerColor}
+                    style={{
+                      marginTop: '2px',
+                      width: '16px', // 대화 목록에서는 조금 더 작게
+                      height: '16px',
+                    }}
                   />
-                )}
-              </button>
-            ))}
-          </div>
-        </section>
-        {/* 데스크탑 액션 */}
-        <div className="space-y-4 hidden lg:block">
-          <button
-            onClick={handleSaveScript}
-            disabled={scriptLines.length === 0}
-            className="w-full flex items-center justify-center gap-2 px-3 py-3 rounded-2xl bg-primary text-white border border-border-default transition-colors duration-300 font-display font-black uppercase disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none"
-            aria-label="Save script"
-          >
-            <MdSave className="w-6 h-6" aria-hidden="true" />
-            Save Script
-          </button>
-          <button
-            onClick={handleStartPractice}
-            disabled={scriptLines.length === 0}
-            className="w-full flex items-center justify-center gap-2 px-3 py-3 rounded-2xl bg-white text-text-primary border border-border-default transition-colors duration-300 font-display font-black uppercase disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none"
-            aria-label="Start practice session"
-          >
-            <MdPlayArrow className="w-6 h-6" aria-hidden="true" />
-            Start Practice
-          </button>
-          <div className="bg-primary/5 rounded-2xl border border-border-default p-3 flex justify-between items-center">
-            <span className="text-sm font-display font-black text-text-secondary uppercase">
-              Total Lines
-            </span>
-            <span className="text-2xl font-black text-accent">
-              {scriptLines.length}
-            </span>
-          </div>
-        </div>
-      </aside>
-      <main className="flex-1 flex flex-col ">
-        {/* 대화 목록 */}
-        <div
-          className="lg:mt-20
-    flex-1
-    min-h-[480px]
-    max-h-[90vh]
-    overflow-y-auto
-    bg-white
-    border
-    border-border-default
-    rounded-2xl
-    p-3
-    mb-4
-    box-border
-  "
-        >
-          <div className="h-full overflow-y-auto pr-2">
-            {scriptLines.length === 0 ? ( // 초기 상태
-              <div className="flex flex-col items-center justify-center min-h-full text-center">
-                <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-primary border border-border-default mb-4">
-                  <MdEdit className="w-10 h-10 text-white" aria-hidden="true" />
-                </div>
-                <h3 className="text-2xl font-display font-black text-accent mb-3 uppercase">
-                  Start Creating
-                </h3>
-                <p className="text-base font-bold text-text-secondary max-w-md">
-                  Select a speaker and type dialogue below. Press Enter or click
-                  Add to create lines.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {scriptLines.map((line, index) => (
-                  <article
-                    key={line.id}
-                    className="group flex items-center gap-4 p-3 rounded-2xl border border-border-default bg-white transition-all duration-300"
-                    role="article"
-                    aria-label={`Line ${index + 1} from ${line.speakerId}`}
+
+                  <div className="content">
+                    <div className="speaker-label">{line.speakerId}</div>
+
+                    {editingLineId === line.id ? (
+                      <textarea
+                        className="edit-input"
+                        value={line.originalLine}
+                        onChange={(e) =>
+                          handleUpdateLine(line.id, e.target.value)
+                        }
+                        onBlur={() => setEditingLineId(null)}
+                        autoFocus
+                        rows={Math.max(
+                          1,
+                          Math.ceil(line.originalLine.length / 50),
+                        )}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            setEditingLineId(null);
+                          }
+                        }}
+                      />
+                    ) : (
+                      <p className="text-display">{line.originalLine}</p>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteLine(line.id);
+                    }}
+                    style={{
+                      padding: '4px',
+                      color: theme.colors.textDisabled,
+                      cursor: 'pointer',
+                      border: 'none',
+                      background: 'none',
+                    }}
                   >
-                    <div
-                      className="w-4 h-4 rounded-full border border-border-default shrink-0"
-                      style={
-                        {
-                          backgroundColor: line.speakerColor,
-                        } as React.CSSProperties
-                      }
-                      aria-hidden="true"
+                    <MdDelete
+                      size={16}
+                      className="hover:text-red-500 transition-colors"
                     />
-                    <div className="flex-1 min-w-0">
-                      <div className="font-display font-black text-sm text-text-primary mb-2 uppercase">
-                        {line.speakerId}
-                      </div>
-                      <p className="text-base font-bold text-text-primary leading-relaxed whitespace-pre-wrap">
-                        {line.originalLine}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => handleDeleteLine(line.id)}
-                      className="opacity-0 group-hover:opacity-100 p-2 rounded-lg border border-border-default text-text-primary hover:bg-error/10 hover:text-error transition-all duration-300"
-                      aria-label={`Delete line ${index + 1}`}
-                    >
-                      <MdDelete className="w-5 h-5" aria-hidden="true" />
-                    </button>
-                  </article>
-                ))}
-                {/* 스크롤 기준점 */}
-                <div ref={messagesEndRef} />
-              </div>
-            )}
-          </div>
-        </div>
-        <div
-          className="bg-white rounded-2xl border border-border-default p-3"
-          role="form"
-          aria-label="Add new dialogue line"
-        >
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <div
-              className="flex items-center justify-center sm:justify-start gap-2 px-3 py-2 sm:py-3 rounded-xl border border-border-default shrink-0"
-              style={
-                { backgroundColor: activeSpeaker?.hex } as React.CSSProperties
-              }
-              aria-label={`Currently speaking as ${activeSpeaker?.id}`}
-            >
-              <span className="font-display font-black text-text-primary text-sm uppercase ">
-                {activeSpeaker?.id}
-              </span>
-            </div>
-            <label htmlFor="line-input" className="sr-only">
-              Enter dialogue line
-            </label>
-            <div className="flex-1 flex items-center gap-3">
-              <input
-                id="line-input"
-                type="text"
-                value={currentLineInput}
-                onChange={(e) => setCurrentLineInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleAddLine()}
-                placeholder="Type dialogue and press Enter..."
-                className="flex-1 w-full p-3 rounded-xl border border-border-default bg-white text-text-primary font-bold focus:outline-none placeholder:text-secondary/50 caret-textPrimary"
-                aria-describedby="input-help"
-              />
-              <span id="input-help" className="sr-only">
-                Press Enter or click Add button to add line
-              </span>
-              <button
-                onClick={handleAddLine}
-                disabled={!currentLineInput.trim()}
-                className="p-3 rounded-xl bg-primary text-white border border-border-default transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none shrink-0"
-                aria-label="Add dialogue line"
-              >
-                <MdAdd className="w-7 h-7" aria-hidden="true" />
-              </button>
-            </div>
-          </div>
-        </div>
-        {/* 모바일 액션 */}
-        <div className="space-y-4 block lg:hidden mt-4">
+                  </button>
+                </DialogueItem>
+              ))}
+            </AnimatePresence>
+          )}
+          <div ref={messagesEndRef} />
+        </ScriptList>
+
+        <InputSection>
+          <ActiveBadge color={activeColor}>{activeSpeaker?.name}</ActiveBadge>
+
+          <DialogueInput
+            value={lineInput}
+            onChange={(e) => setLineInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleAddLine()}
+            placeholder={`What does ${activeSpeaker?.name} say?`}
+            aria-label="Dialogue line input"
+          />
+
           <button
-            onClick={handleSaveScript}
-            disabled={scriptLines.length === 0}
-            className="w-full flex items-center justify-center gap-2 px-3 py-3 rounded-2xl bg-primary text-white border border-border-default transition-colors duration-300 font-display font-black uppercase disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none"
-            aria-label="Save script (mobile)"
+            onClick={handleAddLine}
+            disabled={!lineInput.trim()}
+            style={{
+              padding: '8px',
+              backgroundColor: theme.colors.primary,
+              color: 'white',
+              borderRadius: '8px',
+              border: 'none',
+              cursor: 'pointer',
+              opacity: lineInput.trim() ? 1 : 0.5,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            aria-label="Add line"
           >
-            <MdSave className="w-6 h-6" aria-hidden="true" />
-            Save Script
+            <MdAdd size={20} />
           </button>
-          <button
-            onClick={handleStartPractice}
-            disabled={scriptLines.length === 0}
-            className="w-full flex items-center justify-center gap-2 px-3 py-3 rounded-2xl bg-white text-text-primary border border-border-default transition-colors duration-300 font-display font-black uppercase disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 focus:outline-none"
-            aria-label="Start practice session (mobile)"
+        </InputSection>
+
+        <div className="flex lg:hidden gap-3">
+          <ActionButton
+            onClick={handleReset}
+            variant="secondary"
+            style={{ flex: 1 }}
+            aria-label="Reset script"
           >
-            <MdPlayArrow className="w-6 h-6" aria-hidden="true" />
-            Start Practice
-          </button>
-          <div className="bg-primary/5 rounded-2xl border border-border-default p-3 flex justify-between items-center">
-            <span className="text-sm font-display font-black text-text-secondary uppercase">
-              Total Lines
-            </span>
-            <span className="text-2xl font-black text-accent">
-              {scriptLines.length}
-            </span>
-          </div>
+            <MdRefresh />
+          </ActionButton>
+          <ActionButton
+            onClick={handleSave}
+            variant="primary"
+            style={{ flex: 2 }}
+            disabled={scriptLines.length === 0}
+          >
+            Save
+          </ActionButton>
         </div>
-      </main>
-    </div>
+      </Main>
+    </PageContainer>
   );
 }

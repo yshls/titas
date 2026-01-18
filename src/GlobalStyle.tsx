@@ -6,10 +6,19 @@ const style = css`
     background-color: ${theme.modes.light.background};
     color: ${theme.modes.light.text};
 
-    font-family: 'lato', sans-serif;
+    font-family: 'Lato', 'Noto Sans KR', sans-serif;
     transition:
       background-color 0.2s ease-in-out,
       color 0.2s ease-in-out;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: 'Lato', 'Noto Sans KR', sans-serif;
   }
 
   * {

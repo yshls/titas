@@ -41,3 +41,10 @@ export interface PracticeLog {
   timeSpent: number;
   errors: WeakSpot[];
 }
+
+// 미션 데이터
+export interface Mission {
+  id: string; // UUID
+  text: string;
+  completed: boolean;
+}

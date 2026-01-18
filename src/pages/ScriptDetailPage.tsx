@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppStore, type AppState } from '@/store/appStore';
+import styled from '@emotion/styled';
 import {
   MdArrowBack,
   MdVolumeUp,
@@ -10,6 +11,260 @@ import type { ScriptData } from '@/utils/types';
 import { useTTS } from '@/utils/useTTS';
 import { useRef, useMemo, useState } from 'react';
 
+const PageContainer = styled.div`
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: ${({ theme }) => theme.modes.light.background};
+  overflow: hidden;
+  font-family: 'lato', sans-serif;
+`;
+
+//  헤더 영역
+const Header = styled.div`
+  background-color: ${({ theme }) =>
+    theme.modes.light.background}; /* 투명도 대신 배경색 사용 */
+  border-bottom: 1px solid ${({ theme }) => theme.modes.light.border};
+  padding: 12px 16px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  z-index: 10;
+`;
+
+const HeaderLeft = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+`;
+
+const BackButton = styled.button`
+  flex-shrink: 0;
+  color: ${({ theme }) => theme.colors.textSub};
+  transition: color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.primary};
+  }
+`;
+
+const Title = styled.h1`
+  font-size: 18px;
+  font-weight: 900;
+  color: ${({ theme }) => theme.colors.textMain};
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+
+  @media (min-width: 768px) {
+    font-size: 20px;
+  }
+`;
+
+const VoiceSelector = styled.div`
+  display: none;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: ${({ theme }) => theme.colors.textSub};
+  flex-shrink: 0;
+
+  @media (min-width: 768px) {
+    display: flex;
+  }
+
+  select {
+    background: transparent;
+    font-weight: 700;
+    border: none;
+    outline: none;
+    color: ${({ theme }) => theme.colors.textMain};
+    cursor: pointer;
+  }
+`;
+
+const HeaderRight = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 1;
+  min-width: 0;
+
+  p {
+    font-size: 12px;
+    color: ${({ theme }) => theme.colors.textSub};
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+`;
+
+//  대화(채팅) 영역
+const ChatContainer = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 12px;
+  background-color: ${({ theme }) => theme.modes.light.background};
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`;
+
+const MessageRow = styled.div<{ isRight: boolean }>`
+  display: flex;
+  justify-content: ${({ isRight }) => (isRight ? 'flex-end' : 'flex-start')};
+`;
+
+const MessageBubble = styled.button<{
+  isRight: boolean;
+  bgColor: string;
+  isSpeaking: boolean;
+}>`
+  position: relative;
+  max-width: 90%;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid ${({ theme }) => theme.modes.light.border};
+  text-align: left;
+  transition: border-color 0.2s;
+  cursor: pointer;
+
+  /* 화자별 배경색 적용 */
+  background-color: ${({ bgColor }) => bgColor};
+
+  /* 말풍선 꼬리 효과 (모서리 처리) */
+  border-top-right-radius: ${({ isRight }) => (isRight ? '4px' : '16px')};
+  border-top-left-radius: ${({ isRight }) => (isRight ? '16px' : '4px')};
+
+  /* 반응형 너비 제한 */
+  @media (min-width: 768px) {
+    max-width: 75%;
+  }
+
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.primary};
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+`;
+
+const BubbleHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+`;
+
+const SpeakerName = styled.p`
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: ${({ theme }) => theme.colors.textMain};
+  opacity: 0.8;
+`;
+
+const SpeakerIcon = styled(MdVolumeUp)<{ isSpeaking: boolean }>`
+  width: 16px;
+  height: 16px;
+  color: ${({ theme }) => theme.colors.textMain};
+  opacity: ${({ isSpeaking }) => (isSpeaking ? 0.5 : 0.3)};
+  transition: opacity 0.3s;
+
+  ${MessageBubble}:hover & {
+    opacity: 1;
+  }
+`;
+
+const LineText = styled.p`
+  font-size: 15px;
+  color: ${({ theme }) => theme.colors.textMain};
+  line-height: 1.6;
+
+  @media (min-width: 768px) {
+    font-size: 16px;
+  }
+`;
+
+// 3. 하단 푸터
+const Footer = styled.div`
+  border-top: 1px solid ${({ theme }) => theme.modes.light.border};
+  padding: 12px;
+  flex-shrink: 0;
+  z-index: 10;
+  background-color: ${({ theme }) => theme.modes.light.cardBg};
+`;
+
+const ActionButton = styled.button`
+  width: 100%;
+  max-width: 512px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  background-color: ${({ theme }) => theme.colors.primary};
+  color: white;
+  border-radius: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  font-size: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.primaryHover};
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  @media (min-width: 768px) {
+    font-size: 18px;
+  }
+`;
+
+// Not Found 스타일
+const NotFoundContainer = styled.div`
+  text-align: center;
+  padding: 64px 0;
+`;
+
+const NotFoundTitle = styled.h2`
+  font-size: 24px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.textMain};
+  margin-bottom: 16px;
+`;
+
+const NotFoundText = styled.p`
+  color: ${({ theme }) => theme.colors.textSub};
+  margin-bottom: 24px;
+`;
+
+const GoBackButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background-color: ${({ theme }) => theme.colors.primary};
+  color: white;
+  border-radius: 12px;
+  font-weight: 700;
+`;
+
 export function ScriptDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -18,26 +273,35 @@ export function ScriptDetailPage() {
   const [selectedVoiceURI, setSelectedVoiceURI] = useState<string | null>(null);
 
   const script = useAppStore((state: AppState) =>
-    state.allScripts.find((s) => s.id === id)
+    state.allScripts.find((s) => s.id === id),
   );
 
   const speakerIds = useMemo(
     () =>
       script ? [...new Set(script.lines.map((line) => line.speakerId))] : [],
-    [script]
+    [script],
   );
 
+  // 화자별 색상 매핑 (Theme 색상 활용)
   const speakerColors = useMemo(() => {
+    // 테마에 정의된 연한 색상들 순환 사용
+    const palette = [
+      '#e8f3ff', // blue50
+      '#fff3e0', // orange50
+      '#f0faf6', // green50
+      '#ffeeee', // red50
+      '#f2f4f6', // grey100
+    ];
     const colors: Record<string, string> = {};
     speakerIds.forEach((id, index) => {
-      colors[id] = `var(--color-speaker${index + 1})`;
+      colors[id] = palette[index % palette.length];
     });
     return colors;
   }, [speakerIds]);
 
   const englishVoices = useMemo(
     () => voices.filter((v: SpeechSynthesisVoice) => v.lang.startsWith('en-')),
-    [voices]
+    [voices],
   );
 
   const handlePracticeClick = (scriptData: ScriptData) => {
@@ -48,47 +312,35 @@ export function ScriptDetailPage() {
 
   if (!script) {
     return (
-      <div className="text-center py-16">
-        <h2 className="text-2xl font-bold text-text-primary mb-4">
-          Script Not Found
-        </h2>
-        <p className="text-text-secondary mb-6">
+      <NotFoundContainer>
+        <NotFoundTitle>Script Not Found</NotFoundTitle>
+        <NotFoundText>
           The script you are looking for does not exist.
-        </p>
-        <button
-          onClick={() => navigate('/')}
-          className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold"
-        >
-          <MdArrowBack className="w-5 h-5" />
+        </NotFoundText>
+        <GoBackButton onClick={() => navigate('/')}>
+          <MdArrowBack size={20} />
           Back to My Scripts
-        </button>
-      </div>
+        </GoBackButton>
+      </NotFoundContainer>
     );
   }
 
   return (
-    <div className="h-screen flex flex-col bg-bg-main overflow-hidden">
+    <PageContainer>
       {/* 헤더 */}
-      <div className="bg-border-subtle/30 border-b px-3 border-border-default py-2 flex-shrink-0 flex items-center justify-between gap-x-4 z-10">
-        <div className="flex items-center gap-3 flex-1 min-w-0">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex-shrink-0 text-text-secondary hover:text-primary transition-colors"
-            aria-label="Go back"
-          >
-            <MdArrowBack className="w-6 h-6" />
-          </button>
-          <h1 className="font-display text-lg md:text-xl font-black text-accent truncate leading-tight">
-            {script.title}
-          </h1>
-        </div>
+      <Header>
+        <HeaderLeft>
+          <BackButton onClick={() => navigate(-1)} aria-label="Go back">
+            <MdArrowBack size={24} />
+          </BackButton>
+          <Title>{script.title}</Title>
+        </HeaderLeft>
 
-        <div className="hidden md:flex items-center gap-1 text-xs text-text-secondary font-sans flex-shrink-0">
-          <MdRecordVoiceOver className="w-4 h-4" />
+        <VoiceSelector>
+          <MdRecordVoiceOver size={16} />
           <select
             value={selectedVoiceURI || ''}
             onChange={(e) => setSelectedVoiceURI(e.target.value)}
-            className="bg-transparent font-bold focus:outline-none"
             aria-label="Select TTS voice"
           >
             <option value="">Default Voice</option>
@@ -98,77 +350,51 @@ export function ScriptDetailPage() {
               </option>
             ))}
           </select>
-        </div>
+        </VoiceSelector>
 
-        <div className="flex items-center justify-end flex-1 min-w-0">
-          <p className="text-xs text-text-secondary font-sans truncate">
+        <HeaderRight>
+          <p>
             {script.lines.length} lines • {speakerIds.length} speakers
           </p>
-        </div>
-      </div>
+        </HeaderRight>
+      </Header>
 
       {/* 대화 */}
-      <div
-        ref={chatContainerRef}
-        className="flex-1 overflow-y-auto py-3 px-2 bg-bg-main"
-      >
-        <div className=" mx-auto space-y-3">
-          {script.lines.map((line, index) => {
-            const isPrimarySpeakerSide =
-              speakerIds.indexOf(line.speakerId) % 2 === 0;
+      <ChatContainer ref={chatContainerRef}>
+        {script.lines.map((line, index) => {
+          const isPrimarySpeakerSide =
+            speakerIds.indexOf(line.speakerId) % 2 === 0;
 
-            return (
-              <div
-                key={index}
-                className={`flex ${
-                  isPrimarySpeakerSide ? 'justify-end' : 'justify-start'
-                }`}
+          return (
+            <MessageRow key={index} isRight={isPrimarySpeakerSide}>
+              <MessageBubble
+                onClick={() =>
+                  !isSpeaking && speak(line.originalLine, selectedVoiceURI)
+                }
+                disabled={isSpeaking}
+                isRight={isPrimarySpeakerSide}
+                bgColor={speakerColors[line.speakerId]}
+                isSpeaking={isSpeaking}
               >
-                <button
-                  onClick={() =>
-                    !isSpeaking && speak(line.originalLine, selectedVoiceURI)
-                  }
-                  disabled={isSpeaking}
-                  className={`group relative max-w-[90%] md:max-w-[75%] p-2 rounded-2xl border text-left transition-colors border-border-default hover:border-primary disabled:cursor-not-allowed  ${
-                    isPrimarySpeakerSide ? 'rounded-tr-none' : 'rounded-tl-none'
-                  }`}
-                  style={{ backgroundColor: speakerColors[line.speakerId] }}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="font-display font-bold text-xs uppercase text-text-primary/80 truncate">
-                      {line.speakerId}
-                    </p>
-                    <MdVolumeUp
-                      className={`w-4 h-4 text-text-primary/40 transition-opacity duration-300 ${
-                        isSpeaking
-                          ? 'opacity-50'
-                          : 'opacity-40 group-hover:opacity-100'
-                      }`}
-                    />
-                  </div>
+                <BubbleHeader>
+                  <SpeakerName>{line.speakerId}</SpeakerName>
+                  <SpeakerIcon as={MdVolumeUp} isSpeaking={isSpeaking} />
+                </BubbleHeader>
 
-                  <p className="text-sm md:text-base text-text-primary leading-relaxed font-sans">
-                    {line.originalLine}
-                  </p>
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+                <LineText>{line.originalLine}</LineText>
+              </MessageBubble>
+            </MessageRow>
+          );
+        })}
+      </ChatContainer>
 
       {/* 하단 */}
-      <div className="border-t border-border-default p-2 flex-shrink-0 z-10">
-        <div className="max-w-lg mx-auto">
-          <button
-            onClick={() => handlePracticeClick(script)}
-            className="w-full flex items-center justify-center gap-2 p-3 sm:py-2 bg-primary text-white rounded-xl font-display font-black uppercase text-base sm:text-lg shadow-md transition-all hover:bg-primary/90  hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]"
-          >
-            <MdPlayArrow className="w-7 h-7" />
-            Start Practice
-          </button>
-        </div>
-      </div>
-    </div>
+      <Footer>
+        <ActionButton onClick={() => handlePracticeClick(script)}>
+          <MdPlayArrow size={28} />
+          Start Practice
+        </ActionButton>
+      </Footer>
+    </PageContainer>
   );
 }

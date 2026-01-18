@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import type { User } from '@supabase/supabase-js';
 import type { DialogueLine, ScriptData, PracticeLog } from '@/utils/types';
 import type { DiffResult } from '@/utils/diffChecker';
 
@@ -17,6 +18,9 @@ export interface AppState {
   currentScript: DialogueLine[];
   spokenText: string;
   lastDiffResult: DiffResult[];
+
+  user: User | null;
+  setUser: (user: User | null) => void;
 
   // 비동기 액션 (DB 연동)
   loadInitialData: () => Promise<void>;
@@ -38,6 +42,9 @@ export const useAppStore = create<AppState>((set) => ({
   currentScript: [],
   spokenText: '',
   lastDiffResult: [],
+
+  user: null,
+  setUser: (user) => set({ user }),
 
   // 초기 데이터 로드 (앱 시작 시 실행)
   loadInitialData: async () => {

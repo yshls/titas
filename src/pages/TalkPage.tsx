@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
+import styled from '@emotion/styled';
+import { keyframes } from '@emotion/react';
 import type { DialogueLine, PracticeLog, WeakSpot } from '@/utils/types';
 import type { DiffResult } from '@/utils/diffChecker';
 import { checkWordDiff } from '@/utils/diffChecker';
@@ -17,13 +19,322 @@ import {
   MdRecordVoiceOver,
   MdReplay,
   MdClose,
+  MdArrowBack,
 } from 'react-icons/md';
+
+// --- [Styled Components] ---
+
+const PageContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: ${({ theme }) => theme.modes.light.background};
+  font-family: 'lato', sans-serif;
+  overflow: hidden;
+`;
+
+const Header = styled.header`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background-color: ${({ theme }) => theme.modes.light.background};
+  border-bottom: 1px solid ${({ theme }) => theme.modes.light.border};
+  z-index: 10;
+`;
+
+const HeaderLeft = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+`;
+
+const BackButton = styled.button`
+  color: ${({ theme }) => theme.colors.textSub};
+  &:hover {
+    color: ${({ theme }) => theme.colors.primary};
+  }
+`;
+
+const HeaderTitle = styled.h1`
+  font-size: 18px;
+  font-weight: 900;
+  color: ${({ theme }) => theme.colors.textMain};
+  text-transform: uppercase;
+`;
+
+const HeaderRight = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+`;
+
+const VoiceSelect = styled.select`
+  background: transparent;
+  border: none;
+  font-size: 12px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.textSub};
+  outline: none;
+  cursor: pointer;
+`;
+
+const ChatContainer = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background-color: ${({ theme }) => theme.modes.light.background};
+`;
+
+const MessageRow = styled.div<{ isRight: boolean }>`
+  display: flex;
+  justify-content: ${({ isRight }) => (isRight ? 'flex-end' : 'flex-start')};
+`;
+
+const MessageBubble = styled.div<{ isRight: boolean; bgColor: string }>`
+  max-width: 85%;
+  padding: 12px 16px;
+  border-radius: 16px;
+  background-color: ${({ bgColor }) => bgColor};
+  border: 1px solid ${({ theme }) => theme.modes.light.border};
+
+  border-top-left-radius: ${({ isRight }) => (isRight ? '16px' : '4px')};
+  border-top-right-radius: ${({ isRight }) => (isRight ? '4px' : '16px')};
+
+  @media (min-width: 768px) {
+    max-width: 70%;
+  }
+`;
+
+const BubbleHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+`;
+
+const SpeakerLabel = styled.span`
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: ${({ theme }) => theme.colors.textMain};
+  opacity: 0.7;
+`;
+
+const LineText = styled.p`
+  font-size: 16px;
+  color: ${({ theme }) => theme.colors.textMain};
+  line-height: 1.5;
+`;
+
+// 피드백 텍스트 스타일
+const FeedbackText = styled.span<{ status: 'correct' | 'removed' | 'added' }>`
+  font-weight: 700;
+  ${({ status, theme }) =>
+    status === 'correct' && `color: ${theme.colors.success};`}
+  ${({ status, theme }) =>
+    status === 'removed' &&
+    `color: ${theme.colors.error}; text-decoration: line-through; opacity: 0.6;`}
+  ${({ status, theme }) =>
+    status === 'added' && `color: ${theme.colors.warning};`}
+`;
+
+// 하단 컨트롤 영역
+const ControlsContainer = styled.div`
+  padding: 16px;
+  background-color: ${({ theme }) => theme.modes.light.cardBg};
+  border-top: 1px solid ${({ theme }) => theme.modes.light.border};
+`;
+
+const InputWrapper = styled.div`
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+`;
+
+const TextInput = styled.input`
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid ${({ theme }) => theme.modes.light.border};
+  font-size: 16px;
+  outline: none;
+
+  &:focus {
+    border-color: ${({ theme }) => theme.colors.primary};
+  }
+
+  &:disabled {
+    background-color: ${({ theme }) => theme.colors.grey50};
+    cursor: not-allowed;
+  }
+`;
+
+const SendButton = styled.button`
+  padding: 0 20px;
+  background-color: ${({ theme }) => theme.colors.primary};
+  color: white;
+  border-radius: 12px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:disabled {
+    background-color: ${({ theme }) => theme.colors.grey200};
+    cursor: not-allowed;
+  }
+`;
+
+const ActionsRow = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+`;
+
+const CircleButton = styled.button<{
+  isActive?: boolean;
+  size?: 'small' | 'large';
+}>`
+  width: ${({ size }) => (size === 'large' ? '64px' : '48px')};
+  height: ${({ size }) => (size === 'large' ? '64px' : '48px')};
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+
+  /* 기본 스타일 (테두리만) */
+  background-color: white;
+  border: 1px solid
+    ${({ theme, isActive }) =>
+      isActive ? theme.colors.primary : theme.modes.light.border};
+  color: ${({ theme, isActive }) =>
+    isActive ? theme.colors.primary : theme.colors.textSub};
+
+  /* Active (Filled) 스타일 */
+  ${({ isActive, theme }) =>
+    isActive &&
+    `
+    background-color: ${theme.colors.primary};
+    color: white;
+    border: none;
+  `}
+
+  &:hover {
+    transform: translateY(-2px);
+    border-color: ${({ theme }) => theme.colors.primary};
+    color: ${({ theme, isActive }) =>
+      isActive ? 'white' : theme.colors.primary};
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+`;
+
+const pulse = keyframes`
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+`;
+
+const MicButton = styled(CircleButton)<{ isListening: boolean }>`
+  ${({ isListening, theme }) =>
+    isListening &&
+    `
+    background-color: ${theme.colors.error};
+    color: white;
+    border: none;
+    animation: ${pulse} 1.5s infinite;
+    
+    &:hover {
+      background-color: ${theme.colors.error};
+      color: white;
+    }
+  `}
+`;
+
+// --- [Role Selection Screen Components] ---
+
+const RoleSelectionContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: ${({ theme }) => theme.modes.light.background};
+  padding: 24px;
+`;
+
+const RoleTitle = styled.h1`
+  font-size: 32px;
+  font-weight: 900;
+  color: ${({ theme }) => theme.colors.textMain};
+  margin-bottom: 8px;
+  text-transform: uppercase;
+`;
+
+const RoleSubtitle = styled.p`
+  color: ${({ theme }) => theme.colors.textSub};
+  margin-bottom: 32px;
+`;
+
+const RoleGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  width: 100%;
+  max-width: 600px;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+`;
+
+const RoleCard = styled.button`
+  background-color: ${({ theme }) => theme.modes.light.cardBg};
+  border: 1px solid ${({ theme }) => theme.modes.light.border};
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.primary};
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+`;
+
+const Avatar = styled.div<{ color: string }>`
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: ${({ color }) => color};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: ${({ theme }) => theme.colors.textMain};
+  font-size: 24px;
+`;
+
+// --- [Logic] ---
 
 export function TalkPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const addNewPracticeLog = useAppStore(
-    (state: AppState) => state.addNewPracticeLog
+    (state: AppState) => state.addNewPracticeLog,
   );
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
@@ -33,13 +344,15 @@ export function TalkPage() {
 
   const speakerIds = useMemo(
     () => [...new Set(initialScriptLines.map((line) => line.speakerId))],
-    [initialScriptLines]
+    [initialScriptLines],
   );
 
   const speakerColors = useMemo(() => {
+    // 테마 색상을 활용한 화자별 색상 매핑
+    const palette = ['#e8f3ff', '#fff3e0', '#f0faf6', '#ffeeee'];
     const colors: Record<string, string> = {};
     speakerIds.forEach((id, index) => {
-      colors[id] = `var(--color-speaker${index + 1})`;
+      colors[id] = palette[index % palette.length];
     });
     return colors;
   }, [speakerIds]);
@@ -47,7 +360,7 @@ export function TalkPage() {
   const [script] = useState<DialogueLine[]>(initialScriptLines);
   const [currentLineIndex, setCurrentLineIndex] = useState(0);
   const [feedbackMap, setFeedbackMap] = useState<Record<number, DiffResult[]>>(
-    {}
+    {},
   );
   const [userInputMap, setUserInputMap] = useState<Record<number, string>>({});
   const [sessionStartTime, setSessionStartTime] = useState(Date.now());
@@ -69,21 +382,14 @@ export function TalkPage() {
 
   const englishVoices = useMemo(
     () => voices.filter((v: SpeechSynthesisVoice) => v.lang.startsWith('en-')),
-    [voices]
+    [voices],
   );
 
   const currentLine = script[currentLineIndex];
   const isFinished = currentLineIndex >= script.length;
   const isMyTurn = currentLine?.speakerId === userSpeakerId;
 
-  const DIFF_COLOR_MAP = {
-    correct: 'text-success font-bold',
-    removed: 'text-error font-bold',
-    added: 'text-text-secondary/60 line-through',
-    neutral: 'text-text-primary',
-  };
-
-  // 스크롤
+  // 스크롤 자동 이동
   useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop =
@@ -91,7 +397,7 @@ export function TalkPage() {
     }
   }, [currentLineIndex, feedbackMap]);
 
-  // 자동 재생
+  // 상대방 턴일 때 자동 재생 (TTS)
   useEffect(() => {
     if (
       currentLine &&
@@ -101,6 +407,9 @@ export function TalkPage() {
       isPracticeStarted &&
       !isFinished
     ) {
+      // 언어 감지 로직 추가 (Default Voice 문제 방지)
+      // 만약 useTTS의 speak 함수가 언어를 못 잡으면 여기서 utterance 설정 필요
+      // 일단 기존 speak 함수 사용
       speak(currentLine.originalLine, selectedVoiceURI, () => {
         setCurrentLineIndex((prev) => prev + 1);
       });
@@ -116,6 +425,7 @@ export function TalkPage() {
     selectedVoiceURI,
   ]);
 
+  // 음성 인식 결과 처리
   useEffect(() => {
     if (transcript && !isListening) {
       processUserInput(transcript);
@@ -125,12 +435,12 @@ export function TalkPage() {
   const processUserInput = (inputText: string) => {
     if (!currentLine || !isMyTurn || feedbackMap[currentLineIndex]) return;
 
-    // 비교 전, 원본 대사에서 문장 부호를 제거하여 정확도 향상
     const originalLineForDiff = currentLine.originalLine.replace(
       /[.,?!\/#!$%\^&\*;:{}=\-_`~()]/g,
-      ''
+      '',
     );
     const diffResult = checkWordDiff(originalLineForDiff, inputText);
+
     setFeedbackMap((prev) => ({ ...prev, [currentLineIndex]: diffResult }));
     setUserInputMap((prev) => ({ ...prev, [currentLineIndex]: inputText }));
     setShowHint(false);
@@ -148,7 +458,6 @@ export function TalkPage() {
       }));
     setSessionErrors((prev) => [...prev, ...newErrors]);
 
-    // 다음 대사
     setTimeout(() => {
       setCurrentLineIndex((prev) => prev + 1);
     }, 1500);
@@ -169,7 +478,6 @@ export function TalkPage() {
   };
 
   const handleEndPractice = () => {
-    // 정확도 계산
     const userLines = Object.keys(feedbackMap).map(Number);
     let totalCorrectWords = 0;
     let totalWordsInSpokenLines = 0;
@@ -178,10 +486,10 @@ export function TalkPage() {
       const diff = feedbackMap[lineIndex];
       if (diff) {
         totalCorrectWords += diff.filter(
-          (part) => part.status === 'correct'
+          (part) => part.status === 'correct',
         ).length;
         totalWordsInSpokenLines += diff.filter(
-          (part) => part.status !== 'added'
+          (part) => part.status !== 'added',
         ).length;
       }
     });
@@ -201,12 +509,8 @@ export function TalkPage() {
       timeSpent: timeSpent,
       errors: sessionErrors,
     };
-    addNewPracticeLog(
-      newLogEntry,
-      location.state?.title || 'Practice Session'
-    );
+    addNewPracticeLog(newLogEntry, location.state?.title || 'Practice Session');
 
-    // 결과 모달을 위한 상태 업데이트
     setPracticeResult({ accuracy: finalAccuracy, timeSpent: timeSpent });
     setShowResultModal(true);
   };
@@ -236,390 +540,356 @@ export function TalkPage() {
     toast('Restarting...', { icon: '🔄', duration: 1500 });
   };
 
-  const handleCompletePractice = () => {
-    handleEndPractice(); // 연습이 끝나면 바로 저장 및 결과 계산
-  };
-
   useEffect(() => {
     if (isFinished && isPracticeStarted) {
-      handleCompletePractice();
+      handleEndPractice();
     }
   }, [isFinished, isPracticeStarted]);
 
-  // 역할 선택
+  // --- [Role Selection View] ---
   if (!isPracticeStarted) {
     return (
-      <div className="flex flex-col items-center justify-center h-full bg-bg-main">
+      <RoleSelectionContainer>
         <Toaster position="top-center" />
-        <div className="w-full max-w-3xl p-4">
-          <header className="text-center mb-8">
-            <h1 className="font-display text-3xl md:text-4xl font-black text-accent mb-2 uppercase">
-              Choose Your Role
-            </h1>
-            <p className="font-sans font-bold text-sm text-text-secondary">
-              Select your character
-            </p>
-          </header>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {speakerIds.map((id) => {
-              const lineCount = script.filter(
-                (line) => line.speakerId === id
-              ).length;
-              return (
-                <button
-                  key={id}
-                  onClick={() => {
-                    handleStartPractice(id);
-                  }}
-                  className="bg-white rounded-xl border border-border-default p-5 hover:border-primary transition-all min-h-[120px] flex flex-col items-center justify-center gap-3"
-                >
-                  <div
-                    className="w-12 h-12 rounded-full flex items-center justify-center"
-                    style={{ backgroundColor: speakerColors[id] }}
+        <RoleTitle>Choose Your Role</RoleTitle>
+        <RoleSubtitle>
+          Select which character you want to practice as
+        </RoleSubtitle>
+
+        <RoleGrid>
+          {speakerIds.map((id) => {
+            const lineCount = script.filter(
+              (line) => line.speakerId === id,
+            ).length;
+            return (
+              <RoleCard key={id} onClick={() => handleStartPractice(id)}>
+                <Avatar color={speakerColors[id]}>
+                  <MdPerson />
+                </Avatar>
+                <div style={{ textAlign: 'center' }}>
+                  <h3
+                    style={{
+                      fontSize: '18px',
+                      fontWeight: 800,
+                      marginBottom: '4px',
+                    }}
                   >
-                    <MdPerson className="w-6 h-6 text-text-primary" />
-                  </div>
-                  <div className="text-center">
-                    <p className="font-display text-lg font-black text-text-primary uppercase">
-                      {id}
-                    </p>
-                    <p className="text-xs text-text-secondary">
-                      {lineCount} lines
-                    </p>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
+                    {id}
+                  </h3>
+                  <p style={{ fontSize: '13px', color: '#6b7684' }}>
+                    {lineCount} lines
+                  </p>
+                </div>
+              </RoleCard>
+            );
+          })}
+        </RoleGrid>
+
+        <BackButton
+          onClick={() => navigate(-1)}
+          style={{
+            marginTop: '32px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+          }}
+        >
+          <MdArrowBack /> Back
+        </BackButton>
+      </RoleSelectionContainer>
     );
   }
 
+  // --- [Practice View] ---
   return (
-    <div className="h-screen flex flex-col bg-bg-main ">
-      {/* 결과 모달 */}
-      {showResultModal && practiceResult && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="relative bg-white rounded-2xl p-6 sm:p-8 text-center max-w-sm w-full animate-enter">
-            <button
-              onClick={() => setShowResultModal(false)}
-              className="absolute top-3 right-3 p-1 rounded-full hover:bg-gray-100 transition-colors"
-              aria-label="Close results and review conversation"
-            >
-              <MdClose className="w-6 h-6 text-text-secondary" />
-            </button>
-            <h2 className="font-display text-3xl font-black text-accent uppercase mb-2">
-              Practice Complete!
-            </h2>
-            <p className="text-text-secondary mb-3">
-              Well done! Here are your results.
-            </p>
+    <PageContainer>
+      <Toaster position="top-center" />
 
-            <div className="grid grid-cols-2 gap-4 mb-8">
-              {/* 정확도 */}
-              <div className="flex flex-col items-center justify-center bg-primary/5 p-4 rounded-xl border border-border-default">
-                <p className="font-display text-4xl font-black text-success">
+      {/* Header */}
+      <Header>
+        <HeaderLeft>
+          <BackButton
+            onClick={() => {
+              if (window.confirm('Quit practice?')) navigate(-1);
+            }}
+          >
+            <MdArrowBack size={24} />
+          </BackButton>
+          <HeaderTitle>Practice Mode</HeaderTitle>
+        </HeaderLeft>
+
+        <HeaderRight>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              fontSize: '12px',
+              fontWeight: 700,
+              color: '#6b7684',
+            }}
+          >
+            <span>{userSpeakerId}</span>
+            <span>•</span>
+            <span>
+              {currentLineIndex + 1}/{script.length}
+            </span>
+          </div>
+          <MdRecordVoiceOver size={16} color="#6b7684" />
+          <VoiceSelect
+            value={selectedVoiceURI || ''}
+            onChange={(e) => setSelectedVoiceURI(e.target.value)}
+          >
+            <option value="">Default</option>
+            {englishVoices.map((v) => (
+              <option key={v.voiceURI} value={v.voiceURI}>
+                {v.name}
+              </option>
+            ))}
+          </VoiceSelect>
+        </HeaderRight>
+      </Header>
+
+      {/* Chat Area */}
+      <ChatContainer ref={chatContainerRef}>
+        {script
+          .slice(0, currentLineIndex + (isFinished ? 0 : 1))
+          .map((line, idx) => {
+            const isUser = line.speakerId === userSpeakerId;
+            const feedback = feedbackMap[idx];
+
+            return (
+              <MessageRow key={line.id || idx} isRight={isUser}>
+                <MessageBubble
+                  isRight={isUser}
+                  bgColor={speakerColors[line.speakerId]}
+                >
+                  <BubbleHeader>
+                    <SpeakerLabel>{line.speakerId}</SpeakerLabel>
+                    {!isUser && <MdVolumeUp size={14} color="#6b7684" />}
+                  </BubbleHeader>
+
+                  <LineText>
+                    {isUser ? (
+                      <>
+                        {/* 사용자 입력 또는 피드백 표시 */}
+                        {userInputMap[idx] || feedback ? (
+                          <div>
+                            <p style={{ marginBottom: feedback ? '8px' : 0 }}>
+                              {userInputMap[idx]}
+                            </p>
+                            {feedback && (
+                              <div
+                                style={{
+                                  borderTop: '1px solid rgba(0,0,0,0.1)',
+                                  paddingTop: '8px',
+                                  fontSize: '14px',
+                                }}
+                              >
+                                {feedback.map((part, i) => (
+                                  <FeedbackText
+                                    key={i}
+                                    status={part.status as any}
+                                  >
+                                    {part.value}{' '}
+                                  </FeedbackText>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          // 아직 말하지 않음 (힌트 or 대기)
+                          idx === currentLineIndex &&
+                          (showHint ? (
+                            <span
+                              style={{ color: '#6b7684', fontStyle: 'italic' }}
+                            >
+                              {line.originalLine}
+                            </span>
+                          ) : (
+                            <span
+                              style={{ color: '#b0b8c1', fontStyle: 'italic' }}
+                            >
+                              Your turn to speak...
+                            </span>
+                          ))
+                        )}
+                      </>
+                    ) : (
+                      // 상대방 대사
+                      line.originalLine
+                    )}
+                  </LineText>
+                </MessageBubble>
+              </MessageRow>
+            );
+          })}
+      </ChatContainer>
+
+      {/* Controls */}
+      <ControlsContainer>
+        {inputMode === 'keyboard' && (
+          <InputWrapper>
+            <TextInput
+              value={typedInput}
+              onChange={(e) => setTypedInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleKeyboardSubmit()}
+              placeholder={isMyTurn ? 'Type here...' : 'Wait for your turn...'}
+              disabled={!isMyTurn || !!feedbackMap[currentLineIndex]}
+              autoFocus
+            />
+            <SendButton
+              onClick={handleKeyboardSubmit}
+              disabled={!typedInput.trim() || !isMyTurn}
+            >
+              <MdSend size={20} />
+            </SendButton>
+          </InputWrapper>
+        )}
+
+        <ActionsRow>
+          <CircleButton
+            onClick={() =>
+              setInputMode((prev) => (prev === 'mic' ? 'keyboard' : 'mic'))
+            }
+            isActive={inputMode === 'keyboard'}
+          >
+            <MdKeyboard size={24} />
+          </CircleButton>
+
+          <MicButton
+            size="large"
+            onClick={handleMicClick}
+            isListening={isListening}
+            disabled={
+              inputMode === 'keyboard' ||
+              isSpeaking ||
+              !isMyTurn ||
+              !!feedbackMap[currentLineIndex]
+            }
+          >
+            <FiMic size={32} />
+          </MicButton>
+
+          <CircleButton
+            onClick={() => setShowHint(!showHint)}
+            isActive={showHint}
+            disabled={!isMyTurn || !!feedbackMap[currentLineIndex]}
+          >
+            <MdLightbulb size={24} />
+          </CircleButton>
+        </ActionsRow>
+      </ControlsContainer>
+
+      {/* Result Modal (Simple) */}
+      {showResultModal && practiceResult && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 50,
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: 'white',
+              padding: '32px',
+              borderRadius: '24px',
+              width: '90%',
+              maxWidth: '400px',
+              textAlign: 'center',
+            }}
+          >
+            <h2
+              style={{ fontSize: '24px', fontWeight: 900, marginBottom: '8px' }}
+            >
+              PRACTICE COMPLETE!
+            </h2>
+            <div
+              style={{
+                display: 'flex',
+                gap: '16px',
+                justifyContent: 'center',
+                margin: '24px 0',
+              }}
+            >
+              <div>
+                <div
+                  style={{
+                    fontSize: '32px',
+                    fontWeight: 900,
+                    color: '#22c55e',
+                  }}
+                >
                   {practiceResult.accuracy}%
-                </p>
-                <p className="text-xs font-bold text-text-secondary uppercase mt-1">
-                  Accuracy
-                </p>
+                </div>
+                <div
+                  style={{
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    color: '#6b7684',
+                  }}
+                >
+                  ACCURACY
+                </div>
               </div>
-              {/* 소요 시간 */}
-              <div className="flex flex-col items-center justify-center bg-primary/5 p-4 rounded-xl border border-border-default">
-                <p className="font-display text-4xl font-black text-primary">
-                  {Math.floor(practiceResult.timeSpent / 60)}
-                  <span className="text-2xl">m</span>{' '}
-                  {practiceResult.timeSpent % 60}
-                  <span className="text-2xl">s</span>
-                </p>
-                <p className="text-xs font-bold text-text-secondary uppercase mt-1">
-                  Time Spent
-                </p>
+              <div>
+                <div
+                  style={{
+                    fontSize: '32px',
+                    fontWeight: 900,
+                    color: '#333d4b',
+                  }}
+                >
+                  {practiceResult.timeSpent}s
+                </div>
+                <div
+                  style={{
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    color: '#6b7684',
+                  }}
+                >
+                  TIME
+                </div>
               </div>
             </div>
-
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div style={{ display: 'flex', gap: '8px' }}>
               <button
                 onClick={handleRetryPractice}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-accent/10 text-accent rounded-xl border border-border-default font-bold uppercase text-sm"
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  borderRadius: '12px',
+                  border: '1px solid #e5e8eb',
+                  background: 'white',
+                  fontWeight: 700,
+                }}
               >
-                <MdReplay className="w-5 h-5" />
                 Retry
               </button>
               <button
                 onClick={() => navigate('/scripts')}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary text-white rounded-xl border border-border-default font-bold uppercase text-sm"
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  borderRadius: '12px',
+                  background: '#333d4b',
+                  color: 'white',
+                  border: 'none',
+                  fontWeight: 700,
+                }}
               >
-                Back to List
+                Finish
               </button>
             </div>
           </div>
         </div>
       )}
-
-      <Toaster position="top-center" />
-
-      {/* 상단 바 */}
-      <div className="bg-border-subtle/30 border-b px-3 border-border-default py-2 flex-shrink-0">
-        <div className="mx-auto flex flex-wrap items-center justify-between gap-y-2">
-          {/* 왼쪽: Speaker 라디오 버튼 그룹 */}
-          <div className="flex items-center gap-3">
-            {speakerIds.map((id) => (
-              <button
-                key={id}
-                onClick={() => {
-                  setUserSpeakerId(id);
-                  toast.success(`Switched to ${id}`, { duration: 1000 });
-                }}
-                className="flex items-center gap-1 focus:outline-none"
-                role="radio"
-                aria-checked={userSpeakerId === id ? 'true' : 'false'}
-                aria-label={`Select ${id}`}
-                tabIndex={0}
-              >
-                <span
-                  className={`rounded-full border transition-all duration-150 ${
-                    userSpeakerId === id
-                      ? 'border-primary ring-2 ring-primary'
-                      : 'border-border-default'
-                  }`}
-                  style={{
-                    width: 14,
-                    height: 14,
-                    backgroundColor: speakerColors[id],
-                    display: 'inline-block',
-                    boxShadow:
-                      userSpeakerId === id
-                        ? '0 0 0 1.5px var(--color-primary)'
-                        : undefined,
-                  }}
-                />
-                <span
-                  className={`font-display font-medium text-xs uppercase transition-colors ${
-                    userSpeakerId === id
-                      ? 'text-text-primary'
-                      : 'text-text-secondary'
-                  }`}
-                >
-                  {id}
-                </span>
-              </button>
-            ))}
-          </div>
-
-          {/* 음성 선택 */}
-          <div className="flex items-center gap-2">
-            <MdRecordVoiceOver className="w-4 h-4 text-text-secondary" />
-            <select
-              value={selectedVoiceURI || ''}
-              onChange={(e) => setSelectedVoiceURI(e.target.value)}
-              className="bg-transparent text-xs font-bold text-text-secondary focus:outline-none"
-              aria-label="Select TTS voice"
-            >
-              <option value="" disabled>
-                Default Voice
-              </option>
-              {englishVoices.map((voice: SpeechSynthesisVoice) => (
-                <option key={voice.voiceURI} value={voice.voiceURI}>
-                  {voice.name} ({voice.lang})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* 오른쪽: 진행 정보 */}
-          <div className="flex items-center gap-2 text-xs text-text-secondary font-sans">
-            <span className="font-bold shrink-0">Role: {userSpeakerId}</span>
-            <span className="">•</span>
-            <span className="shrink-0">
-              {currentLineIndex + 1} / {script.length} lines
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* 대화 */}
-      <div
-        ref={chatContainerRef}
-        className="flex-1 overflow-y-auto  py-3 px-2"
-        style={{ maxHeight: 'calc(100vh - 200px)' } as React.CSSProperties}
-      >
-        <div className="mx-auto space-y-3">
-          {script
-            .slice(0, currentLineIndex + (isFinished ? 0 : 1))
-            .map((line, idx) => {
-              const isUser = line.speakerId === userSpeakerId;
-              return (
-                <div
-                  key={line.id || idx}
-                  className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}
-                >
-                  <button
-                    onClick={() =>
-                      !isSpeaking && speak(line.originalLine, selectedVoiceURI)
-                    }
-                    disabled={isSpeaking}
-                    className={`group relative max-w-[90%] md:max-w-[75%] p-2 rounded-2xl border text-left transition-colors border-border-default hover:border-primary disabled:cursor-not-allowed ${
-                      isUser ? 'rounded-tr-none' : 'rounded-tl-none'
-                    }`}
-                    style={{ backgroundColor: speakerColors[line.speakerId] }}
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="font-display font-bold text-xs uppercase text-text-primary">
-                        {line.speakerId}
-                      </p>
-                      <MdVolumeUp
-                        className={`w-4 h-4 text-text-secondary/50 transition-opacity duration-300 ${
-                          isSpeaking
-                            ? 'opacity-50'
-                            : 'opacity-40 group-hover:opacity-100'
-                        }`}
-                      />
-                    </div>
-
-                    <div className="font-sans text-sm text-text-primary">
-                      {isUser ? (
-                        <>
-                          {typeof userInputMap[idx] !== 'undefined' ||
-                          feedbackMap[idx] ? (
-                            <>
-                              <p className="mb-2">{userInputMap[idx]}</p>
-                              {feedbackMap[idx] && (
-                                <div className="mt-2 pt-2 border-t border-border-subtle text-xs flex flex-wrap gap-1">
-                                  {feedbackMap[idx].map((part, i) => (
-                                    <span
-                                      key={i}
-                                      className={
-                                        part.status === 'removed'
-                                          ? DIFF_COLOR_MAP.removed
-                                          : part.status === 'added'
-                                          ? DIFF_COLOR_MAP.added
-                                          : part.status === 'correct'
-                                          ? DIFF_COLOR_MAP.correct
-                                          : DIFF_COLOR_MAP.neutral
-                                      }
-                                    >
-                                      {part.value}
-                                    </span>
-                                  ))}
-                                </div>
-                              )}
-                            </>
-                          ) : (
-                            idx === currentLineIndex &&
-                            (showHint ? (
-                              <p className="italic text-text-secondary">
-                                {line.originalLine}
-                              </p>
-                            ) : (
-                              <p className="italic text-text-muted">
-                                Your turn...
-                              </p>
-                            ))
-                          )}
-                        </>
-                      ) : (
-                        <p>{line.originalLine}</p>
-                      )}
-                    </div>
-                  </button>
-                </div>
-              );
-            })}
-        </div>
-      </div>
-
-      {/* 하단 */}
-      <div className="bg-bg-main border-t-2 border-border-default p-3 flex-shrink-0">
-        <div className="max-w-4xl mx-auto">
-          {inputMode === 'keyboard' && (
-            <div className="mb-4 flex gap-3">
-              <input
-                type="text"
-                value={typedInput}
-                onChange={(e) => setTypedInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleKeyboardSubmit()}
-                placeholder={
-                  isMyTurn && !feedbackMap[currentLineIndex]
-                    ? 'Type your line here...'
-                    : 'Please wait...'
-                }
-                className="flex-1 px-3 py-3 border border-border-default rounded-xl focus:outline-none focus:ring-1 focus:ring-border-strong focus:border-ring-border-strong text-sm bg-white"
-                autoFocus
-                disabled={!isMyTurn || !!feedbackMap[currentLineIndex]}
-              />
-              <button
-                onClick={handleKeyboardSubmit}
-                disabled={
-                  !typedInput.trim() ||
-                  !isMyTurn ||
-                  !!feedbackMap[currentLineIndex]
-                }
-                className="px-5 py-3 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-30 disabled:bg-border-subtle "
-                aria-label="Send"
-              >
-                <MdSend className="w-5 h-5" />
-              </button>
-            </div>
-          )}
-
-          {/* 컨트롤 버튼 */}
-          <div className="flex justify-center items-center gap-6">
-            <button
-              onClick={() => {
-                setInputMode(inputMode === 'keyboard' ? 'mic' : 'keyboard');
-              }}
-              className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
-                inputMode === 'keyboard'
-                  ? 'bg-primary text-white '
-                  : 'bg-bg-main text-text-secondary border border-border-default hover:border-primary hover:bg-white'
-              }`}
-              aria-label={
-                inputMode === 'keyboard'
-                  ? 'Switch to microphone'
-                  : 'Switch to keyboard'
-              }
-            >
-              <MdKeyboard className="w-5 h-5" />
-            </button>
-
-            <button
-              onClick={handleMicClick}
-              disabled={
-                inputMode === 'keyboard' ||
-                isListening ||
-                isSpeaking ||
-                isFinished ||
-                !isMyTurn ||
-                !!feedbackMap[currentLineIndex]
-              }
-              className={`w-16 h-16 rounded-full flex items-center justify-center transition-all ${
-                isListening
-                  ? 'bg-error text-white animate-pulse scale-105'
-                  : 'bg-white text-text-primary border border-primary hover:bg-primary hover:text-white '
-              } disabled:opacity-30 disabled:cursor-not-allowed disabled:border-border-subtle disabled:text-text-muted disabled:shadow-none`}
-              aria-label={isListening ? 'Listening...' : 'Tap to speak'}
-            >
-              <FiMic className="w-7 h-7" />
-            </button>
-
-            <button
-              onClick={() => setShowHint(!showHint)}
-              disabled={!isMyTurn || !!feedbackMap[currentLineIndex]}
-              className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
-                showHint
-                  ? 'bg-accent text-white '
-                  : 'bg-bg-main text-text-secondary border border-border-default hover:border-accent hover:bg-white'
-              } disabled:opacity-30 disabled:cursor-not-allowed`}
-              aria-label={showHint ? 'Hide hint' : 'Show hint'}
-            >
-              <MdLightbulb className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+    </PageContainer>
   );
 }

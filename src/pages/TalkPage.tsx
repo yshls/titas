@@ -20,6 +20,7 @@ import {
   MdReplay,
   MdClose,
   MdArrowBack,
+  MdPlayArrow, // 재생 아이콘 추가
 } from 'react-icons/md';
 
 // --- [Styled Components] ---
@@ -100,6 +101,7 @@ const MessageBubble = styled.div<{ isRight: boolean; bgColor: string }>`
   border-radius: 16px;
   background-color: ${({ bgColor }) => bgColor};
   border: 1px solid ${({ theme }) => theme.modes.light.border};
+  position: relative; /* Play 버튼 위치 잡기 위해 */
 
   border-top-left-radius: ${({ isRight }) => (isRight ? '16px' : '4px')};
   border-top-right-radius: ${({ isRight }) => (isRight ? '4px' : '16px')};
@@ -140,6 +142,28 @@ const FeedbackText = styled.span<{ status: 'correct' | 'removed' | 'added' }>`
     `color: ${theme.colors.error}; text-decoration: line-through; opacity: 0.6;`}
   ${({ status, theme }) =>
     status === 'added' && `color: ${theme.colors.warning};`}
+`;
+
+// ✨ [추가] 내 녹음 다시 듣기 버튼
+const ReplayButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: white;
+  border: 1px solid ${({ theme }) => theme.modes.light.border};
+  color: ${({ theme }) => theme.colors.primary};
+  margin-left: 8px;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.primary};
+    color: white;
+    transform: scale(1.1);
+  }
 `;
 
 // 하단 컨트롤 영역
@@ -261,8 +285,7 @@ const MicButton = styled(CircleButton)<{ isListening: boolean }>`
   `}
 `;
 
-// --- [Role Selection Screen Components] ---
-
+// --- [Role Selection Components] --- (기존 유지)
 const RoleSelectionContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -272,7 +295,6 @@ const RoleSelectionContainer = styled.div`
   background-color: ${({ theme }) => theme.modes.light.background};
   padding: 24px;
 `;
-
 const RoleTitle = styled.h1`
   font-size: 32px;
   font-weight: 900;
@@ -280,24 +302,20 @@ const RoleTitle = styled.h1`
   margin-bottom: 8px;
   text-transform: uppercase;
 `;
-
 const RoleSubtitle = styled.p`
   color: ${({ theme }) => theme.colors.textSub};
   margin-bottom: 32px;
 `;
-
 const RoleGrid = styled.div`
   display: grid;
   grid-template-columns: 1fr;
   gap: 16px;
   width: 100%;
   max-width: 600px;
-
   @media (min-width: 640px) {
     grid-template-columns: repeat(2, 1fr);
   }
 `;
-
 const RoleCard = styled.button`
   background-color: ${({ theme }) => theme.modes.light.cardBg};
   border: 1px solid ${({ theme }) => theme.modes.light.border};
@@ -308,14 +326,12 @@ const RoleCard = styled.button`
   align-items: center;
   gap: 16px;
   transition: all 0.2s;
-
   &:hover {
     border-color: ${({ theme }) => theme.colors.primary};
     transform: translateY(-4px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   }
 `;
-
 const Avatar = styled.div<{ color: string }>`
   width: 64px;
   height: 64px;
@@ -338,6 +354,12 @@ export function TalkPage() {
   );
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
+  // --- 녹음 관련 Refs & State ---
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  // 인덱스별 녹음 파일 URL 저장 (Blob URL)
+  const [userAudioMap, setUserAudioMap] = useState<Record<number, string>>({});
+
   const initialScriptLines: DialogueLine[] = useMemo(() => {
     return location.state?.lines || [];
   }, [location.state]);
@@ -348,7 +370,6 @@ export function TalkPage() {
   );
 
   const speakerColors = useMemo(() => {
-    // 테마 색상을 활용한 화자별 색상 매핑
     const palette = ['#e8f3ff', '#fff3e0', '#f0faf6', '#ffeeee'];
     const colors: Record<string, string> = {};
     speakerIds.forEach((id, index) => {
@@ -389,7 +410,63 @@ export function TalkPage() {
   const isFinished = currentLineIndex >= script.length;
   const isMyTurn = currentLine?.speakerId === userSpeakerId;
 
-  // 스크롤 자동 이동
+  // --- [녹음 기능 구현] ---
+
+  // 녹음 시작
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: 'audio/webm',
+        });
+        const audioUrl = URL.createObjectURL(audioBlob);
+
+        // 현재 인덱스에 오디오 URL 매핑
+        setUserAudioMap((prev) => ({ ...prev, [currentLineIndex]: audioUrl }));
+
+        // 스트림 정리
+        stream.getTracks().forEach((track) => track.stop());
+      };
+
+      mediaRecorder.start();
+    } catch (err) {
+      console.error('Mic access denied', err);
+      toast.error('Microphone access is required for recording.');
+    }
+  };
+
+  // 녹음 종료
+  const stopRecording = () => {
+    if (
+      mediaRecorderRef.current &&
+      mediaRecorderRef.current.state === 'recording'
+    ) {
+      mediaRecorderRef.current.stop();
+    }
+  };
+
+  // 오디오 재생
+  const playUserAudio = (index: number) => {
+    const audioUrl = userAudioMap[index];
+    if (audioUrl) {
+      const audio = new Audio(audioUrl);
+      audio.play();
+    }
+  };
+
+  // -----------------------
+
   useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop =
@@ -397,7 +474,6 @@ export function TalkPage() {
     }
   }, [currentLineIndex, feedbackMap]);
 
-  // 상대방 턴일 때 자동 재생 (TTS)
   useEffect(() => {
     if (
       currentLine &&
@@ -407,9 +483,6 @@ export function TalkPage() {
       isPracticeStarted &&
       !isFinished
     ) {
-      // 언어 감지 로직 추가 (Default Voice 문제 방지)
-      // 만약 useTTS의 speak 함수가 언어를 못 잡으면 여기서 utterance 설정 필요
-      // 일단 기존 speak 함수 사용
       speak(currentLine.originalLine, selectedVoiceURI, () => {
         setCurrentLineIndex((prev) => prev + 1);
       });
@@ -425,7 +498,6 @@ export function TalkPage() {
     selectedVoiceURI,
   ]);
 
-  // 음성 인식 결과 처리
   useEffect(() => {
     if (transcript && !isListening) {
       processUserInput(transcript);
@@ -434,6 +506,9 @@ export function TalkPage() {
 
   const processUserInput = (inputText: string) => {
     if (!currentLine || !isMyTurn || feedbackMap[currentLineIndex]) return;
+
+    // ✨ 음성 인식 완료되면 녹음도 종료
+    stopRecording();
 
     const originalLineForDiff = currentLine.originalLine.replace(
       /[.,?!\/#!$%\^&\*;:{}=\-_`~()]/g,
@@ -467,7 +542,9 @@ export function TalkPage() {
     if (currentLine && isMyTurn && !feedbackMap[currentLineIndex]) {
       setShowHint(false);
       setTypedInput('');
-      startListening();
+
+      startListening(); // 음성 인식 시작
+      startRecording(); //  녹음 시작 (브라우저 메모리 저장용)
     }
   };
 
@@ -525,6 +602,7 @@ export function TalkPage() {
     setCurrentLineIndex(0);
     setFeedbackMap({});
     setUserInputMap({});
+    setUserAudioMap({}); // 오디오 초기화
     setSessionStartTime(Date.now());
     setSessionErrors([]);
     setShowResultModal(false);
@@ -534,6 +612,7 @@ export function TalkPage() {
     setCurrentLineIndex(0);
     setFeedbackMap({});
     setUserInputMap({});
+    setUserAudioMap({}); // 오디오 초기화
     setSessionStartTime(Date.now());
     setSessionErrors([]);
     setShowResultModal(false);
@@ -657,6 +736,7 @@ export function TalkPage() {
           .map((line, idx) => {
             const isUser = line.speakerId === userSpeakerId;
             const feedback = feedbackMap[idx];
+            const hasRecording = !!userAudioMap[idx];
 
             return (
               <MessageRow key={line.id || idx} isRight={isUser}>
@@ -665,7 +745,19 @@ export function TalkPage() {
                   bgColor={speakerColors[line.speakerId]}
                 >
                   <BubbleHeader>
-                    <SpeakerLabel>{line.speakerId}</SpeakerLabel>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <SpeakerLabel>{line.speakerId}</SpeakerLabel>
+
+                      {/* [추가] 내 녹음 다시 듣기 버튼 (사용자이고 녹음파일 있을때만) */}
+                      {isUser && hasRecording && (
+                        <ReplayButton
+                          onClick={() => playUserAudio(idx)}
+                          title="Replay my recording"
+                        >
+                          <MdPlayArrow size={18} />
+                        </ReplayButton>
+                      )}
+                    </div>
                     {!isUser && <MdVolumeUp size={14} color="#6b7684" />}
                   </BubbleHeader>
 
@@ -781,7 +873,7 @@ export function TalkPage() {
         </ActionsRow>
       </ControlsContainer>
 
-      {/* Result Modal (Simple) */}
+      {/* Result Modal */}
       {showResultModal && practiceResult && (
         <div
           style={{

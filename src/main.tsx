@@ -5,7 +5,6 @@ import { ThemeProvider } from '@emotion/react'; // ✨ Emotion 불러오기
 
 import { theme } from '@/styles/theme';
 import GlobalStyle from '@/GlobalStyle';
-import './index.css';
 
 // 레이아웃 및 페이지
 import { RootLayout } from '@/layouts/RootLayout';
@@ -40,5 +39,5 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <GlobalStyle />
       <RouterProvider router={router} />
     </ThemeProvider>
-  </React.StrictMode>
+  </React.StrictMode>,
 );

@@ -3,8 +3,8 @@ import { theme } from './styles/theme';
 
 const style = css`
   body {
-    background-color: ${theme.modes.light.background};
-    color: ${theme.modes.light.text};
+    background-color: ${theme.background};
+    color: ${theme.textMain};
 
     font-family: 'Lato', 'Noto Sans KR', sans-serif;
     transition:

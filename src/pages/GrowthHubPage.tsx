@@ -28,7 +28,7 @@ const getTimeBasedGreeting = (userName: string) => {
     return {
       title: (
         <>
-          Start your day with a <b>clear voice</b>, {userName}.
+          ☀️ Start your day with a <b>clear voice</b>, {userName}.
         </>
       ),
     };
@@ -96,59 +96,128 @@ const CalendarCard = styled.div`
   background: white;
   border-radius: 24px;
   border: 1px solid ${({ theme }) => theme.colors.grey100};
-  padding: 20px;
+  padding: 24px 20px 20px;
   height: fit-content;
 
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  /* 달력 컨테이너 */
   .react-calendar {
     width: 100%;
+    max-width: 360px;
     border: none;
     font-family: 'Lato', 'Noto Sans KR', sans-serif;
   }
+
+  /* 네비게이션 (년/월) */
   .react-calendar__navigation {
-    margin-bottom: 20px;
+    margin-bottom: 24px;
   }
   .react-calendar__navigation button {
-    font-size: 16px;
-    font-weight: 700;
-    color: ${({ theme }) => theme.colors.grey700};
+    font-size: 18px;
+    font-weight: 800;
+    color: ${({ theme }) => theme.colors.textMain};
+
+    background-color: transparent !important;
+    border: none;
+    outline: none;
+    border-radius: 12px;
+    padding: 8px 12px;
+    transition: background-color 0.2s;
+
+    &:hover:not(:disabled) {
+      background-color: ${({ theme }) => theme.colors.grey100} !important;
+
+      &:enabled:active,
+      &:enabled:focus {
+        background-color: transparent !important;
+        border: none;
+        outline: none;
+      }
+    }
   }
+
+  .react-calendar__navigation button:disabled {
+    background-color: transparent;
+  }
+
+  /* 요일 헤더 */
   .react-calendar__month-view__weekdays {
     text-align: center;
-    font-size: 11px;
-    font-weight: 700;
-    color: ${({ theme }) => theme.colors.grey500};
+    font-size: 12px;
+    font-weight: 800;
+    color: ${({ theme }) => theme.colors.grey800};
     text-transform: uppercase;
     text-decoration: none;
+
+    border-bottom: 1px solid ${({ theme }) => theme.colors.grey200};
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+
+    abbr[title] {
+      text-decoration: none;
+    }
   }
-  abbr[title] {
-    text-decoration: none;
+
+  .react-calendar__month-view__weekdays__weekday:nth-of-type(1) {
+    color: ${({ theme }) => theme.colors.red600};
   }
+
+  .react-calendar__month-view__weekdays__weekday:nth-of-type(7) {
+    color: ${({ theme }) => theme.colors.blue600};
+  }
+
+  /* 타일 스타일 */
   .react-calendar__tile {
-    height: 40px;
+    /* 너비 계산 (한 줄에 7개) */
+    flex: 0 0 calc(14.2857% - 4px) !important;
+    max-width: calc(14.2857% - 4px) !important;
+
+    aspect-ratio: 1 / 1;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
     border-radius: 50%;
+    margin: 2px;
+
+    transition: all 0.2s;
+
     &:hover {
       background-color: ${({ theme }) => theme.colors.grey100};
     }
   }
+
+  .react-calendar__month-view__days__day:nth-of-type(7n) {
+    color: ${({ theme }) => theme.colors.blue600};
+  }
+
+  .react-calendar__month-view__days__day:nth-of-type(7n + 1) {
+    color: ${({ theme }) => theme.colors.red600};
+  }
+
   /* 오늘 날짜 */
   .react-calendar__tile--now {
     background: transparent;
     color: ${({ theme }) => theme.colors.textMain};
     border: 2px solid ${({ theme }) => theme.colors.primary};
-    font-weight: 700;
+    font-weight: 800;
+
+    /* 오늘이 토요일일 경우 파란색 유지하려면 아래 코드 추가 */
+    /* &.react-calendar__month-view__days__day:nth-of-type(7n) {  color: ${({
+      theme,
+    }) => theme.colors.blue600}; } */
   }
-  /* 선택된 날짜 */
+
   .react-calendar__tile--active {
     background: ${({ theme }) => theme.colors.orange500} !important;
     color: white !important;
   }
 
-  /* 히트맵 색상 */
+  /* 히트맵 색상 클래스들 */
   .color-scale-1 {
     background-color: ${({ theme }) => theme.colors.orange50} !important;
     color: ${({ theme }) => theme.colors.primary} !important;
@@ -165,14 +234,29 @@ const CalendarCard = styled.div`
     background-color: ${({ theme }) => theme.colors.primary} !important;
     color: white !important;
   }
+
+  @media (max-width: 768px) {
+    .react-calendar {
+      max-width: 100%;
+    }
+    .react-calendar__tile {
+      font-size: 12px;
+      margin: 1px;
+      flex: 0 0 calc(14.2857% - 2px) !important;
+      max-width: calc(14.2857% - 2px) !important;
+    }
+  }
 `;
 
+// 하단 통계 영역 (변경 없음, 그대로 유지)
 const StreakInfo = styled.div`
+  width: 100%;
+  max-width: 360px;
   margin-top: 24px;
-  padding-top: 20px;
+  padding-top: 24px;
   border-top: 1px solid ${({ theme }) => theme.colors.grey100};
   display: flex;
-  justify-content: space-between;
+  justify-content: space-around;
   align-items: center;
 `;
 
@@ -383,6 +467,67 @@ export function GrowthHubPage() {
   const deleteTask = async (id: string) => {
     setTasks((prev) => prev.filter((t) => t.id !== id));
     await deleteMissionFromDB(id);
+    toast.success('Mission deleted.');
+  };
+
+  const confirmDelete = (id: string) => {
+    toast(
+      (t) => (
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '12px',
+          }}
+        >
+          <span style={{ fontWeight: 600, color: theme.colors.textMain }}>
+            Are you sure you want to delete?
+          </span>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              style={{
+                background: theme.colors.error,
+                color: 'white',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontWeight: 700,
+              }}
+              onClick={() => {
+                deleteTask(id);
+                toast.dismiss(t.id);
+              }}
+            >
+              Delete
+            </button>
+            <button
+              style={{
+                background: theme.colors.grey200,
+                color: theme.colors.grey700,
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontWeight: 700,
+              }}
+              onClick={() => toast.dismiss(t.id)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ),
+      {
+        duration: 4000,
+        style: {
+          background: 'white',
+          border: `1px solid ${theme.colors.grey200}`,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+        },
+      },
+    );
   };
 
   // 캘린더 히트맵 데이터
@@ -496,7 +641,7 @@ export function GrowthHubPage() {
                 <TaskText checked={task.completed}>{task.text}</TaskText>
                 <DeleteButton
                   className="delete-btn"
-                  onClick={() => deleteTask(task.id)}
+                  onClick={() => confirmDelete(task.id)}
                 >
                   <MdDeleteOutline size={18} />
                 </DeleteButton>

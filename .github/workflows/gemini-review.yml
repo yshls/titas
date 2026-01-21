@@ -1,0 +1,27 @@
+name: Gemini Code Review
+
+permissions:
+  contents: read
+  pull-requests: write
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Gemini Code Reviewer
+        uses: anc95/ChatGPT-CodeReview@v1.0.13
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          OPENAI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+          MODEL: gemini-1.5-flash
+
+          LANGUAGE: Korean

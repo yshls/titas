@@ -13,9 +13,11 @@ import {
   MdEdit,
   MdCheck,
   MdRefresh,
+  MdPlayArrow,
+  MdInfoOutline,
 } from 'react-icons/md';
 
-// --- [상수] ---
+// 상수 정의
 
 const INITIAL_SPEAKERS = [
   { id: 'A', name: 'Person A', colorKey: 'blue50' },
@@ -27,27 +29,26 @@ const SPEAKER_COLORS: Record<string, string> = {
   blue50: '#e8f3ff',
   red50: '#ffeeee',
   green50: '#f0faf6',
-  grey50: '#f2f4f6',
 };
 
-// DialogueLine 타입에는 speakerColor가 없음, UI 표시를 위해 타입을 확장하여 사용
 type CreatorDialogueLine = DialogueLine & { speakerColor: string };
 
-// --- [스타일 컴포넌트] ---
+// 스타일 컴포넌트 정의
 
 const PageContainer = styled.div`
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 8px;
+
   min-height: 100vh;
-  background-color: ${({ theme }) => theme.modes.light.background};
+  background-color: ${({ theme }) => theme.background};
   font-family: 'lato', sans-serif;
+  transition: background-color 0.3s ease;
 
   @media (min-width: 1024px) {
     flex-direction: row;
-
     gap: 32px;
+    padding: 8px;
   }
 `;
 
@@ -61,82 +62,95 @@ const Sidebar = styled.aside`
     width: 320px;
     position: sticky;
     top: 24px;
-    height: calc(100vh - 48px);
+    height: fit-content;
+    max-height: calc(100vh - 48px);
     overflow-y: auto;
   }
 `;
 
 const Header = styled.header`
-  text-align: center;
-  margin-bottom: 8px;
-  @media (min-width: 1024px) {
-    text-align: left;
-  }
+  text-align: left;
+  // margin-bottom: 8px;
 `;
 
 const PageTitle = styled.h1`
   font-size: 24px;
-  font-weight: 900;
-  color: ${({ theme }) => theme.colors.textMain};
+  font-weight: 800;
+  color: ${({ theme }) => theme.textMain};
   text-transform: uppercase;
   margin-bottom: 4px;
+  letter-spacing: -0.5px;
 `;
 
 const SectionCard = styled.section`
-  background-color: ${({ theme }) => theme.modes.light.cardBg};
+  background-color: ${({ theme }) => theme.cardBg};
   border-radius: 12px;
-  border: 1px solid ${({ theme }) => theme.modes.light.border};
-  padding: 8px;
+  border: 1px solid ${({ theme }) => theme.border};
+  padding: 10px;
 `;
 
 const Label = styled.label`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
-  color: ${({ theme }) => theme.colors.grey700};
+  color: ${({ theme }) => theme.textSub};
   margin-bottom: 12px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 `;
 
+const LabelSubText = styled.span`
+  font-size: 11px;
+  color: ${({ theme }) => theme.colors.primary};
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+`;
+
+const SpeakerListContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+
 const TitleInput = styled.input`
   width: 100%;
   padding: 8px 0;
-  border-radius: 0;
   border: none;
-  border-bottom: 1px solid ${({ theme }) => theme.modes.light.border};
+  border-bottom: 2px solid ${({ theme }) => theme.border};
   background-color: transparent;
-  color: ${({ theme }) => theme.colors.textMain};
+  color: ${({ theme }) => theme.textMain};
   font-weight: 700;
-  font-size: 16px;
+  font-size: 18px;
   outline: none;
   transition: all 0.2s;
 
   &:focus {
-    border-bottom-color: ${({ theme }) => theme.colors.textMain};
+    border-bottom-color: ${({ theme }) => theme.colors.primary};
   }
 
   &::placeholder {
-    color: ${({ theme }) => theme.colors.textDisabled};
+    color: ${({ theme }) => theme.textDisabled};
   }
 `;
 
 const SpeakerRow = styled.div<{ isActive: boolean; activeBg: string }>`
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px;
+  gap: 10px;
+  padding: 10px;
   border-radius: 8px;
   background-color: ${({ isActive, theme }) =>
-    isActive ? theme.colors.grey100 : 'transparent'};
-  transition: background-color 0.2s;
+    isActive ? theme.border : 'transparent'};
+  border: 1px solid transparent;
+  transition: all 0.2s;
   cursor: pointer;
 
   &:hover {
-    background-color: ${({ isActive, theme }) =>
-      isActive ? theme.colors.grey100 : theme.colors.grey50};
+    background-color: ${({ theme }) => theme.border};
   }
 `;
 
@@ -144,26 +158,24 @@ const SpeakerNameInput = styled.input`
   flex: 1;
   background: transparent;
   border: none;
-  font-size: 14px;
-  font-weight: 500;
-  color: ${({ theme }) => theme.colors.textMain};
+  font-size: 15px;
+  font-weight: 600;
+  color: ${({ theme }) => theme.textMain};
   outline: none;
   padding: 4px;
-  border-radius: 4px;
 
-  &:focus {
-    background-color: white;
+  &::placeholder {
+    color: ${({ theme }) => theme.textDisabled};
   }
 `;
 
-// 화자 색상 표시기 (원형)
-const SpeakerIndicator = styled.div<{ color: string }>`
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
+const SpeakerIndicator = styled.div<{ color: string; inDialogue?: boolean }>`
+  width: ${({ inDialogue }) => (inDialogue ? '24px' : '20px')};
+  height: ${({ inDialogue }) => (inDialogue ? '24px' : '20px')};
+  margin-top: ${({ inDialogue }) => (inDialogue ? '4px' : '0')};
+  border-radius: 6px;
   background-color: ${({ color }) => color};
-  /* 테마의 border 색상을 사용하여 은은한 테두리 적용 */
-  border: 1px solid ${({ theme }) => theme.modes.light.border};
+  border: 1px solid rgba(0, 0, 0, 0.05);
   flex-shrink: 0;
 `;
 
@@ -182,8 +194,8 @@ const Main = styled.main`
 const ScriptList = styled.div`
   flex: 1;
   overflow-y: auto;
-  background-color: ${({ theme }) => theme.modes.light.cardBg};
-  border: 1px solid ${({ theme }) => theme.modes.light.border};
+  background-color: ${({ theme }) => theme.cardBg};
+  border: 1px solid ${({ theme }) => theme.border};
   border-radius: 12px;
   padding: 8px;
   position: relative;
@@ -192,27 +204,65 @@ const ScriptList = styled.div`
     width: 6px;
   }
   &::-webkit-scrollbar-thumb {
-    background-color: ${({ theme }) => theme.colors.grey200};
+    background-color: ${({ theme }) => theme.border};
     border-radius: 10px;
   }
 `;
 
+const EmptyScriptContainer = styled.div`
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
+`;
+
+const EmptyScriptIconWrapper = styled.div`
+  background: ${({ theme }) => theme.colors.grey50};
+  padding: 8px;
+  border-radius: 50%;
+  margin-bottom: 16px;
+`;
+
+const EmptyScriptText = styled.p`
+  font-weight: 600;
+  font-size: 15px;
+  color: ${({ theme }) => theme.textSub};
+`;
+
+const DeleteLineButton = styled.button`
+  padding: 8px;
+  color: ${({ theme }) => theme.colors.grey400};
+  cursor: pointer;
+  border: none;
+  background: none;
+  border-radius: 4px;
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.error};
+    background-color: ${({ theme }) => theme.colors.red50};
+  }
+`;
+
 const DialogueItem = styled(motion.article)<{
-  speakerColor: string;
   isEditing: boolean;
 }>`
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 8px 0;
-  border-bottom: 1px solid ${({ theme }) => theme.modes.light.border};
+  gap: 14px;
+  padding: 8px 12px;
+  border-bottom: 1px solid ${({ theme }) => theme.border};
   background-color: ${({ isEditing, theme }) =>
-    isEditing ? theme.colors.grey50 : 'transparent'};
-  border-radius: ${({ isEditing }) => (isEditing ? '8px' : '0')};
-  border-bottom-color: ${({ isEditing }) => (isEditing ? 'transparent' : '')};
+    isEditing ? theme.background : 'transparent'};
+  transition: background-color 0.2s;
 
   &:last-child {
     border-bottom: none;
+  }
+
+  &:hover {
+    background-color: ${({ theme }) => theme.background};
   }
 
   .content {
@@ -222,16 +272,15 @@ const DialogueItem = styled(motion.article)<{
 
   .speaker-label {
     font-size: 12px;
-    font-weight: 500;
-    color: ${({ theme }) => theme.colors.grey700};
-
-    margin-bottom: 4px;
+    font-weight: 600;
+    color: ${({ theme }) => theme.textSub};
+    margin-bottom: 6px;
   }
 
   .text-display {
     font-size: 16px;
     font-weight: 500;
-    color: ${({ theme }) => theme.colors.textMain};
+    color: ${({ theme }) => theme.textMain};
     line-height: 1.6;
     cursor: text;
   }
@@ -240,7 +289,7 @@ const DialogueItem = styled(motion.article)<{
     width: 100%;
     font-size: 16px;
     font-weight: 500;
-    color: ${({ theme }) => theme.colors.textMain};
+    color: ${({ theme }) => theme.textMain};
     background: transparent;
     border: none;
     outline: none;
@@ -258,8 +307,8 @@ const InputSection = styled(SectionCard)`
   position: sticky;
   bottom: 0;
   z-index: 10;
-  border-top: 1px solid ${({ theme }) => theme.modes.light.border};
-  border-radius: 12px;
+  border-top: 1px solid ${({ theme }) => theme.border};
+  padding: 10px;
 
   @media (min-width: 640px) {
     flex-direction: row;
@@ -267,53 +316,92 @@ const InputSection = styled(SectionCard)`
   }
 `;
 
+// 입력 힌트 텍스트 스타일
+const InputHintText = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: ${({ theme }) => theme.textSub};
+  font-weight: 600;
+  margin-bottom: -4px;
+  margin-left: 4px;
+`;
+
+const InputGroup = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+`;
+
 const DialogueInput = styled.input`
   flex: 1;
-  padding: 8px;
+  padding: 8px 12px;
   border-radius: 8px;
-
-  background-color: ${({ theme }) => theme.colors.grey100};
-  color: ${({ theme }) => theme.colors.textMain};
+  background-color: ${({ theme }) => theme.background};
+  color: ${({ theme }) => theme.textMain};
+  border: 1px solid transparent;
   font-weight: 500;
   font-size: 16px;
   outline: none;
   transition: all 0.2s;
+
+  &:focus {
+    background-color: ${({ theme }) => theme.cardBg};
+    border-color: ${({ theme }) => theme.colors.primary};
+  }
+
+  &::placeholder {
+    color: ${({ theme }) => theme.textDisabled};
+  }
 `;
 
 const ActionButton = styled.button<{
   variant?: 'primary' | 'secondary' | 'danger';
 }>`
-  width: 100%;
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 12px;
-  border-radius: 8px;
-  font-weight: 800;
+  padding: 10px;
+  border-radius: 10px;
+  font-weight: 700;
   text-transform: uppercase;
-  font-size: 13px;
+  font-size: 14px;
   transition: all 0.2s;
+  border: none;
+  cursor: pointer;
 
   ${({ variant, theme }) =>
     variant === 'primary' &&
     `
     background-color: ${theme.colors.primary};
     color: white;
-    &:hover { background-color: ${theme.colors.primaryHover}; }
+    &:hover { 
+      background-color: ${theme.colors.primaryHover}; 
+      transform: translateY(-1px);
+    }
+    &:active { transform: translateY(0); }
   `}
 
   ${({ variant, theme }) =>
     variant === 'secondary' &&
     `
-    background-color: ${theme.colors.grey100};
-    color: ${theme.colors.textMain};
-    &:hover { background-color: ${theme.colors.grey200}; }
+    background-color: ${theme.cardBg};
+    border: 1px solid ${theme.border};
+    color: ${theme.textSub};
+    &:hover { 
+      background-color: ${theme.border};
+      color: ${theme.textMain};
+    }
   `}
 
   &:disabled {
-    opacity: 0.5;
+    opacity: 0.6;
     cursor: not-allowed;
+    transform: none;
   }
 `;
 
@@ -321,13 +409,130 @@ const ActiveBadge = styled.div<{ color: string }>`
   padding: 6px 12px;
   border-radius: 6px;
   background-color: ${({ color }) => color};
-  font-weight: 800;
-  font-size: 12px;
-  color: ${({ theme }) => theme.colors.textMain};
+  font-weight: 700;
+  font-size: 13px;
+  color: #333d4b;
   white-space: nowrap;
+  border: 1px solid rgba(0, 0, 0, 0.05);
 `;
 
-// --- [로직] ---
+const SidebarButtonGroup = styled.div`
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 24px;
+
+  @media (min-width: 1024px) {
+    display: flex;
+  }
+`;
+
+const MobileButtonGroup = styled.div`
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+
+  @media (min-width: 1024px) {
+    display: none;
+  }
+`;
+
+const InputAreaContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+
+const AddLineButton = styled.button`
+  padding: 12px;
+  background-color: ${({ theme }) => theme.colors.primary};
+  color: white;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+`;
+
+// 토스트 메시지 컴포넌트
+const ToastContent = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+
+const ToastRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+`;
+
+const ToastMessage = styled.span`
+  font-size: 14px;
+  font-weight: 600;
+`;
+
+const ToastTitle = styled.div`
+  font-weight: bold;
+  font-size: 15px;
+`;
+
+const ToastSubtitle = styled.div`
+  font-size: 13px;
+  color: ${({ theme }) => theme.textSub};
+`;
+
+const ResetConfirmButton = styled.button`
+  background-color: ${({ theme }) => theme.colors.error};
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+`;
+
+const ResetCancelButton = styled.button`
+  font-size: 12px;
+  color: ${({ theme }) => theme.textSub};
+  background: none;
+  border: none;
+  cursor: pointer;
+`;
+
+const ToastButtonRow = styled.div`
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+`;
+
+const ToastButton = styled.button<{ primary?: boolean }>`
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: ${({ primary, theme }) =>
+    primary ? 'none' : `1px solid ${theme.border}`};
+  background: ${({ primary, theme }) =>
+    primary ? theme.colors.primary : theme.cardBg};
+  color: ${({ primary, theme }) => (primary ? 'white' : theme.textMain)};
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+`;
+
+// 로직 구현
 
 interface Speaker {
   id: string;
@@ -351,7 +556,7 @@ export function CreatorPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // 임시 저장 불러오기
+  // 임시저장 데이터 로드
   useEffect(() => {
     const draft = localStorage.getItem('titas_draft');
     if (draft) {
@@ -360,14 +565,22 @@ export function CreatorPage() {
         if (title) setScriptTitle(title);
         if (lines) setScriptLines(lines);
         if (savedSpeakers) setSpeakers(savedSpeakers);
-        toast('Draft restored', { icon: '📂', position: 'bottom-center' });
+        toast('Draft restored!', {
+          icon: '📂',
+          style: {
+            borderRadius: '10px',
+            background: theme.cardBg,
+            color: theme.textMain,
+            border: `1px solid ${theme.border}`,
+          },
+        });
       } catch (e) {
-        console.error(e);
+        // 에러 무시
       }
     }
   }, []);
 
-  // 자동 임시 저장
+  // 변경사항 자동 저장
   useEffect(() => {
     const draftData = {
       title: scriptTitle,
@@ -377,6 +590,7 @@ export function CreatorPage() {
     localStorage.setItem('titas_draft', JSON.stringify(draftData));
   }, [scriptTitle, scriptLines, speakers]);
 
+  // 화자 이름 변경
   const handleSpeakerNameChange = (id: string, newName: string) => {
     setSpeakers((prev) =>
       prev.map((s) => (s.id === id ? { ...s, name: newName } : s)),
@@ -384,28 +598,46 @@ export function CreatorPage() {
   };
 
   const activeSpeaker = speakers.find((s) => s.id === activeSpeakerId);
-  const activeColor = SPEAKER_COLORS[activeSpeaker?.colorKey || 'grey50'];
+  const activeColor =
+    SPEAKER_COLORS[activeSpeaker?.colorKey || 'grey50'] || theme.colors.grey50;
 
+  // 대사 추가 및 문장 자동 분리
   const handleAddLine = () => {
     if (!lineInput.trim()) return;
-    const newLine: CreatorDialogueLine = {
-      id: crypto.randomUUID(),
-      speakerId: activeSpeaker?.name || 'Unknown',
-      originalLine: lineInput,
-      speakerColor: SPEAKER_COLORS[activeSpeaker?.colorKey || 'grey50'],
-      isUserTurn: false,
-    };
-    setScriptLines((prev) => [...prev, newLine]);
+
+    // 정규식 활용: 구두점(.?!) 뒤에서 분리
+    const matches = lineInput.match(/[^.?!]+[.?!]+|[^.?!]+$/g);
+
+    if (!matches) return;
+
+    const newLines = matches
+      .map((text) => text.trim())
+      .filter((text) => text.length > 0)
+      .map((text) => {
+        return {
+          id: crypto.randomUUID(),
+          speakerId: activeSpeaker?.name || 'Unknown',
+          originalLine: text,
+          speakerColor:
+            SPEAKER_COLORS[activeSpeaker?.colorKey || 'grey50'] ||
+            theme.colors.grey50,
+          isUserTurn: false,
+        };
+      });
+
+    setScriptLines((prev) => [...prev, ...newLines]);
     setLineInput('');
     setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, 100);
   };
 
+  // 대사 삭제
   const handleDeleteLine = (id: string) => {
     setScriptLines((prev) => prev.filter((line) => line.id !== id));
   };
 
+  // 대사 수정
   const handleUpdateLine = (id: string, newText: string) => {
     setScriptLines((prev) =>
       prev.map((line) =>
@@ -414,14 +646,13 @@ export function CreatorPage() {
     );
   };
 
+  // 초기화
   const handleReset = () => {
     toast(
       (t) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <span style={{ fontSize: '14px', fontWeight: 500 }}>
-            Clear all content?
-          </span>
-          <button
+        <ToastRow>
+          <ToastMessage>Wipe everything?</ToastMessage>
+          <ResetConfirmButton
             onClick={() => {
               setScriptLines([]);
               setScriptTitle('');
@@ -429,40 +660,40 @@ export function CreatorPage() {
               localStorage.removeItem('titas_draft');
               toast.dismiss(t.id);
             }}
-            style={{
-              backgroundColor: '#ef4444',
-              color: 'white',
-              padding: '6px 12px',
-              borderRadius: '6px',
-              fontSize: '12px',
-              fontWeight: 'bold',
-              border: 'none',
-              cursor: 'pointer',
-            }}
+            aria-label="Confirm Clear"
           >
             Clear
-          </button>
-          <button
+          </ResetConfirmButton>
+          <ResetCancelButton
             onClick={() => toast.dismiss(t.id)}
-            style={{
-              fontSize: '12px',
-              color: '#6b7684',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-            }}
+            aria-label="Cancel Clear"
           >
             Cancel
-          </button>
-        </div>
+          </ResetCancelButton>
+        </ToastRow>
       ),
-      { duration: 4000, style: { padding: '8px 12px' } },
+      {
+        duration: 4000,
+        style: {
+          padding: '8px 12px',
+          background: theme.cardBg,
+          color: theme.textMain,
+          border: `1px solid ${theme.border}`,
+        },
+      },
     );
   };
 
-  const handleSave = async () => {
+  // 스크립트 저장 및 연습 이동
+  const handleSave = async (shouldPractice = false) => {
     if (scriptLines.length === 0 || !scriptTitle.trim()) {
-      toast.error('Title and lines are required.');
+      toast.error('Missing title or lines!', {
+        style: {
+          border: `1px solid ${theme.colors.red100}`,
+          color: theme.colors.red800,
+          background: theme.colors.red50,
+        },
+      });
       return;
     }
 
@@ -471,6 +702,7 @@ export function CreatorPage() {
       title: scriptTitle.trim(),
       createdAt: Date.now(),
       lines: scriptLines,
+      characters: speakers,
     };
 
     try {
@@ -481,12 +713,49 @@ export function CreatorPage() {
       setSpeakers(INITIAL_SPEAKERS);
       localStorage.removeItem('titas_draft');
 
-      toast.success('Script Saved!', { icon: '✅' });
-      navigate(`/talk/${newScript.id}`, {
-        state: { lines: newScript.lines, scriptId: newScript.id },
-      });
+      if (shouldPractice === true) {
+        navigate(`/talk/${newScript.id}`, {
+          state: { lines: newScript.lines, scriptId: newScript.id },
+        });
+        return;
+      }
+
+      toast(
+        (t) => (
+          <ToastContent>
+            <ToastTitle>Script saved successfully! 🎉</ToastTitle>
+            <ToastSubtitle>What's next?</ToastSubtitle>
+            <ToastButtonRow>
+              <ToastButton onClick={() => toast.dismiss(t.id)}>
+                <MdAdd size={16} /> Create New
+              </ToastButton>
+              <ToastButton
+                primary
+                onClick={() => {
+                  toast.dismiss(t.id);
+                  navigate(`/talk/${newScript.id}`, {
+                    state: {
+                      lines: newScript.lines,
+                      scriptId: newScript.id,
+                    },
+                  });
+                }}
+              >
+                <MdPlayArrow size={16} /> Practice
+              </ToastButton>
+            </ToastButtonRow>
+          </ToastContent>
+        ),
+        {
+          duration: 6000,
+          style: {
+            background: theme.cardBg,
+            color: theme.textMain,
+            border: `1px solid ${theme.border}`,
+          },
+        },
+      );
     } catch (error) {
-      console.error('Failed to save script:', error);
       toast.error('Failed to save script.');
     }
   };
@@ -499,16 +768,18 @@ export function CreatorPage() {
         toastOptions={{
           style: {
             fontSize: '14px',
-            borderRadius: '8px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+            borderRadius: '10px',
             padding: '12px',
+            background: theme.cardBg,
+            color: theme.textMain,
+            border: `1px solid ${theme.border}`,
           },
         }}
       />
 
       <Sidebar>
         <Header>
-          <PageTitle>Studio</PageTitle>
+          <PageTitle>New Script</PageTitle>
         </Header>
 
         <SectionCard>
@@ -517,19 +788,17 @@ export function CreatorPage() {
             placeholder="e.g. Ordering Coffee"
             value={scriptTitle}
             onChange={(e) => setScriptTitle(e.target.value)}
+            aria-label="Script Title"
           />
         </SectionCard>
 
         <SectionCard>
           <Label>
             Characters
-            <span
-              style={{ fontSize: '10px', color: '#b0b8c1', fontWeight: 400 }}
-            >
-              Rename if needed
-            </span>
+            {/* 캐릭터 이름 변경 안내 */}
+            <LabelSubText>Tap names to customize</LabelSubText>
           </Label>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <SpeakerListContainer>
             {speakers.map((speaker) => {
               const bgColor = SPEAKER_COLORS[speaker.colorKey];
               const isActive = activeSpeakerId === speaker.id;
@@ -541,7 +810,6 @@ export function CreatorPage() {
                   activeBg={bgColor}
                   onClick={() => setActiveSpeakerId(speaker.id)}
                 >
-                  {/* 화자 색상 표시 */}
                   <SpeakerIndicator color={bgColor} />
                   <SpeakerNameInput
                     value={speaker.name}
@@ -549,74 +817,68 @@ export function CreatorPage() {
                       handleSpeakerNameChange(speaker.id, e.target.value)
                     }
                     onClick={(e) => e.stopPropagation()}
-                    placeholder="Character Name"
+                    placeholder="Name"
+                    aria-label={`Character Name ${speaker.id}`}
                   />
-                  {isActive && <MdCheck size={16} color="#333d4b" />}
+                  {isActive && (
+                    <MdCheck size={18} color={theme.colors.primary} />
+                  )}
                 </SpeakerRow>
               );
             })}
-          </div>
+          </SpeakerListContainer>
         </SectionCard>
 
-        <div className="hidden lg:flex flex-col gap-3 mt-auto">
-          <ActionButton onClick={handleReset} variant="secondary">
+        <SidebarButtonGroup>
+          <ActionButton
+            onClick={handleReset}
+            variant="secondary"
+            aria-label="Reset script"
+          >
             <MdRefresh size={18} /> Reset
           </ActionButton>
           <ActionButton
-            onClick={handleSave}
+            onClick={() => handleSave(false)}
+            variant="secondary"
+            disabled={scriptLines.length === 0}
+            aria-label="Save Script"
+          >
+            <MdSave size={20} /> Save Script
+          </ActionButton>
+          <ActionButton
+            onClick={() => handleSave(true)}
             variant="primary"
             disabled={scriptLines.length === 0}
+            aria-label="Save and Practice"
           >
-            <MdSave size={18} /> Save Script
+            <MdPlayArrow size={20} /> Save & Practice
           </ActionButton>
-        </div>
+        </SidebarButtonGroup>
       </Sidebar>
 
       <Main>
         <ScriptList ref={scrollContainerRef}>
           {scriptLines.length === 0 ? (
-            <div
-              style={{
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                opacity: 0.4,
-              }}
-            >
-              <MdEdit size={40} color={theme.colors.textDisabled} />
-              <p
-                style={{
-                  marginTop: '16px',
-                  fontWeight: 600,
-                  fontSize: '14px',
-                }}
-              >
+            <EmptyScriptContainer>
+              <EmptyScriptIconWrapper>
+                <MdEdit size={32} color={theme.colors.grey400} />
+              </EmptyScriptIconWrapper>
+              <EmptyScriptText>
                 Start by typing a dialogue below
-              </p>
-            </div>
+              </EmptyScriptText>
+            </EmptyScriptContainer>
           ) : (
             <AnimatePresence initial={false}>
               {scriptLines.map((line) => (
                 <DialogueItem
                   key={line.id}
-                  speakerColor={line.speakerColor}
                   isEditing={editingLineId === line.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
                   onClick={() => setEditingLineId(line.id)}
                 >
-                  {/* 화자 색상 표시 (작게) */}
-                  <SpeakerIndicator
-                    color={line.speakerColor}
-                    style={{
-                      marginTop: '2px',
-                      width: '16px', // 대화 목록에서는 조금 더 작게
-                      height: '16px',
-                    }}
-                  />
+                  <SpeakerIndicator color={line.speakerColor} inDialogue />
 
                   <div className="content">
                     <div className="speaker-label">{line.speakerId}</div>
@@ -640,30 +902,22 @@ export function CreatorPage() {
                             setEditingLineId(null);
                           }
                         }}
+                        aria-label="Edit dialogue line"
                       />
                     ) : (
                       <p className="text-display">{line.originalLine}</p>
                     )}
                   </div>
 
-                  <button
+                  <DeleteLineButton
                     onClick={(e) => {
                       e.stopPropagation();
                       handleDeleteLine(line.id);
                     }}
-                    style={{
-                      padding: '4px',
-                      color: theme.colors.textDisabled,
-                      cursor: 'pointer',
-                      border: 'none',
-                      background: 'none',
-                    }}
+                    aria-label="Delete line"
                   >
-                    <MdDelete
-                      size={16}
-                      className="hover:text-red-500 transition-colors"
-                    />
-                  </button>
+                    <MdDelete size={18} />
+                  </DeleteLineButton>
                 </DialogueItem>
               ))}
             </AnimatePresence>
@@ -671,56 +925,60 @@ export function CreatorPage() {
           <div ref={messagesEndRef} />
         </ScriptList>
 
-        <InputSection>
-          <ActiveBadge color={activeColor}>{activeSpeaker?.name}</ActiveBadge>
+        <InputAreaContainer>
+          <InputSection>
+            <ActiveBadge color={activeColor}>{activeSpeaker?.name}</ActiveBadge>
 
-          <DialogueInput
-            value={lineInput}
-            onChange={(e) => setLineInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleAddLine()}
-            placeholder={`What does ${activeSpeaker?.name} say?`}
-            aria-label="Dialogue line input"
-          />
+            <InputGroup>
+              {/* 문장 자동 분리 안내 */}
+              <InputHintText>
+                <MdInfoOutline size={12} />
+                Pro tip: Lines split automatically by punctuation (. ? !)
+              </InputHintText>
+              <DialogueInput
+                value={lineInput}
+                onChange={(e) => setLineInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleAddLine()}
+                placeholder={`What does ${activeSpeaker?.name} say?`}
+                aria-label="Dialogue line input"
+              />
+            </InputGroup>
 
-          <button
-            onClick={handleAddLine}
-            disabled={!lineInput.trim()}
-            style={{
-              padding: '8px',
-              backgroundColor: theme.colors.primary,
-              color: 'white',
-              borderRadius: '8px',
-              border: 'none',
-              cursor: 'pointer',
-              opacity: lineInput.trim() ? 1 : 0.5,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-            aria-label="Add line"
-          >
-            <MdAdd size={20} />
-          </button>
-        </InputSection>
+            <AddLineButton
+              onClick={handleAddLine}
+              disabled={!lineInput.trim()}
+              aria-label="Add line"
+            >
+              <MdAdd size={22} />
+            </AddLineButton>
+          </InputSection>
 
-        <div className="flex lg:hidden gap-3">
-          <ActionButton
-            onClick={handleReset}
-            variant="secondary"
-            style={{ flex: 1 }}
-            aria-label="Reset script"
-          >
-            <MdRefresh />
-          </ActionButton>
-          <ActionButton
-            onClick={handleSave}
-            variant="primary"
-            style={{ flex: 2 }}
-            disabled={scriptLines.length === 0}
-          >
-            Save
-          </ActionButton>
-        </div>
+          <MobileButtonGroup>
+            <ActionButton
+              onClick={handleReset}
+              variant="secondary"
+              aria-label="Reset script"
+            >
+              <MdRefresh size={18} /> Reset
+            </ActionButton>
+            <ActionButton
+              onClick={() => handleSave(false)}
+              variant="secondary"
+              disabled={scriptLines.length === 0}
+              aria-label="Save Script"
+            >
+              <MdSave size={18} /> Save
+            </ActionButton>
+            <ActionButton
+              onClick={() => handleSave(true)}
+              variant="primary"
+              disabled={scriptLines.length === 0}
+              aria-label="Save and Practice"
+            >
+              <MdPlayArrow size={18} /> Practice
+            </ActionButton>
+          </MobileButtonGroup>
+        </InputAreaContainer>
       </Main>
     </PageContainer>
   );

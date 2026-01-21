@@ -245,11 +245,6 @@ const HintText = styled.span`
   opacity: 0.5;
 `;
 
-// const ListeningText = styled.span`
-//   opacity: 0.5;
-//   font-style: italic;
-// `;
-
 const ActionButtons = styled.div`
   display: flex;
   gap: 6px;
@@ -664,12 +659,13 @@ export function TalkPage() {
 
   const isSavedRef = useRef(false);
 
-  // 상태 관리
+  // 음성 녹음 관련 상태
   const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
   const [userAudioMap, setUserAudioMap] = useState<Record<number, string>>({});
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
+  // 스크립트 데이터 초기화
   const initialScriptLines: DialogueLine[] = useMemo(
     () => location.state?.lines || [],
     [location.state],
@@ -679,7 +675,7 @@ export function TalkPage() {
     [initialScriptLines],
   );
 
-  // 색상 매핑
+  // 화자별 색상 지정
   const speakerColors = useMemo(() => {
     const colors: Record<string, string> = {};
     speakerIds.forEach((id, index) => {
@@ -688,6 +684,7 @@ export function TalkPage() {
     return colors;
   }, [speakerIds]);
 
+  // 연습 진행 상태
   const [currentLineIndex, setCurrentLineIndex] = useState(0);
   const [userSpeakerId, setUserSpeakerId] = useState<string | null>(null);
   const [isPracticeStarted, setIsPracticeStarted] = useState(false);
@@ -697,11 +694,11 @@ export function TalkPage() {
 
   const [selectedVoiceURI] = useState<string | null>(null);
 
-  // 마이크 활성 체크
+  // 마이크 활성 여부
   const [isMicActivatedForCurrentLine, setIsMicActivatedForCurrentLine] =
     useState(false);
 
-  // 결과 모달 상태
+  // 결과 모달 및 통계
   const [showFinishModal, setShowFinishModal] = useState(false);
   const [practiceResult, setPracticeResult] = useState<{
     accuracy: number;
@@ -715,6 +712,7 @@ export function TalkPage() {
   const [sessionErrors, setSessionErrors] = useState<WeakSpot[]>([]);
   const [startTime, setStartTime] = useState(Date.now());
 
+  // 유틸리티 훅 연결
   const { transcript, isListening, startListening, stopListening } =
     useSpeechRecognition();
   const { speak, isSpeaking } = useTTS();
@@ -724,7 +722,7 @@ export function TalkPage() {
     !isFinished &&
     initialScriptLines[currentLineIndex].speakerId === userSpeakerId;
 
-  // 녹음 시작
+  // 마이크 권한 획득 및 녹음 시작
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -744,16 +742,18 @@ export function TalkPage() {
       };
       recorder.start();
     } catch (e) {
-      toast.error('Microphone access denied');
+      toast.error('Hey, I need mic access to hear you!');
     }
   };
 
+  // 녹음 및 인식 중단
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current?.state === 'recording')
       mediaRecorderRef.current.stop();
     if (isListening) stopListening();
   }, [isListening, stopListening]);
 
+  // 마이크 버튼 핸들러
   const handleMicClick = () => {
     if (!isMyTurn || isSpeaking) return;
     if (isListening) {
@@ -766,7 +766,7 @@ export function TalkPage() {
     }
   };
 
-  // 입력 처리
+  // 텍스트 분석 및 피드백 생성
   const processInput = useCallback(
     (text: string) => {
       const currentLine = initialScriptLines[currentLineIndex];
@@ -795,8 +795,6 @@ export function TalkPage() {
         );
 
       setSessionErrors((p) => [...p, ...errors]);
-
-      // 입력 후 마이크 비활성
       setIsMicActivatedForCurrentLine(false);
 
       setTimeout(() => {
@@ -807,14 +805,14 @@ export function TalkPage() {
     [currentLineIndex, stopRecording, location.state, initialScriptLines],
   );
 
-  // 음성 인식 결과 처리
+  // 음성 인식 완료 자동 처리
   useEffect(() => {
     if (
-      transcript && // 인식된 텍스트가 있고
-      !isListening && // 듣기가 끝났으며
-      isMyTurn && // 내 차례이고
-      !feedbackMap[currentLineIndex] && // 아직 해당 라인에 피드백이 없을 때
-      isMicActivatedForCurrentLine // 마이크 버튼을 눌러 활성화된 상태인 경우
+      transcript &&
+      !isListening &&
+      isMyTurn &&
+      !feedbackMap[currentLineIndex] &&
+      isMicActivatedForCurrentLine
     ) {
       processInput(transcript);
     }
@@ -828,6 +826,7 @@ export function TalkPage() {
     isMicActivatedForCurrentLine,
   ]);
 
+  // 상대방 대사 자동 재생 및 턴 전환
   useEffect(() => {
     if (
       isPracticeStarted &&
@@ -857,40 +856,7 @@ export function TalkPage() {
     speak,
   ]);
 
-  // 상대방 턴 자동 재생
-  useEffect(() => {
-    if (
-      isPracticeStarted &&
-      !isFinished &&
-      !isMyTurn &&
-      !isSpeaking &&
-      !showFinishModal
-    ) {
-      const line = initialScriptLines[currentLineIndex];
-      if (!line) return;
-
-      speak(line.originalLine, selectedVoiceURI, () => {});
-
-      const duration = Math.max(2000, line.originalLine.length * 80);
-      const timer = setTimeout(() => {
-        setCurrentLineIndex((i) => i + 1);
-      }, duration);
-
-      return () => clearTimeout(timer);
-    }
-  }, [
-    currentLineIndex,
-    isMyTurn,
-    isPracticeStarted,
-    isFinished,
-    speak,
-    isSpeaking,
-    showFinishModal,
-    initialScriptLines,
-    selectedVoiceURI,
-  ]);
-
-  // 자동 스크롤
+  // 채팅 하단 자동 스크롤
   useEffect(() => {
     chatContainerRef.current?.scrollTo({
       top: chatContainerRef.current.scrollHeight,
@@ -898,7 +864,7 @@ export function TalkPage() {
     });
   }, [currentLineIndex, feedbackMap]);
 
-  // 종료 처리
+  // 연습 종료 및 로그 저장
   useEffect(() => {
     if (
       isFinished &&
@@ -909,11 +875,10 @@ export function TalkPage() {
       const user = useAppStore.getState().user;
 
       if (!user) {
-        toast.error('Login required to save progress.');
+        toast.error('Oops! You need to log in to save your awesome progress!');
         return;
       }
 
-      // 정확도 계산
       let totalWords = 0;
       let correctWords = 0;
       Object.values(feedbackMap).forEach((diff) => {
@@ -931,8 +896,8 @@ export function TalkPage() {
         timestamp: err.timestamp || Date.now(),
         original: err.original || '',
         spoken: err.spoken || '',
-        scriptId: err.scriptId || location.state?.scriptId || '', // camelCase
-        lineContent: (err as any).lineContent || '', // camelCase
+        scriptId: err.scriptId || location.state?.scriptId || '',
+        lineContent: (err as any).lineContent || '',
       }));
 
       const newLog: PracticeLog = {
@@ -961,6 +926,7 @@ export function TalkPage() {
     feedbackMap,
   ]);
 
+  // 역할 선택 및 연습 시작
   const handleStartPractice = (speakerId: string) => {
     setUserSpeakerId(speakerId);
     setIsPracticeStarted(true);
@@ -973,6 +939,7 @@ export function TalkPage() {
     isSavedRef.current = false;
   };
 
+  // 재시작 처리
   const handleRetryPractice = () => {
     setShowFinishModal(false);
     setCurrentLineIndex(0);
@@ -982,10 +949,9 @@ export function TalkPage() {
     setStartTime(Date.now());
     setIsMicActivatedForCurrentLine(false);
     isSavedRef.current = false;
-    toast.success('Restarting practice...');
+    toast.success("Alright! Let's do it one more time!");
   };
 
-  // 역할 선택 화면
   if (!isPracticeStarted) {
     return (
       <PageContainer>
@@ -1007,7 +973,6 @@ export function TalkPage() {
     );
   }
 
-  // 연습 화면
   return (
     <PageContainer>
       <Toaster position="top-center" />
@@ -1026,18 +991,14 @@ export function TalkPage() {
       </Header>
 
       <ChatContainer ref={chatContainerRef}>
-        {/* 현재 대화까지만 렌더링 */}
         {initialScriptLines
           .slice(0, isFinished ? undefined : currentLineIndex + 1)
           .map((line, idx) => {
             const isUser = line.speakerId === userSpeakerId;
             const feedback = feedbackMap[idx];
             const hasAudio = !!userAudioMap[idx];
-
-            // 화자 색상 적용
             const bubbleColor = speakerColors[line.speakerId];
 
-            // 연속된 화자 확인 (헤더 생략 로직)
             const prevLine = initialScriptLines[idx - 1];
             const isSameSpeakerAsPrev =
               idx > 0 && prevLine?.speakerId === line.speakerId;
@@ -1058,7 +1019,6 @@ export function TalkPage() {
                         : {}
                     }
                   >
-                    {/* 이전과 다른 화자일 때만 헤더 표시 */}
                     {!isSameSpeakerAsPrev && (
                       <BubbleHeader isRight={isUser}>
                         <SpeakerName>{line.speakerId}</SpeakerName>

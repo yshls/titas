@@ -317,7 +317,7 @@ const MobileDeleteButton = styled.button`
 
 const MainContent = styled.main<{ noPadding?: boolean }>`
   flex: 1;
-  padding: ${({ noPadding }) => (noPadding ? '0' : '24px')};
+  padding: ${({ noPadding }) => (noPadding ? '0' : '12px')};
 `;
 
 const Footer = styled.footer`

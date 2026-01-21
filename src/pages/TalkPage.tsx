@@ -810,11 +810,11 @@ export function TalkPage() {
   // 음성 인식 결과 처리
   useEffect(() => {
     if (
-      transcript &&
-      !isListening &&
-      isMyTurn &&
-      !feedbackMap[currentLineIndex] &&
-      isMicActivatedForCurrentLine
+      transcript && // 인식된 텍스트가 있고
+      !isListening && // 듣기가 끝났으며
+      isMyTurn && // 내 차례이고
+      !feedbackMap[currentLineIndex] && // 아직 해당 라인에 피드백이 없을 때
+      isMicActivatedForCurrentLine // 마이크 버튼을 눌러 활성화된 상태인 경우
     ) {
       processInput(transcript);
     }
@@ -826,6 +826,35 @@ export function TalkPage() {
     feedbackMap,
     processInput,
     isMicActivatedForCurrentLine,
+  ]);
+
+  useEffect(() => {
+    if (
+      isPracticeStarted &&
+      !isFinished &&
+      !isMyTurn &&
+      !isSpeaking &&
+      !showFinishModal
+    ) {
+      const line = initialScriptLines[currentLineIndex];
+      if (!line) return;
+
+      speak(line.originalLine, selectedVoiceURI, () => {
+        setTimeout(() => {
+          setCurrentLineIndex((i) => i + 1);
+        }, 500);
+      });
+    }
+  }, [
+    isPracticeStarted,
+    isFinished,
+    isMyTurn,
+    currentLineIndex,
+    isSpeaking,
+    showFinishModal,
+    initialScriptLines,
+    selectedVoiceURI,
+    speak,
   ]);
 
   // 상대방 턴 자동 재생

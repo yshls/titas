@@ -1,350 +1,660 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
 import styled from '@emotion/styled';
-import { keyframes } from '@emotion/react';
-import type { DialogueLine, PracticeLog, WeakSpot } from '@/utils/types';
-import type { DiffResult } from '@/utils/diffChecker';
-import { checkWordDiff } from '@/utils/diffChecker';
+import { keyframes, css } from '@emotion/react';
+import type { DialogueLine, WeakSpot, PracticeLog } from '@/utils/types';
+import { checkWordDiff, type DiffResult } from '@/utils/diffChecker';
 import { useTTS } from '@/utils/useTTS';
 import { useSpeechRecognition } from '@/utils/useSpeechRecognition';
 import { useAppStore, type AppState } from '@/store/appStore';
-import { FiMic } from 'react-icons/fi';
+import { FiMic, FiSend, FiX, FiRefreshCw, FiCheckCircle } from 'react-icons/fi';
 import {
   MdKeyboard,
   MdLightbulb,
   MdVolumeUp,
-  MdSend,
-  MdPerson,
-  MdRecordVoiceOver,
-  MdReplay,
-  MdClose,
+  MdPlayArrow,
   MdArrowBack,
-  MdPlayArrow, // 재생 아이콘 추가
+  MdRecordVoiceOver,
+  MdClose,
+  MdReplay,
+  MdPerson,
 } from 'react-icons/md';
 
-// --- [Styled Components] ---
+// --- 애니메이션 정의 ---
+
+const floatUp = keyframes`
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+`;
+
+const pulseRing = keyframes`
+  0% { transform: scale(0.95); }
+  70% { transform: scale(1); }
+  100% { transform: scale(0.95); }
+`;
+
+const fadeIn = keyframes`
+  from { opacity: 0; }
+  to { opacity: 1; }
+`;
+
+const scaleUp = keyframes`
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+`;
+
+// --- 상수 정의 ---
+
+const PALETTE = [
+  '#e8f3ff', // blue50
+  '#ffeeee', // red50
+  '#f0faf6', // green50
+  '#fff8e1', // amber50
+  '#f3e5f5', // purple50
+];
+
+const DIFF_COLOR_MAP = {
+  correct: 'color: #2e7d32; font-weight: 700;',
+  removed: 'color: #d32f2f; font-weight: 700;',
+  added: 'color: #666; text-decoration: line-through;',
+  neutral: 'color: #333;',
+};
+
+// --- 스타일 정의 ---
 
 const PageContainer = styled.div`
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background-color: ${({ theme }) => theme.modes.light.background};
+  background-color: ${({ theme }) => theme.background};
   font-family: 'lato', sans-serif;
   overflow: hidden;
+  position: relative;
 `;
 
 const Header = styled.header`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  background-color: ${({ theme }) => theme.modes.light.background};
-  border-bottom: 1px solid ${({ theme }) => theme.modes.light.border};
-  z-index: 10;
+  padding: 14px 20px;
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 20;
 `;
 
 const HeaderLeft = styled.div`
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+`;
+
+const HeaderTitle = styled.span`
+  font-weight: 700;
+  font-size: 16px;
+  color: #333;
 `;
 
 const BackButton = styled.button`
-  color: ${({ theme }) => theme.colors.textSub};
+  padding: 8px;
+  margin-left: -8px;
+  border-radius: 50%;
+  color: ${({ theme }) => theme.textMain};
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.2s;
   &:hover {
-    color: ${({ theme }) => theme.colors.primary};
+    background-color: rgba(0, 0, 0, 0.05);
   }
 `;
 
-const HeaderTitle = styled.h1`
-  font-size: 18px;
-  font-weight: 900;
-  color: ${({ theme }) => theme.colors.textMain};
-  text-transform: uppercase;
-`;
-
-const HeaderRight = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-`;
-
-const VoiceSelect = styled.select`
-  background: transparent;
-  border: none;
-  font-size: 12px;
+const ProgressPill = styled.div`
+  padding: 6px 12px;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 20px;
+  font-size: 13px;
   font-weight: 700;
-  color: ${({ theme }) => theme.colors.textSub};
-  outline: none;
-  cursor: pointer;
+  color: ${({ theme }) => theme.textSub};
+  font-feature-settings: 'tnum';
 `;
 
 const ChatContainer = styled.div`
   flex: 1;
   overflow-y: auto;
-  padding: 16px;
+  padding: 20px;
+  padding-bottom: 140px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  background-color: ${({ theme }) => theme.modes.light.background};
+  gap: 12px;
+  scroll-behavior: smooth;
 `;
 
 const MessageRow = styled.div<{ isRight: boolean }>`
   display: flex;
   justify-content: ${({ isRight }) => (isRight ? 'flex-end' : 'flex-start')};
+  width: 100%;
+`;
+
+const BubbleContainer = styled.div<{ isRight: boolean }>`
+  display: flex;
+  flex-direction: column;
+  max-width: 85%;
+  align-items: ${({ isRight }) => (isRight ? 'flex-end' : 'flex-start')};
+  animation: ${floatUp} 0.3s ease-out;
 `;
 
 const MessageBubble = styled.div<{ isRight: boolean; bgColor: string }>`
-  max-width: 85%;
   padding: 12px 16px;
-  border-radius: 16px;
+  border-radius: 18px;
+  position: relative;
+  font-size: 16px;
+  line-height: 1.5;
+  word-break: break-word;
   background-color: ${({ bgColor }) => bgColor};
-  border: 1px solid ${({ theme }) => theme.modes.light.border};
-  position: relative; /* Play 버튼 위치 잡기 위해 */
+  color: #333d4b;
+  box-shadow: none;
+  border: 1px solid rgba(0, 0, 0, 0.03);
+  min-width: 120px;
 
-  border-top-left-radius: ${({ isRight }) => (isRight ? '16px' : '4px')};
-  border-top-right-radius: ${({ isRight }) => (isRight ? '4px' : '16px')};
-
-  @media (min-width: 768px) {
-    max-width: 70%;
-  }
+  ${({ isRight }) =>
+    isRight
+      ? css`
+          border-top-right-radius: 4px;
+        `
+      : css`
+          border-top-left-radius: 4px;
+        `}
 `;
 
-const BubbleHeader = styled.div`
+const BubbleHeader = styled.div<{ isRight: boolean }>`
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   margin-bottom: 6px;
+  opacity: 0.6;
+  gap: 8px;
+  flex-direction: ${({ isRight }) => (isRight ? 'row-reverse' : 'row')};
 `;
 
-const SpeakerLabel = styled.span`
+const SpeakerName = styled.span`
   font-size: 11px;
   font-weight: 800;
   text-transform: uppercase;
-  color: ${({ theme }) => theme.colors.textMain};
-  opacity: 0.7;
+  letter-spacing: 0.5px;
 `;
 
-const LineText = styled.p`
-  font-size: 16px;
-  color: ${({ theme }) => theme.colors.textMain};
-  line-height: 1.5;
-`;
-
-// 피드백 텍스트 스타일
-const FeedbackText = styled.span<{ status: 'correct' | 'removed' | 'added' }>`
-  font-weight: 700;
-  ${({ status, theme }) =>
-    status === 'correct' && `color: ${theme.colors.success};`}
-  ${({ status, theme }) =>
-    status === 'removed' &&
-    `color: ${theme.colors.error}; text-decoration: line-through; opacity: 0.6;`}
-  ${({ status, theme }) =>
-    status === 'added' && `color: ${theme.colors.warning};`}
-`;
-
-// ✨ [추가] 내 녹음 다시 듣기 버튼
-const ReplayButton = styled.button`
+const SpeakerIconBtn = styled.button`
+  background: none;
+  border: none;
+  cursor: pointer;
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background-color: white;
-  border: 1px solid ${({ theme }) => theme.modes.light.border};
-  color: ${({ theme }) => theme.colors.primary};
-  margin-left: 8px;
-  transition: all 0.2s;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  padding: 2px;
+  color: inherit;
+  transition: opacity 0.2s;
 
   &:hover {
-    background-color: ${({ theme }) => theme.colors.primary};
-    color: white;
+    opacity: 1;
     transform: scale(1.1);
   }
 `;
 
-// 하단 컨트롤 영역
-const ControlsContainer = styled.div`
-  padding: 16px;
-  background-color: ${({ theme }) => theme.modes.light.cardBg};
-  border-top: 1px solid ${({ theme }) => theme.modes.light.border};
+const UserInputText = styled.div`
+  margin-bottom: 6px;
+  font-weight: 600;
 `;
 
-const InputWrapper = styled.div`
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-`;
-
-const TextInput = styled.input`
-  flex: 1;
-  padding: 12px;
-  border-radius: 12px;
-  border: 1px solid ${({ theme }) => theme.modes.light.border};
+const DialogueText = styled.div`
   font-size: 16px;
-  outline: none;
-
-  &:focus {
-    border-color: ${({ theme }) => theme.colors.primary};
-  }
-
-  &:disabled {
-    background-color: ${({ theme }) => theme.colors.grey50};
-    cursor: not-allowed;
-  }
+  line-height: 1.5;
+  font-weight: 500;
 `;
 
-const SendButton = styled.button`
-  padding: 0 20px;
-  background-color: ${({ theme }) => theme.colors.primary};
-  color: white;
-  border-radius: 12px;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  &:disabled {
-    background-color: ${({ theme }) => theme.colors.grey200};
-    cursor: not-allowed;
-  }
+const BlurredText = styled.div`
+  font-size: 16px;
+  line-height: 1.5;
+  filter: blur(6px);
+  user-select: none;
+  opacity: 0.5;
+  cursor: default;
 `;
 
-const ActionsRow = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 24px;
+const FeedbackContainer = styled.div`
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  font-size: 15px;
+  line-height: 1.6;
 `;
 
-const CircleButton = styled.button<{
-  isActive?: boolean;
-  size?: 'small' | 'large';
+const Highlight = styled.span<{
+  type: 'correct' | 'wrong' | 'added' | 'neutral' | 'removed';
 }>`
-  width: ${({ size }) => (size === 'large' ? '64px' : '48px')};
-  height: ${({ size }) => (size === 'large' ? '64px' : '48px')};
+  font-weight: 600;
+  padding: 0 2px;
+
+  ${({ type }) => type === 'correct' && DIFF_COLOR_MAP.correct}
+  ${({ type }) => type === 'removed' && DIFF_COLOR_MAP.removed}
+  ${({ type }) => type === 'added' && DIFF_COLOR_MAP.added}
+  ${({ type }) => type === 'neutral' && DIFF_COLOR_MAP.neutral}
+`;
+
+const HintText = styled.span`
+  opacity: 0.5;
+`;
+
+const ListeningText = styled.span`
+  opacity: 0.5;
+  font-style: italic;
+`;
+
+const ActionButtons = styled.div`
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+  justify-content: flex-end;
+`;
+
+const ActionBtn = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  background-color: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  color: #555;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+`;
+
+const FloatingBarWrapper = styled.div`
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 0 20px 34px 20px;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    rgba(255, 255, 255, 1) 30%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  z-index: 30;
+`;
+
+const FloatingIsland = styled.div`
+  pointer-events: auto;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  padding: 6px 6px 6px 10px;
+  border-radius: 100px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  width: 100%;
+  max-width: 300px;
+  justify-content: space-between;
+  transform: translateZ(0);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+`;
+
+const SideButton = styled.button<{ active?: boolean }>`
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: ${({ active, theme }) => (active ? theme.textMain : '#9DAAB8')};
+  background: ${({ active }) => (active ? '#F2F4F6' : 'transparent')};
+  border: none;
+  cursor: pointer;
   transition: all 0.2s;
-
-  /* 기본 스타일 (테두리만) */
-  background-color: white;
-  border: 1px solid
-    ${({ theme, isActive }) =>
-      isActive ? theme.colors.primary : theme.modes.light.border};
-  color: ${({ theme, isActive }) =>
-    isActive ? theme.colors.primary : theme.colors.textSub};
-
-  /* Active (Filled) 스타일 */
-  ${({ isActive, theme }) =>
-    isActive &&
-    `
-    background-color: ${theme.colors.primary};
-    color: white;
-    border: none;
-  `}
-
   &:hover {
-    transform: translateY(-2px);
-    border-color: ${({ theme }) => theme.colors.primary};
-    color: ${({ theme, isActive }) =>
-      isActive ? 'white' : theme.colors.primary};
+    background: #f2f4f6;
+    color: ${({ theme }) => theme.textMain};
   }
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+`;
+
+const HeroMicButton = styled.button<{ isListening: boolean }>`
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 4px solid white;
+  cursor: pointer;
+
+  ${({ isListening, theme }) =>
+    isListening
+      ? css`
+          background-color: ${theme.colors.error};
+          color: white;
+          animation: ${pulseRing} 2s infinite;
+        `
+      : css`
+          background-color: ${theme.colors.primary};
+          color: white;
+          &:hover {
+            transform: scale(1.08);
+          }
+        `}
 
   &:disabled {
+    filter: grayscale(100%);
     opacity: 0.5;
     cursor: not-allowed;
+    animation: none;
     transform: none;
   }
 `;
 
-const pulse = keyframes`
-  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
-  70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+const KeyboardInputWrapper = styled.div`
+  pointer-events: auto;
+  width: 100%;
+  max-width: 500px;
+  background: white;
+  padding: 10px;
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
 `;
 
-const MicButton = styled(CircleButton)<{ isListening: boolean }>`
-  ${({ isListening, theme }) =>
-    isListening &&
-    `
-    background-color: ${theme.colors.error};
-    color: white;
-    border: none;
-    animation: ${pulse} 1.5s infinite;
-    
-    &:hover {
-      background-color: ${theme.colors.error};
-      color: white;
-    }
-  `}
+const StyledInput = styled.input`
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: #f2f4f6;
+  border: none;
+  font-size: 16px;
+  &:focus {
+    outline: none;
+    background: #eaecef;
+  }
 `;
 
-// --- [Role Selection Components] --- (기존 유지)
+const SendBtn = styled.button`
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: ${({ theme }) => theme.colors.primary};
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s;
+  border: none;
+  cursor: pointer;
+  &:active {
+    transform: scale(0.9);
+  }
+  &:disabled {
+    background: #e1e4e8;
+    cursor: not-allowed;
+  }
+`;
+
 const RoleSelectionContainer = styled.div`
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  min-height: 100vh;
-  background-color: ${({ theme }) => theme.modes.light.background};
-  padding: 24px;
-`;
-const RoleTitle = styled.h1`
-  font-size: 32px;
-  font-weight: 900;
-  color: ${({ theme }) => theme.colors.textMain};
-  margin-bottom: 8px;
-  text-transform: uppercase;
-`;
-const RoleSubtitle = styled.p`
-  color: ${({ theme }) => theme.colors.textSub};
-  margin-bottom: 32px;
-`;
-const RoleGrid = styled.div`
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
-  width: 100%;
-  max-width: 600px;
-  @media (min-width: 640px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-`;
-const RoleCard = styled.button`
-  background-color: ${({ theme }) => theme.modes.light.cardBg};
-  border: 1px solid ${({ theme }) => theme.modes.light.border};
-  border-radius: 16px;
-  padding: 24px;
-  display: flex;
+  align-items: center;
+  padding: 8px;
+  height: 100%;
   flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  transition: all 0.2s;
-  &:hover {
-    border-color: ${({ theme }) => theme.colors.primary};
-    transform: translateY(-4px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  }
-`;
-const Avatar = styled.div<{ color: string }>`
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background-color: ${({ color }) => color};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: ${({ theme }) => theme.colors.textMain};
-  font-size: 24px;
 `;
 
-// --- [Logic] ---
+const RoleTitle = styled.h1`
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 10px;
+  color: #333d4b;
+`;
+
+const RoleSubtitle = styled.p`
+  color: #8b95a1;
+  margin-bottom: 40px;
+`;
+
+const RoleGrid = styled.div`
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+`;
+
+const RoleButton = styled.button`
+  width: 140px;
+  height: 160px;
+  border-radius: 24px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+  }
+`;
+
+const RoleAvatarCircle = styled.div<{ bgColor: string }>`
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: ${({ bgColor }) => bgColor};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 800;
+  color: rgba(0, 0, 0, 0.6);
+  margin-bottom: 16px;
+`;
+
+const RoleName = styled.span`
+  font-weight: 700;
+  font-size: 16px;
+  color: #333d4b;
+`;
+
+const VisualizerBars = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  height: 24px;
+`;
+
+const Bar = styled.div<{ height: number }>`
+  width: 4px;
+  background-color: white;
+  border-radius: 4px;
+  height: ${({ height }) => Math.max(4, height)}px;
+  transition: height 0.05s ease;
+`;
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  animation: ${fadeIn} 0.2s ease-out;
+`;
+
+const ModalContent = styled.div`
+  background: white;
+  padding: 32px;
+  border-radius: 24px;
+  text-align: center;
+  max-width: 320px;
+  width: 90%;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  animation: ${scaleUp} 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+`;
+
+const CloseButton = styled.button`
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: #9daab8;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  &:hover {
+    background: #f2f4f6;
+    color: #333;
+  }
+`;
+
+const ModalIcon = styled.div`
+  width: 64px;
+  height: 64px;
+  background: #e8f5e9;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4caf50;
+  font-size: 32px;
+  margin: 0 auto 16px;
+`;
+
+const ModalTitle = styled.h2`
+  font-size: 20px;
+  font-weight: 800;
+  color: #333;
+  margin-bottom: 8px;
+`;
+
+const ModalText = styled.p`
+  color: #6b7684;
+  margin-bottom: 24px;
+  font-size: 15px;
+`;
+
+const ModalButtonStack = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+`;
+
+const PrimaryButton = styled.button`
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  background: ${({ theme }) => theme.colors.primary};
+  color: white;
+  font-weight: 700;
+  font-size: 15px;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.1s;
+  &:active {
+    transform: scale(0.98);
+  }
+`;
+
+const SecondaryButton = styled.button`
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  background: #f2f4f6;
+  color: #4e5968;
+  font-weight: 700;
+  font-size: 15px;
+  border: none;
+  cursor: pointer;
+  &:hover {
+    background: #e5e8eb;
+  }
+`;
+
+const AudioVisualizer = ({ stream }: { stream: MediaStream }) => {
+  const [data, setData] = useState<number[]>([0, 0, 0, 0, 0]);
+
+  const animationRef = useRef<number | undefined>(undefined);
+  const analyserRef = useRef<AnalyserNode | undefined>(undefined);
+  const audioCtxRef = useRef<AudioContext | undefined>(undefined);
+
+  useEffect(() => {
+    if (!stream) return;
+    const ctx = new (
+      window.AudioContext || (window as any).webkitAudioContext
+    )();
+    audioCtxRef.current = ctx;
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 32;
+    const source = ctx.createMediaStreamSource(stream);
+    source.connect(analyser);
+    analyserRef.current = analyser;
+
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+
+    const draw = () => {
+      analyser.getByteFrequencyData(dataArray);
+      const bars = [
+        dataArray[0],
+        dataArray[2],
+        dataArray[4],
+        dataArray[6],
+        dataArray[8],
+      ].map((v) => (v / 255) * 32);
+      setData(bars);
+      animationRef.current = requestAnimationFrame(draw);
+    };
+    draw();
+
+    return () => {
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+      ctx.close();
+    };
+  }, [stream]);
+
+  return (
+    <VisualizerBars>
+      {data.map((h, i) => (
+        <Bar key={i} height={h} />
+      ))}
+    </VisualizerBars>
+  );
+};
+
+// --- 메인 컴포넌트 ---
 
 export function TalkPage() {
   const location = useLocation();
@@ -354,51 +664,60 @@ export function TalkPage() {
   );
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
-  // --- 녹음 관련 Refs & State ---
+  const isSavedRef = useRef(false);
+
+  // 상태 관리
+  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
+  const [userAudioMap, setUserAudioMap] = useState<Record<number, string>>({});
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
-  // 인덱스별 녹음 파일 URL 저장 (Blob URL)
-  const [userAudioMap, setUserAudioMap] = useState<Record<number, string>>({});
 
-  const initialScriptLines: DialogueLine[] = useMemo(() => {
-    return location.state?.lines || [];
-  }, [location.state]);
-
+  const initialScriptLines: DialogueLine[] = useMemo(
+    () => location.state?.lines || [],
+    [location.state],
+  );
   const speakerIds = useMemo(
-    () => [...new Set(initialScriptLines.map((line) => line.speakerId))],
+    () => [...new Set(initialScriptLines.map((l) => l.speakerId))],
     [initialScriptLines],
   );
 
+  // 색상 매핑
   const speakerColors = useMemo(() => {
-    const palette = ['#e8f3ff', '#fff3e0', '#f0faf6', '#ffeeee'];
     const colors: Record<string, string> = {};
     speakerIds.forEach((id, index) => {
-      colors[id] = palette[index % palette.length];
+      colors[id] = PALETTE[index % PALETTE.length];
     });
     return colors;
   }, [speakerIds]);
 
-  const [script] = useState<DialogueLine[]>(initialScriptLines);
   const [currentLineIndex, setCurrentLineIndex] = useState(0);
-  const [feedbackMap, setFeedbackMap] = useState<Record<number, DiffResult[]>>(
-    {},
-  );
-  const [userInputMap, setUserInputMap] = useState<Record<number, string>>({});
-  const [sessionStartTime, setSessionStartTime] = useState(Date.now());
   const [userSpeakerId, setUserSpeakerId] = useState<string | null>(null);
   const [isPracticeStarted, setIsPracticeStarted] = useState(false);
   const [inputMode, setInputMode] = useState<'mic' | 'keyboard'>('mic');
   const [typedInput, setTypedInput] = useState('');
   const [showHint, setShowHint] = useState(false);
-  const [sessionErrors, setSessionErrors] = useState<WeakSpot[]>([]);
   const [selectedVoiceURI, setSelectedVoiceURI] = useState<string | null>(null);
-  const [showResultModal, setShowResultModal] = useState(false);
+
+  // 마이크 활성 체크
+  const [isMicActivatedForCurrentLine, setIsMicActivatedForCurrentLine] =
+    useState(false);
+
+  // 결과 모달 상태
+  const [showFinishModal, setShowFinishModal] = useState(false);
   const [practiceResult, setPracticeResult] = useState<{
     accuracy: number;
     timeSpent: number;
   } | null>(null);
 
-  const { transcript, isListening, startListening } = useSpeechRecognition();
+  const [feedbackMap, setFeedbackMap] = useState<Record<number, DiffResult[]>>(
+    {},
+  );
+  const [userInputMap, setUserInputMap] = useState<Record<number, string>>({});
+  const [sessionErrors, setSessionErrors] = useState<WeakSpot[]>([]);
+  const [startTime, setStartTime] = useState(Date.now());
+
+  const { transcript, isListening, startListening, stopListening } =
+    useSpeechRecognition();
   const { speak, isSpeaking, voices } = useTTS();
 
   const englishVoices = useMemo(
@@ -406,581 +725,443 @@ export function TalkPage() {
     [voices],
   );
 
-  const currentLine = script[currentLineIndex];
-  const isFinished = currentLineIndex >= script.length;
-  const isMyTurn = currentLine?.speakerId === userSpeakerId;
-
-  // --- [녹음 기능 구현] ---
+  const isFinished = currentLineIndex >= initialScriptLines.length;
+  const isMyTurn =
+    !isFinished &&
+    initialScriptLines[currentLineIndex].speakerId === userSpeakerId;
 
   // 녹음 시작
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
+      setMediaStream(stream);
+      const recorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = recorder;
       audioChunksRef.current = [];
-
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-        }
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
       };
-
-      mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, {
-          type: 'audio/webm',
-        });
-        const audioUrl = URL.createObjectURL(audioBlob);
-
-        // 현재 인덱스에 오디오 URL 매핑
-        setUserAudioMap((prev) => ({ ...prev, [currentLineIndex]: audioUrl }));
-
-        // 스트림 정리
-        stream.getTracks().forEach((track) => track.stop());
+      recorder.onstop = () => {
+        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const url = URL.createObjectURL(blob);
+        setUserAudioMap((prev) => ({ ...prev, [currentLineIndex]: url }));
+        stream.getTracks().forEach((t) => t.stop());
+        setMediaStream(null);
       };
-
-      mediaRecorder.start();
-    } catch (err) {
-      console.error('Mic access denied', err);
-      toast.error('Microphone access is required for recording.');
+      recorder.start();
+    } catch (e) {
+      toast.error('Microphone access denied');
     }
   };
 
-  // 녹음 종료
-  const stopRecording = () => {
-    if (
-      mediaRecorderRef.current &&
-      mediaRecorderRef.current.state === 'recording'
-    ) {
+  const stopRecording = useCallback(() => {
+    if (mediaRecorderRef.current?.state === 'recording')
       mediaRecorderRef.current.stop();
+    if (isListening) stopListening();
+  }, [isListening, stopListening]);
+
+  const handleMicClick = () => {
+    if (!isMyTurn || isSpeaking) return;
+    if (isListening) {
+      stopRecording();
+    } else {
+      setTypedInput('');
+      setIsMicActivatedForCurrentLine(true);
+      startListening();
+      startRecording();
     }
   };
 
-  // 오디오 재생
-  const playUserAudio = (index: number) => {
-    const audioUrl = userAudioMap[index];
-    if (audioUrl) {
-      const audio = new Audio(audioUrl);
-      audio.play();
-    }
-  };
+  // 입력 처리
+  const processInput = useCallback(
+    (text: string) => {
+      const currentLine = initialScriptLines[currentLineIndex];
+      if (!currentLine) return;
+      stopRecording();
 
-  // -----------------------
+      const diff = checkWordDiff(
+        currentLine.originalLine.replace(/[^\w\s]/g, ''),
+        text,
+      );
+      setFeedbackMap((p) => ({ ...p, [currentLineIndex]: diff }));
+      setUserInputMap((p) => ({ ...p, [currentLineIndex]: text }));
 
-  useEffect(() => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop =
-        chatContainerRef.current.scrollHeight;
-    }
-  }, [currentLineIndex, feedbackMap]);
+      const errors: WeakSpot[] = diff
+        .filter((p) => p.status === 'removed' || p.status === 'added')
+        .map(
+          (p) =>
+            ({
+              id: crypto.randomUUID(),
+              timestamp: Date.now(),
+              original: p.status === 'removed' ? p.value : '',
+              spoken: p.status === 'added' ? p.value : '',
+              scriptId: location.state?.scriptId || 'unknown',
+              lineContent: currentLine.originalLine,
+            }) as unknown as WeakSpot,
+        );
 
+      setSessionErrors((p) => [...p, ...errors]);
+
+      // 입력 후 마이크 비활성
+      setIsMicActivatedForCurrentLine(false);
+
+      setTimeout(() => {
+        setCurrentLineIndex((i) => i + 1);
+        setShowHint(false);
+      }, 2000);
+    },
+    [currentLineIndex, stopRecording, location.state, initialScriptLines],
+  );
+
+  // 음성 인식 결과 처리
   useEffect(() => {
     if (
-      currentLine &&
-      !isMyTurn &&
-      !isSpeaking &&
+      transcript &&
       !isListening &&
-      isPracticeStarted &&
-      !isFinished
+      isMyTurn &&
+      !feedbackMap[currentLineIndex] &&
+      isMicActivatedForCurrentLine
     ) {
-      speak(currentLine.originalLine, selectedVoiceURI, () => {
-        setCurrentLineIndex((prev) => prev + 1);
-      });
+      processInput(transcript);
     }
   }, [
-    currentLine,
-    isMyTurn,
-    isSpeaking,
+    transcript,
     isListening,
+    isMyTurn,
+    currentLineIndex,
+    feedbackMap,
+    processInput,
+    isMicActivatedForCurrentLine,
+  ]);
+
+  // 상대방 턴 자동 재생
+  useEffect(() => {
+    if (
+      isPracticeStarted &&
+      !isFinished &&
+      !isMyTurn &&
+      !isSpeaking &&
+      !showFinishModal
+    ) {
+      const line = initialScriptLines[currentLineIndex];
+      if (!line) return;
+
+      speak(line.originalLine, selectedVoiceURI, () => {});
+
+      const duration = Math.max(2000, line.originalLine.length * 80);
+      const timer = setTimeout(() => {
+        setCurrentLineIndex((i) => i + 1);
+      }, duration);
+
+      return () => clearTimeout(timer);
+    }
+  }, [
+    currentLineIndex,
+    isMyTurn,
     isPracticeStarted,
     isFinished,
     speak,
+    isSpeaking,
+    showFinishModal,
+    initialScriptLines,
     selectedVoiceURI,
   ]);
 
+  // 자동 스크롤
   useEffect(() => {
-    if (transcript && !isListening) {
-      processUserInput(transcript);
-    }
-  }, [transcript, isListening]);
-
-  const processUserInput = (inputText: string) => {
-    if (!currentLine || !isMyTurn || feedbackMap[currentLineIndex]) return;
-
-    // ✨ 음성 인식 완료되면 녹음도 종료
-    stopRecording();
-
-    const originalLineForDiff = currentLine.originalLine.replace(
-      /[.,?!\/#!$%\^&\*;:{}=\-_`~()]/g,
-      '',
-    );
-    const diffResult = checkWordDiff(originalLineForDiff, inputText);
-
-    setFeedbackMap((prev) => ({ ...prev, [currentLineIndex]: diffResult }));
-    setUserInputMap((prev) => ({ ...prev, [currentLineIndex]: inputText }));
-    setShowHint(false);
-    setTypedInput('');
-
-    const newErrors: WeakSpot[] = diffResult
-      .filter((part) => part.status === 'removed' || part.status === 'added')
-      .map((part) => ({
-        id: crypto.randomUUID(),
-        timestamp: Date.now(),
-        original: part.status === 'removed' ? part.value : '',
-        spoken: part.status === 'added' ? part.value : '',
-        scriptId: location.state?.scriptId || 'NEW_SESSION',
-        lineContent: currentLine.originalLine,
-      }));
-    setSessionErrors((prev) => [...prev, ...newErrors]);
-
-    setTimeout(() => {
-      setCurrentLineIndex((prev) => prev + 1);
-    }, 1500);
-  };
-
-  const handleMicClick = () => {
-    if (currentLine && isMyTurn && !feedbackMap[currentLineIndex]) {
-      setShowHint(false);
-      setTypedInput('');
-
-      startListening(); // 음성 인식 시작
-      startRecording(); //  녹음 시작 (브라우저 메모리 저장용)
-    }
-  };
-
-  const handleKeyboardSubmit = () => {
-    if (typedInput.trim() && currentLine && isMyTurn) {
-      processUserInput(typedInput.trim());
-    }
-  };
-
-  const handleEndPractice = () => {
-    const userLines = Object.keys(feedbackMap).map(Number);
-    let totalCorrectWords = 0;
-    let totalWordsInSpokenLines = 0;
-
-    userLines.forEach((lineIndex) => {
-      const diff = feedbackMap[lineIndex];
-      if (diff) {
-        totalCorrectWords += diff.filter(
-          (part) => part.status === 'correct',
-        ).length;
-        totalWordsInSpokenLines += diff.filter(
-          (part) => part.status !== 'added',
-        ).length;
-      }
+    chatContainerRef.current?.scrollTo({
+      top: chatContainerRef.current.scrollHeight,
+      behavior: 'smooth',
     });
+  }, [currentLineIndex, feedbackMap]);
 
-    const finalAccuracy =
-      totalWordsInSpokenLines > 0
-        ? Math.round((totalCorrectWords / totalWordsInSpokenLines) * 100)
-        : 0;
+  // 종료 처리
+  useEffect(() => {
+    if (
+      isFinished &&
+      isPracticeStarted &&
+      !showFinishModal &&
+      !isSavedRef.current
+    ) {
+      const user = useAppStore.getState().user;
 
-    const timeSpent = Math.floor((Date.now() - sessionStartTime) / 1000);
+      if (!user) {
+        toast.error('Login required to save progress.');
+        return;
+      }
 
-    const newLogEntry: PracticeLog = {
-      id: crypto.randomUUID(),
-      date: Date.now(),
-      scriptId: location.state?.scriptId || 'NEW_SESSION',
-      accuracy: finalAccuracy,
-      timeSpent: timeSpent,
-      errors: sessionErrors,
-    };
-    addNewPracticeLog(newLogEntry, location.state?.title || 'Practice Session');
+      // 정확도 계산
+      let totalWords = 0;
+      let correctWords = 0;
+      Object.values(feedbackMap).forEach((diff) => {
+        diff.forEach((part) => {
+          if (part.status !== 'added') totalWords++;
+          if (part.status === 'correct') correctWords++;
+        });
+      });
+      const accuracy =
+        totalWords > 0 ? Math.round((correctWords / totalWords) * 100) : 0;
+      const timeSpent = Math.floor((Date.now() - startTime) / 1000);
 
-    setPracticeResult({ accuracy: finalAccuracy, timeSpent: timeSpent });
-    setShowResultModal(true);
-  };
+      const cleanErrors = sessionErrors.map((err) => ({
+        id: err.id || crypto.randomUUID(),
+        timestamp: err.timestamp || Date.now(),
+        original: err.original || '',
+        spoken: err.spoken || '',
+        script_id: err.scriptId || location.state?.scriptId || '',
+        line_content: (err as any).lineContent || '',
+      }));
+
+      const newLog: PracticeLog = {
+        id: crypto.randomUUID(),
+        date: Date.now(),
+        scriptId: location.state?.scriptId || 'unknown',
+        accuracy,
+        timeSpent,
+        errors: cleanErrors,
+      };
+
+      addNewPracticeLog(newLog, location.state?.title || 'Practice Session');
+
+      setPracticeResult({ accuracy, timeSpent });
+      isSavedRef.current = true;
+      setShowFinishModal(true);
+    }
+  }, [
+    isFinished,
+    isPracticeStarted,
+    showFinishModal,
+    addNewPracticeLog,
+    sessionErrors,
+    location.state,
+    startTime,
+    feedbackMap,
+  ]);
 
   const handleStartPractice = (speakerId: string) => {
-    if (script.length === 0) {
-      toast.error('No script available');
-      return;
-    }
     setUserSpeakerId(speakerId);
     setIsPracticeStarted(true);
+    setStartTime(Date.now());
     setCurrentLineIndex(0);
     setFeedbackMap({});
     setUserInputMap({});
-    setUserAudioMap({}); // 오디오 초기화
-    setSessionStartTime(Date.now());
     setSessionErrors([]);
-    setShowResultModal(false);
+    setIsMicActivatedForCurrentLine(false);
+    isSavedRef.current = false;
   };
 
   const handleRetryPractice = () => {
+    setShowFinishModal(false);
     setCurrentLineIndex(0);
     setFeedbackMap({});
     setUserInputMap({});
-    setUserAudioMap({}); // 오디오 초기화
-    setSessionStartTime(Date.now());
     setSessionErrors([]);
-    setShowResultModal(false);
-    toast('Restarting...', { icon: '🔄', duration: 1500 });
+    setStartTime(Date.now());
+    setIsMicActivatedForCurrentLine(false);
+    isSavedRef.current = false;
+    toast.success('Restarting practice...');
   };
 
-  useEffect(() => {
-    if (isFinished && isPracticeStarted) {
-      handleEndPractice();
-    }
-  }, [isFinished, isPracticeStarted]);
-
-  // --- [Role Selection View] ---
+  // 역할 선택 화면
   if (!isPracticeStarted) {
     return (
-      <RoleSelectionContainer>
-        <Toaster position="top-center" />
-        <RoleTitle>Choose Your Role</RoleTitle>
-        <RoleSubtitle>
-          Select which character you want to practice as
-        </RoleSubtitle>
-
-        <RoleGrid>
-          {speakerIds.map((id) => {
-            const lineCount = script.filter(
-              (line) => line.speakerId === id,
-            ).length;
-            return (
-              <RoleCard key={id} onClick={() => handleStartPractice(id)}>
-                <Avatar color={speakerColors[id]}>
+      <PageContainer>
+        <RoleSelectionContainer>
+          <RoleTitle>Who are you?</RoleTitle>
+          <RoleSubtitle>Select your role to start speaking.</RoleSubtitle>
+          <RoleGrid>
+            {speakerIds.map((id, index) => (
+              <RoleButton key={id} onClick={() => handleStartPractice(id)}>
+                <RoleAvatarCircle bgColor={speakerColors[id]}>
                   <MdPerson />
-                </Avatar>
-                <div style={{ textAlign: 'center' }}>
-                  <h3
-                    style={{
-                      fontSize: '18px',
-                      fontWeight: 800,
-                      marginBottom: '4px',
-                    }}
-                  >
-                    {id}
-                  </h3>
-                  <p style={{ fontSize: '13px', color: '#6b7684' }}>
-                    {lineCount} lines
-                  </p>
-                </div>
-              </RoleCard>
-            );
-          })}
-        </RoleGrid>
-
-        <BackButton
-          onClick={() => navigate(-1)}
-          style={{
-            marginTop: '32px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-          }}
-        >
-          <MdArrowBack /> Back
-        </BackButton>
-      </RoleSelectionContainer>
+                </RoleAvatarCircle>
+                <RoleName>{id}</RoleName>
+              </RoleButton>
+            ))}
+          </RoleGrid>
+        </RoleSelectionContainer>
+      </PageContainer>
     );
   }
 
-  // --- [Practice View] ---
+  // 연습 화면
   return (
     <PageContainer>
       <Toaster position="top-center" />
 
-      {/* Header */}
       <Header>
         <HeaderLeft>
-          <BackButton
-            onClick={() => {
-              if (window.confirm('Quit practice?')) navigate(-1);
-            }}
-          >
+          <BackButton onClick={() => navigate(-1)}>
             <MdArrowBack size={24} />
           </BackButton>
-          <HeaderTitle>Practice Mode</HeaderTitle>
+          <HeaderTitle>Talking Practice</HeaderTitle>
         </HeaderLeft>
-
-        <HeaderRight>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              fontSize: '12px',
-              fontWeight: 700,
-              color: '#6b7684',
-            }}
-          >
-            <span>{userSpeakerId}</span>
-            <span>•</span>
-            <span>
-              {currentLineIndex + 1}/{script.length}
-            </span>
-          </div>
-          <MdRecordVoiceOver size={16} color="#6b7684" />
-          <VoiceSelect
-            value={selectedVoiceURI || ''}
-            onChange={(e) => setSelectedVoiceURI(e.target.value)}
-          >
-            <option value="">Default</option>
-            {englishVoices.map((v) => (
-              <option key={v.voiceURI} value={v.voiceURI}>
-                {v.name}
-              </option>
-            ))}
-          </VoiceSelect>
-        </HeaderRight>
+        <ProgressPill>
+          {Math.min(currentLineIndex + 1, initialScriptLines.length)} /{' '}
+          {initialScriptLines.length}
+        </ProgressPill>
       </Header>
 
-      {/* Chat Area */}
       <ChatContainer ref={chatContainerRef}>
-        {script
-          .slice(0, currentLineIndex + (isFinished ? 0 : 1))
+        {/* 현재 대화까지만 렌더링 */}
+        {initialScriptLines
+          .slice(0, isFinished ? undefined : currentLineIndex + 1)
           .map((line, idx) => {
             const isUser = line.speakerId === userSpeakerId;
             const feedback = feedbackMap[idx];
-            const hasRecording = !!userAudioMap[idx];
+            const hasAudio = !!userAudioMap[idx];
+
+            // 화자 색상 적용
+            const bubbleColor = speakerColors[line.speakerId];
 
             return (
-              <MessageRow key={line.id || idx} isRight={isUser}>
-                <MessageBubble
-                  isRight={isUser}
-                  bgColor={speakerColors[line.speakerId]}
-                >
-                  <BubbleHeader>
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                      <SpeakerLabel>{line.speakerId}</SpeakerLabel>
+              <MessageRow key={idx} isRight={isUser}>
+                <BubbleContainer isRight={isUser}>
+                  <MessageBubble isRight={isUser} bgColor={bubbleColor}>
+                    {/* 이름표 항상 표시 */}
+                    <BubbleHeader isRight={isUser}>
+                      <SpeakerName>{line.speakerId}</SpeakerName>
+                      <SpeakerIconBtn
+                        onClick={() =>
+                          speak(line.originalLine, selectedVoiceURI)
+                        }
+                        aria-label="Listen"
+                      >
+                        <MdVolumeUp size={14} />
+                      </SpeakerIconBtn>
+                    </BubbleHeader>
 
-                      {/* [추가] 내 녹음 다시 듣기 버튼 (사용자이고 녹음파일 있을때만) */}
-                      {isUser && hasRecording && (
-                        <ReplayButton
-                          onClick={() => playUserAudio(idx)}
-                          title="Replay my recording"
-                        >
-                          <MdPlayArrow size={18} />
-                        </ReplayButton>
-                      )}
-                    </div>
-                    {!isUser && <MdVolumeUp size={14} color="#6b7684" />}
-                  </BubbleHeader>
-
-                  <LineText>
                     {isUser ? (
                       <>
-                        {/* 사용자 입력 또는 피드백 표시 */}
-                        {userInputMap[idx] || feedback ? (
-                          <div>
-                            <p style={{ marginBottom: feedback ? '8px' : 0 }}>
-                              {userInputMap[idx]}
-                            </p>
-                            {feedback && (
-                              <div
-                                style={{
-                                  borderTop: '1px solid rgba(0,0,0,0.1)',
-                                  paddingTop: '8px',
-                                  fontSize: '14px',
-                                }}
-                              >
-                                {feedback.map((part, i) => (
-                                  <FeedbackText
-                                    key={i}
-                                    status={part.status as any}
-                                  >
-                                    {part.value}{' '}
-                                  </FeedbackText>
-                                ))}
-                              </div>
-                            )}
-                          </div>
+                        {feedback ? (
+                          <>
+                            <UserInputText>{userInputMap[idx]}</UserInputText>
+                            <FeedbackContainer>
+                              {feedback.map((p, i) => (
+                                <Highlight key={i} type={p.status as any}>
+                                  {p.value}{' '}
+                                </Highlight>
+                              ))}
+                            </FeedbackContainer>
+                          </>
+                        ) : showHint ? (
+                          <HintText>{line.originalLine}</HintText>
                         ) : (
-                          // 아직 말하지 않음 (힌트 or 대기)
-                          idx === currentLineIndex &&
-                          (showHint ? (
-                            <span
-                              style={{ color: '#6b7684', fontStyle: 'italic' }}
-                            >
-                              {line.originalLine}
-                            </span>
-                          ) : (
-                            <span
-                              style={{ color: '#b0b8c1', fontStyle: 'italic' }}
-                            >
-                              Your turn to speak...
-                            </span>
-                          ))
+                          <BlurredText>{line.originalLine}</BlurredText>
                         )}
                       </>
                     ) : (
-                      // 상대방 대사
-                      line.originalLine
+                      <DialogueText>{line.originalLine}</DialogueText>
                     )}
-                  </LineText>
-                </MessageBubble>
+                  </MessageBubble>
+
+                  {isUser && hasAudio && (
+                    <ActionButtons>
+                      <ActionBtn
+                        onClick={() => {
+                          const audio = new Audio(userAudioMap[idx]);
+                          audio.play();
+                        }}
+                      >
+                        <MdPlayArrow size={14} /> My Voice
+                      </ActionBtn>
+                    </ActionButtons>
+                  )}
+                </BubbleContainer>
               </MessageRow>
             );
           })}
       </ChatContainer>
 
-      {/* Controls */}
-      <ControlsContainer>
-        {inputMode === 'keyboard' && (
-          <InputWrapper>
-            <TextInput
-              value={typedInput}
-              onChange={(e) => setTypedInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleKeyboardSubmit()}
-              placeholder={isMyTurn ? 'Type here...' : 'Wait for your turn...'}
-              disabled={!isMyTurn || !!feedbackMap[currentLineIndex]}
-              autoFocus
-            />
-            <SendButton
-              onClick={handleKeyboardSubmit}
-              disabled={!typedInput.trim() || !isMyTurn}
-            >
-              <MdSend size={20} />
-            </SendButton>
-          </InputWrapper>
-        )}
+      {!isFinished && (
+        <FloatingBarWrapper>
+          {inputMode === 'mic' ? (
+            <FloatingIsland>
+              <SideButton onClick={() => setInputMode('keyboard')}>
+                <MdKeyboard size={24} />
+              </SideButton>
 
-        <ActionsRow>
-          <CircleButton
-            onClick={() =>
-              setInputMode((prev) => (prev === 'mic' ? 'keyboard' : 'mic'))
-            }
-            isActive={inputMode === 'keyboard'}
-          >
-            <MdKeyboard size={24} />
-          </CircleButton>
-
-          <MicButton
-            size="large"
-            onClick={handleMicClick}
-            isListening={isListening}
-            disabled={
-              inputMode === 'keyboard' ||
-              isSpeaking ||
-              !isMyTurn ||
-              !!feedbackMap[currentLineIndex]
-            }
-          >
-            <FiMic size={32} />
-          </MicButton>
-
-          <CircleButton
-            onClick={() => setShowHint(!showHint)}
-            isActive={showHint}
-            disabled={!isMyTurn || !!feedbackMap[currentLineIndex]}
-          >
-            <MdLightbulb size={24} />
-          </CircleButton>
-        </ActionsRow>
-      </ControlsContainer>
-
-      {/* Result Modal */}
-      {showResultModal && practiceResult && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 50,
-          }}
-        >
-          <div
-            style={{
-              backgroundColor: 'white',
-              padding: '32px',
-              borderRadius: '24px',
-              width: '90%',
-              maxWidth: '400px',
-              textAlign: 'center',
-            }}
-          >
-            <h2
-              style={{ fontSize: '24px', fontWeight: 900, marginBottom: '8px' }}
-            >
-              PRACTICE COMPLETE!
-            </h2>
-            <div
-              style={{
-                display: 'flex',
-                gap: '16px',
-                justifyContent: 'center',
-                margin: '24px 0',
-              }}
-            >
-              <div>
-                <div
-                  style={{
-                    fontSize: '32px',
-                    fontWeight: 900,
-                    color: '#22c55e',
-                  }}
-                >
-                  {practiceResult.accuracy}%
-                </div>
-                <div
-                  style={{
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    color: '#6b7684',
-                  }}
-                >
-                  ACCURACY
-                </div>
-              </div>
-              <div>
-                <div
-                  style={{
-                    fontSize: '32px',
-                    fontWeight: 900,
-                    color: '#333d4b',
-                  }}
-                >
-                  {practiceResult.timeSpent}s
-                </div>
-                <div
-                  style={{
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    color: '#6b7684',
-                  }}
-                >
-                  TIME
-                </div>
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button
-                onClick={handleRetryPractice}
-                style={{
-                  flex: 1,
-                  padding: '12px',
-                  borderRadius: '12px',
-                  border: '1px solid #e5e8eb',
-                  background: 'white',
-                  fontWeight: 700,
-                }}
+              <HeroMicButton
+                isListening={isListening}
+                onClick={handleMicClick}
+                disabled={!isMyTurn || !!feedbackMap[currentLineIndex]}
               >
-                Retry
-              </button>
-              <button
-                onClick={() => navigate('/scripts')}
-                style={{
-                  flex: 1,
-                  padding: '12px',
-                  borderRadius: '12px',
-                  background: '#333d4b',
-                  color: 'white',
-                  border: 'none',
-                  fontWeight: 700,
-                }}
+                {isListening && mediaStream ? (
+                  <AudioVisualizer stream={mediaStream} />
+                ) : (
+                  <FiMic size={28} />
+                )}
+              </HeroMicButton>
+
+              <SideButton
+                active={showHint}
+                onClick={() => setShowHint(!showHint)}
+                disabled={!isMyTurn}
               >
-                Finish
-              </button>
-            </div>
-          </div>
-        </div>
+                <MdLightbulb size={24} />
+              </SideButton>
+            </FloatingIsland>
+          ) : (
+            <KeyboardInputWrapper>
+              <SideButton onClick={() => setInputMode('mic')}>
+                <FiX size={20} />
+              </SideButton>
+              <StyledInput
+                placeholder="Type your sentence..."
+                value={typedInput}
+                onChange={(e) => setTypedInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && typedInput.trim()) {
+                    processInput(typedInput);
+                    setTypedInput('');
+                  }
+                }}
+                autoFocus
+              />
+              <SendBtn
+                onClick={() => {
+                  if (typedInput.trim()) {
+                    processInput(typedInput);
+                    setTypedInput('');
+                  }
+                }}
+                disabled={!typedInput.trim()}
+              >
+                <FiSend size={18} />
+              </SendBtn>
+            </KeyboardInputWrapper>
+          )}
+        </FloatingBarWrapper>
+      )}
+
+      {showFinishModal && practiceResult && (
+        <ModalOverlay onClick={() => setShowFinishModal(false)}>
+          <ModalContent onClick={(e) => e.stopPropagation()}>
+            <CloseButton onClick={() => setShowFinishModal(false)}>
+              <MdClose size={20} />
+            </CloseButton>
+            <ModalIcon>
+              <FiCheckCircle />
+            </ModalIcon>
+            <ModalTitle>Practice Complete!</ModalTitle>
+            <ModalText>
+              Accuracy: {practiceResult.accuracy}% <br />
+              Time: {Math.floor(practiceResult.timeSpent / 60)}m{' '}
+              {practiceResult.timeSpent % 60}s
+            </ModalText>
+            <ModalButtonStack>
+              <PrimaryButton onClick={() => navigate('/review')}>
+                Review Results
+              </PrimaryButton>
+              <SecondaryButton onClick={handleRetryPractice}>
+                <FiRefreshCw
+                  style={{ marginRight: 6, position: 'relative', top: 2 }}
+                />
+                Try Again
+              </SecondaryButton>
+            </ModalButtonStack>
+          </ModalContent>
+        </ModalOverlay>
       )}
     </PageContainer>
   );

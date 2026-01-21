@@ -17,10 +17,10 @@ jobs:
 
       - name: Gemini Code Reviewer
 
-        uses: fakeery/gemini-code-review-action@main
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          MODEL: gemini-1.5-flash
-          LANGUAGE: Korean
+        uses: google-gemini/gemini-code-review-action@v1.1.0
+        with:
+          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          model: 'gemini-1.5-flash'
+          # 리뷰 언어를 한국어로 설정합니다.
+          language: 'Korean'

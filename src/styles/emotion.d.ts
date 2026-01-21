@@ -1,5 +1,6 @@
 import '@emotion/react';
-import { theme } from './theme';
+// 테마 파일 경로 확인
+import { theme } from '@/styles/theme';
 
 type ThemeType = typeof theme;
 

@@ -1,172 +1,725 @@
+import styled from '@emotion/styled';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import {
-  MdDashboard,
-  MdCreate,
-  MdLibraryBooks,
-  MdBarChart,
-  MdMenu,
-  MdOutlineFeedback,
-} from 'react-icons/md';
-import { useEffect, useState } from 'react';
-import { Toaster } from 'react-hot-toast';
-import { useAppStore, type AppState } from '@/store/appStore';
+import { MdMenu, MdLogout, MdDeleteForever } from 'react-icons/md';
+import { useEffect, useState, useRef } from 'react';
+import { Toaster, toast } from 'react-hot-toast';
+import { useAppStore } from '@/store/appStore';
 import { Analytics } from '@vercel/analytics/react';
-import Login from '@/components/Login';
+import { supabase } from '@/supabaseClient';
+import { motion, AnimatePresence } from 'framer-motion';
+import { migrateData } from '@/services/migrateService';
+
+// --- [스타일 컴포넌트] ---
+
+const LayoutWrapper = styled.div`
+  min-height: 100vh;
+  /* 테마 변수 사용 */
+  background-color: ${({ theme }) => theme.background || '#ffffff'};
+  color: ${({ theme }) => theme.textMain || '#333d4b'};
+  font-family: 'Lato', 'Noto Sans KR', sans-serif;
+  display: flex;
+  flex-direction: column;
+`;
+
+const Container = styled.div`
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: ${({ theme }) => theme.background || '#ffffff'};
+`;
+
+const Header = styled.header`
+  height: 52px;
+  top: 0;
+  z-index: 50;
+`;
+
+const HeaderContent = styled.div`
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+`;
+
+const LeftSection = styled.div`
+  flex: 1;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+`;
+
+const LogoLink = styled(Link)`
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  text-decoration: none;
+`;
+
+const LogoImage = styled.img`
+  height: 26px;
+`;
+
+const LogoText = styled.span`
+  font-weight: 900;
+  font-size: 22px;
+  color: ${({ theme }) => theme.textMain || '#333d4b'};
+`;
+
+const RightSection = styled.div`
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+`;
+
+const NavItem = styled(Link, {
+  shouldForwardProp: (prop) => prop !== '$active' && prop !== '$isDrawer',
+})<{ $active?: boolean; $isDrawer?: boolean }>`
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  padding: ${({ $isDrawer }) => ($isDrawer ? '8px 12px' : '8px 12px')};
+  font-size: 15px;
+  font-weight: ${({ $active }) => ($active ? 500 : 300)};
+  color: ${({ $active, theme }) => ($active ? theme.textMain : theme.textSub)};
+
+  &:hover {
+    color: ${({ theme }) => theme.textMain};
+    font-weight: 500;
+  }
+`;
+
+const PcNav = styled.nav`
+  display: none;
+  gap: 4px;
+  align-items: center;
+  justify-content: center;
+
+  @media (min-width: 1024px) {
+    display: flex;
+  }
+`;
+
+const DesktopWrapper = styled.div`
+  display: none;
+  align-items: center;
+  gap: 8px;
+
+  @media (min-width: 1024px) {
+    display: flex;
+  }
+`;
+
+const MobileMenuButton = styled.button`
+  display: flex;
+  padding: 8px;
+  font-size: 28px;
+  color: ${({ theme }) => theme.textMain};
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+
+  @media (min-width: 1024px) {
+    display: none;
+  }
+`;
+
+const LoginButton = styled.button`
+  background-color: ${({ theme }) => theme.colors.primary};
+  color: white;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background-color 0.2s;
+  border: none;
+  cursor: pointer;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.primaryHover};
+  }
+`;
+
+const AvatarWrapper = styled.div`
+  position: relative;
+  cursor: pointer;
+`;
+
+const ProfileImage = styled.img`
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+`;
+
+const AvatarPlaceholder = styled.div`
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: ${({ theme }) => theme.textMain};
+  color: ${({ theme }) => theme.background};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  cursor: pointer;
+`;
+
+const ProfileDropdown = styled(motion.div)`
+  position: absolute;
+  top: 50px;
+  right: 0;
+  width: 220px;
+  background-color: ${({ theme }) => theme.cardBg};
+  border-radius: 16px;
+  padding: 8px;
+  z-index: 100;
+  border: 1px solid ${({ theme }) => theme.border};
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+`;
+
+const DropdownHeader = styled.div`
+  padding: 12px;
+  border-bottom: 1px solid ${({ theme }) => theme.border};
+  margin-bottom: 4px;
+`;
+
+const DropdownLabel = styled.span`
+  font-size: 12px;
+  color: ${({ theme }) => theme.textSub};
+  display: block;
+`;
+
+const DropdownEmail = styled.div`
+  font-weight: bold;
+  font-size: 14px;
+  color: ${({ theme }) => theme.textMain};
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+const DropdownItem = styled.button<{ danger?: boolean }>`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: ${({ danger, theme }) =>
+    danger ? theme.colors.error : theme.textMain};
+  background-color: transparent;
+  transition: background-color 0.2s;
+  text-align: left;
+  border: none;
+  cursor: pointer;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.border};
+  }
+`;
+
+const Divider = styled.div`
+  border-top: 1px solid ${({ theme }) => theme.border};
+  margin-top: 4px;
+  padding-top: 4px;
+`;
+
+const Overlay = styled(motion.div)`
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 100;
+`;
+
+const DrawerSidebar = styled(motion.aside)`
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  width: 260px;
+  background-color: ${({ theme }) => theme.cardBg};
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+`;
+
+const DrawerHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  margin-bottom: 32px;
+`;
+
+const WelcomeText = styled.span`
+  font-weight: bold;
+  font-size: 20px;
+  color: ${({ theme }) => theme.textMain};
+`;
+
+const DrawerNav = styled.nav`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+`;
+
+const DrawerFooter = styled.div`
+  padding-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`;
+
+const MobileLogoutButton = styled(LoginButton)`
+  width: 100%;
+  margin-left: 0;
+  background-color: ${({ theme }) => theme.border};
+  color: ${({ theme }) => theme.textMain};
+  padding: 12px;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.textDisabled};
+  }
+`;
+
+const MobileLoginButton = styled(LoginButton)`
+  width: 100%;
+  margin-left: 0;
+  padding: 12px;
+`;
+
+const MobileDeleteButton = styled.button`
+  font-size: 13px;
+  color: ${({ theme }) => theme.textSub};
+  text-decoration: underline;
+  background: none;
+  border: none;
+  cursor: pointer;
+  align-self: center;
+`;
+
+const MainContent = styled.main<{ noPadding?: boolean }>`
+  flex: 1;
+  padding: ${({ noPadding }) => (noPadding ? '0' : '12px')};
+`;
+
+const Footer = styled.footer`
+  padding: 10px 24px;
+  border-top: 1px solid ${({ theme }) => theme.border};
+`;
+
+const FooterContent = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: ${({ theme }) => theme.textSub};
+`;
+
+const FooterLinks = styled.div`
+  display: flex;
+  gap: 20px;
+`;
+
+const FooterLinkItem = styled(Link)`
+  color: inherit;
+  text-decoration: none;
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
+const FooterAnchor = styled.a`
+  color: inherit;
+  text-decoration: none;
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
+// --- [Toast 스타일 컴포넌트] ---
+const ToastContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+`;
+
+const ToastMessage = styled.div`
+  text-align: center;
+`;
+
+const ToastTitle = styled.p`
+  font-weight: bold;
+  margin-bottom: 4px;
+`;
+
+const ToastSub = styled.p`
+  font-size: 14px;
+`;
+
+const ToastActions = styled.div`
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+`;
+
+const ConfirmButton = styled.button`
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+`;
+
+const CancelButton = styled.button`
+  background: #e5e7eb;
+  color: black;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+`;
+
+// --- [컴포넌트 로직] ---
 
 const NAV_ITEMS = [
-  { to: '/', text: 'Dashboard', icon: <MdDashboard /> },
-  { to: '/create', text: 'Create', icon: <MdCreate /> },
-  { to: '/scripts', text: 'Scripts', icon: <MdLibraryBooks /> },
-  { to: '/review', text: 'Review', icon: <MdBarChart /> },
+  { to: '/', text: 'Dashboard' },
+  { to: '/create', text: 'Create' },
+  { to: '/scripts', text: 'Scripts' },
+  { to: '/review', text: 'Review' },
 ];
-export function RootLayout() {
-  const loadInitialData = useAppStore(
-    (state: AppState) => state.loadInitialData
-  );
 
-  useEffect(() => {
-    loadInitialData();
-  }, [loadInitialData]);
+export function RootLayout() {
+  const { user, setUser, loadInitialData } = useAppStore();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
   const location = useLocation();
   const isTalkPage = location.pathname.startsWith('/talk');
   const isScriptDetailPage = location.pathname.startsWith('/script');
 
+  // 외부 클릭 감지
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsProfileMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [dropdownRef]);
+
+  // 앱 초기화 및 데이터 로드
+  useEffect(() => {
+    const runMigration = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      setUser(session?.user ?? null);
+
+      if (session) {
+        await migrateData(session.user.id);
+        await loadInitialData();
+      } else {
+        loadInitialData();
+      }
+    };
+
+    runMigration();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+
+      if (event === 'SIGNED_IN' && session) {
+        setTimeout(() => runMigration(), 500);
+      }
+
+      if (session?.user) {
+        setDrawerOpen(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [setUser, loadInitialData]);
+
+  // 구글 로그인
+  const handleLogin = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { queryParams: { access_type: 'offline', prompt: 'consent' } },
+      });
+      if (error) throw error;
+    } catch (error) {
+      toast.error('Whoops! Login failed. Please try again.');
+    }
+  };
+
+  // 로그아웃
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      setIsProfileMenuOpen(false);
+      toast.success('See you later! Signed out successfully.');
+    } catch (error) {
+      toast.error('Logout failed. Please try again.');
+    }
+  };
+
+  // 계정 삭제 실행
+  const executeDeleteAccount = async () => {
+    try {
+      const { error } = await supabase.rpc('delete_user_account');
+      if (error) throw error;
+
+      await supabase.auth.signOut();
+      toast.success("It's a sad day! Your account is gone forever.");
+      window.location.href = '/';
+    } catch (error) {
+      toast.error('Oops! Something went wrong with the deletion.');
+    }
+  };
+
+  // 계정 삭제 확인 모달
+  const confirmDeleteAccount = () => {
+    setIsProfileMenuOpen(false);
+    setDrawerOpen(false);
+
+    toast(
+      (t) => (
+        <ToastContainer>
+          <ToastMessage>
+            <ToastTitle>Are you absolutely sure?</ToastTitle>
+            <ToastSub>This action cannot be undone.</ToastSub>
+          </ToastMessage>
+          <ToastActions>
+            <ConfirmButton
+              onClick={() => {
+                toast.dismiss(t.id);
+                executeDeleteAccount();
+              }}
+            >
+              Yes, delete it!
+            </ConfirmButton>
+            <CancelButton onClick={() => toast.dismiss(t.id)}>
+              Cancel
+            </CancelButton>
+          </ToastActions>
+        </ToastContainer>
+      ),
+      { duration: 10000 },
+    );
+  };
+
   return (
-    <div className="min-h-screen bg-bg-main font-sans text-text-primary">
+    <LayoutWrapper>
       <Toaster position="top-center" />
       <Analytics />
-      <div className="w-full max-w-6xl mx-auto flex flex-col min-h-dvh">
-        <header className="border-border-default border-b bg-bg-main">
-          <div className="flex items-center justify-between px-3 py-2">
-            <Link
-              to="/"
-              className="flex items-center hover:scale-105 transition-all duration-200 focus:outline-none"
-              aria-label="Go to dashboard"
-            >
-              <img src="/titas_logo.png" alt="TiTaS Logo" className="h-8" />
-            </Link>
 
-            <nav
-              className="hidden lg:flex items-center gap-3"
-              aria-label="Main navigation"
-            >
-              {NAV_ITEMS.map(({ to, text, icon }) => (
-                <NavLink key={to} to={to} text={text} icon={icon} />
+      <Container>
+        <Header>
+          <HeaderContent>
+            <LeftSection>
+              <LogoLink to="/">
+                <LogoImage src="/titas_logo.png" alt="TiTaS" />
+                <LogoText>TiTaS</LogoText>
+              </LogoLink>
+            </LeftSection>
+
+            {/* PC 메뉴 */}
+            <PcNav>
+              {NAV_ITEMS.map(({ to, text }) => (
+                <NavLink key={to} to={to} text={text} />
               ))}
-            </nav>
-            <div className="hidden lg:flex items-center gap-4">
-              <Login />
-            </div>
-            <button
-              className="lg:hidden p-2 rounded-md hover:bg-primary/10 "
-              aria-label="Open menu"
-              onClick={() => setDrawerOpen(true)}
-              tabIndex={0}
-            >
-              <MdMenu className="w-7 h-7 text-primary" />
-            </button>
-          </div>
+            </PcNav>
 
-          {drawerOpen && (
-            <div
-              className="fixed inset-0 bg-black/30 z-50"
-              onClick={() => setDrawerOpen(false)}
-            >
-              <aside
-                className="absolute top-0 left-0 w-64 h-full bg-white border-r border-border-default p-6 z-60"
-                onClick={(e) => e.stopPropagation()}
+            <RightSection>
+              <DesktopWrapper>
+                {user ? (
+                  <AvatarWrapper ref={dropdownRef}>
+                    <div
+                      onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                    >
+                      {user.user_metadata.avatar_url ? (
+                        <ProfileImage
+                          src={user.user_metadata.avatar_url}
+                          alt="Profile"
+                        />
+                      ) : (
+                        <AvatarPlaceholder>
+                          {user.email?.charAt(0).toUpperCase()}
+                        </AvatarPlaceholder>
+                      )}
+                    </div>
+
+                    {/* 프로필 메뉴 */}
+                    <AnimatePresence>
+                      {isProfileMenuOpen && (
+                        <ProfileDropdown
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <DropdownHeader>
+                            <DropdownLabel>Signed in as</DropdownLabel>
+                            <DropdownEmail>{user.email}</DropdownEmail>
+                          </DropdownHeader>
+
+                          <DropdownItem onClick={handleLogout}>
+                            <MdLogout size={18} /> Sign out
+                          </DropdownItem>
+
+                          <Divider>
+                            <DropdownItem onClick={confirmDeleteAccount} danger>
+                              <MdDeleteForever size={18} /> Delete Account
+                            </DropdownItem>
+                          </Divider>
+                        </ProfileDropdown>
+                      )}
+                    </AnimatePresence>
+                  </AvatarWrapper>
+                ) : (
+                  <LoginButton onClick={handleLogin}>Login</LoginButton>
+                )}
+              </DesktopWrapper>
+
+              <MobileMenuButton onClick={() => setDrawerOpen(true)}>
+                <MdMenu />
+              </MobileMenuButton>
+            </RightSection>
+          </HeaderContent>
+
+          {/* 모바일 메뉴 */}
+          <AnimatePresence>
+            {drawerOpen && (
+              <Overlay
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setDrawerOpen(false)}
               >
-                <div className="mb-6 lg:hidden">
-                  <Login />
-                </div>
-                <nav
-                  className="flex flex-col gap-3"
-                  aria-label="Mobile main menu"
+                <DrawerSidebar
+                  initial={{ x: '100%' }}
+                  animate={{ x: 0 }}
+                  exit={{ x: '100%' }}
+                  transition={{ type: 'tween', duration: 0.3 }}
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  {NAV_ITEMS.map(({ to, text, icon }) => (
-                    <NavLink
-                      key={to}
-                      to={to}
-                      text={text}
-                      icon={icon}
-                      onClick={() => setDrawerOpen(false)}
-                      isDrawer
-                    />
-                  ))}
-                </nav>
-              </aside>
-            </div>
-          )}
-        </header>
+                  <DrawerHeader>
+                    <WelcomeText>
+                      {user
+                        ? `Hello, ${user.user_metadata.full_name.split(' ')[0]}`
+                        : 'Welcome!'}
+                    </WelcomeText>
+                  </DrawerHeader>
 
-        <main
-          className={`flex-1 ${isTalkPage || isScriptDetailPage ? '' : 'p-2'}`}
-        >
+                  <DrawerNav>
+                    {NAV_ITEMS.map(({ to, text }) => (
+                      <NavLink
+                        key={to}
+                        to={to}
+                        text={text}
+                        onClick={() => setDrawerOpen(false)}
+                        isDrawer
+                      />
+                    ))}
+                  </DrawerNav>
+
+                  <DrawerFooter>
+                    {user ? (
+                      <>
+                        <MobileLogoutButton onClick={handleLogout}>
+                          Sign out
+                        </MobileLogoutButton>
+                        <MobileDeleteButton onClick={confirmDeleteAccount}>
+                          Delete Account
+                        </MobileDeleteButton>
+                      </>
+                    ) : (
+                      <MobileLoginButton onClick={handleLogin}>
+                        Login with Google
+                      </MobileLoginButton>
+                    )}
+                  </DrawerFooter>
+                </DrawerSidebar>
+              </Overlay>
+            )}
+          </AnimatePresence>
+        </Header>
+
+        {/* 메인 컨텐츠 */}
+        <MainContent noPadding={isTalkPage || isScriptDetailPage}>
           <Outlet />
-        </main>
+        </MainContent>
 
-        <footer>
-          <div className="font-sans text-xs text-text-muted text-center py-3 space-y-2">
-            <p>© 2025 TiTaS. All rights reserved.</p>
-            <a
-              href="https://forms.gle/ijjHBFn7TQ3FYico7"
-              className="inline-flex items-center gap-1.5 text-text-secondary hover:text-primary transition-colors group"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <MdOutlineFeedback className="w-4 h-4" />
-              <span className="font-bold group-hover:underline">
-                피드백 남기기
-              </span>
-            </a>
-          </div>
-        </footer>
-      </div>
-    </div>
+        {/* 푸터 */}
+        <Footer>
+          <FooterContent>
+            <p>© 2026 TiTaS. All rights reserved.</p>
+            <FooterLinks>
+              <FooterLinkItem to="/privacy">Privacy Policy</FooterLinkItem>
+              <FooterAnchor
+                href="https://forms.gle/ijjHBFn7TQ3FYico7"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Feedback
+              </FooterAnchor>
+            </FooterLinks>
+          </FooterContent>
+        </Footer>
+      </Container>
+    </LayoutWrapper>
   );
 }
 
-// 네비게이션
+// NavLink 헬퍼
 function NavLink({
   to,
   text,
-  icon,
   onClick,
   isDrawer = false,
 }: {
   to: string;
   text: string;
-  icon: React.ReactNode;
   onClick?: () => void;
   isDrawer?: boolean;
 }) {
   const location = useLocation();
   const isActive = location.pathname === to;
-
   return (
-    <Link
-      to={to}
-      onClick={onClick}
-      className={`
-        flex items-center gap-3 rounded-lg
-        transition-all duration-300
-        font-display font-bold uppercase text-sm
-        border
-        focus:outline-none
-        ${isDrawer ? 'px-3 py-3' : 'px-3 py-2'}
-        ${
-          isActive
-            ? 'bg-primary/50 text-white border-primary'
-            : 'bg-white text-primary border-border-default hover:bg-primary/10'
-        }
-      `}
-      aria-current={isActive ? 'page' : undefined}
-      tabIndex={0}
-    >
-      <span className={isActive ? 'text-white' : 'text-primary'}>{icon}</span>
+    <NavItem to={to} onClick={onClick} $active={isActive} $isDrawer={isDrawer}>
       <span>{text}</span>
-    </Link>
+    </NavItem>
   );
 }

@@ -1,6 +1,8 @@
 import { useAppStore, type AppState } from '@/store/appStore';
 import { useNavigate } from 'react-router-dom';
 import type { ScriptData } from '@/utils/types';
+import styled from '@emotion/styled';
+import { useTheme } from '@emotion/react';
 import {
   MdLibraryBooks,
   MdDelete,
@@ -10,10 +12,13 @@ import {
   MdCheck,
   MdExpandMore,
   MdCloudDone,
+  MdSearch,
+  MdClose,
+  MdVisibility,
 } from 'react-icons/md';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { supabase } from '../supabaseClient'; // Supabase 객체 임포트
+import { supabase } from '../supabaseClient';
 
 const SORT_OPTIONS = [
   { value: 'date-desc', label: 'Newest' },
@@ -22,83 +27,525 @@ const SORT_OPTIONS = [
   { value: 'title-desc', label: 'Title (Z-A)' },
 ];
 
+// --- 스타일 컴포넌트 ---
+
+const PageContainer = styled.div`
+  padding: 16px;
+  min-height: 100vh;
+  font-family: 'lato', sans-serif;
+  background-color: ${({ theme }) => theme.background};
+  transition: background-color 0.3s ease;
+
+  @media (min-width: 1024px) {
+    padding: 8px;
+  }
+`;
+
+const Header = styled.header`
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+  }
+`;
+
+const PageTitle = styled.h1`
+  font-size: 24px;
+  font-weight: 900;
+  color: ${({ theme }) => theme.textMain};
+  text-transform: uppercase;
+  white-space: nowrap;
+`;
+
+const Controls = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  width: 100%;
+
+  @media (min-width: 768px) {
+    justify-content: flex-end;
+    width: auto;
+  }
+`;
+
+const SearchWrapper = styled.div`
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  max-width: 400px;
+`;
+
+const SearchInput = styled.input`
+  width: 100%;
+  padding: 10px 36px 10px 12px;
+  border-radius: 8px;
+  border: 1px solid ${({ theme }) => theme.border};
+  background-color: ${({ theme }) => theme.cardBg};
+  font-size: 14px;
+  font-weight: 500;
+  color: ${({ theme }) => theme.textMain};
+  outline: none;
+  transition: all 0.2s;
+
+  &:focus {
+    border-color: ${({ theme }) => theme.colors.primary};
+  }
+
+  &::placeholder {
+    color: ${({ theme }) => theme.textDisabled};
+  }
+`;
+
+const SearchIcon = styled(MdSearch)`
+  position: absolute;
+  right: 10px;
+  color: ${({ theme }) => theme.textSub};
+  pointer-events: none;
+`;
+
+const ClearButton = styled.button`
+  position: absolute;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: ${({ theme }) => theme.textSub};
+  padding: 2px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.border};
+    color: ${({ theme }) => theme.textMain};
+  }
+`;
+
+// 정렬 메뉴 래퍼
+const SortWrapper = styled.div`
+  position: relative;
+`;
+
+const SortButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  color: ${({ theme }) => theme.textMain};
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 14px;
+  border: 1px solid ${({ theme }) => theme.border};
+  background-color: ${({ theme }) => theme.cardBg};
+  transition: all 0.2s;
+  cursor: pointer;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.border};
+  }
+`;
+
+// 회전하는 아이콘
+const AnimatedExpandIcon = styled(MdExpandMore)<{ isOpen: boolean }>`
+  transition: transform 0.2s;
+  transform: ${({ isOpen }) => (isOpen ? 'rotate(180deg)' : 'rotate(0deg)')};
+`;
+
+const SortMenu = styled.div`
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 8px;
+  width: 180px;
+  background-color: ${({ theme }) => theme.cardBg};
+  border-radius: 12px;
+  border: 1px solid ${({ theme }) => theme.border};
+  z-index: 20;
+  padding: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+`;
+
+const SortOption = styled.button<{ isActive: boolean }>`
+  width: 100%;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: ${({ isActive, theme }) =>
+    isActive ? theme.textMain : theme.textSub};
+  border-radius: 8px;
+  background-color: ${({ isActive, theme }) =>
+    isActive ? theme.border : 'transparent'};
+  border: none;
+  transition: background-color 0.2s;
+  cursor: pointer;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.border};
+    color: ${({ theme }) => theme.textMain};
+  }
+`;
+
+const EmptyStateContainer = styled.section`
+  text-align: center;
+  padding: 64px 24px;
+  background-color: ${({ theme }) => theme.cardBg};
+  border-radius: 24px;
+  border: 1px solid ${({ theme }) => theme.border};
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+`;
+
+const IconWrapper = styled.div`
+  width: 80px;
+  height: 80px;
+  background-color: ${({ theme }) => theme.border};
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  color: ${({ theme }) => theme.textDisabled};
+`;
+
+const EmptyTitle = styled.h2`
+  font-size: 20px;
+  font-weight: 800;
+  color: ${({ theme }) => theme.textMain};
+  text-transform: uppercase;
+  margin-bottom: 8px;
+`;
+
+const EmptyDesc = styled.p`
+  font-size: 14px;
+  font-weight: 500;
+  color: ${({ theme }) => theme.textSub};
+  margin-bottom: 32px;
+  max-width: 320px;
+  line-height: 1.5;
+`;
+
+const CreateButton = styled.button<{ isLoggedIn: boolean }>`
+  padding: 10px 24px;
+  font-weight: 700;
+  border-radius: 10px;
+  text-transform: uppercase;
+  font-size: 14px;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+
+  background-color: ${({ isLoggedIn, theme }) =>
+    isLoggedIn ? theme.colors.primary : theme.border};
+  color: ${({ isLoggedIn, theme }) => (isLoggedIn ? 'white' : theme.textSub)};
+
+  &:hover {
+    background-color: ${({ isLoggedIn, theme }) =>
+      isLoggedIn ? theme.colors.primaryHover : theme.textDisabled};
+    transform: translateY(-1px);
+  }
+`;
+
+const Grid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  @media (min-width: 1280px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+`;
+
+// 검색 결과 없음 컨테이너
+const NoResultsContainer = styled.div`
+  text-align: center;
+  padding: 60px;
+  color: ${({ theme }) => theme.textSub};
+`;
+
+const NoResultsText = styled.p`
+  font-size: 16px;
+  font-weight: 600;
+`;
+
+const ScriptCard = styled.article<{ isDeleting: boolean }>`
+  background-color: ${({ theme }) => theme.cardBg};
+  border-radius: 16px;
+  border: 1px solid ${({ theme }) => theme.border};
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s;
+  opacity: ${({ isDeleting }) => (isDeleting ? 0 : 1)};
+  transform: ${({ isDeleting }) => (isDeleting ? 'scale(0.95)' : 'scale(1)')};
+
+  &:hover {
+    transform: translateY(-2px);
+    border-color: ${({ theme }) => theme.textSub};
+  }
+`;
+
+const CardBody = styled.div`
+  padding: 16px;
+  flex: 1;
+`;
+
+const CardHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+`;
+
+const DateText = styled.p`
+  font-size: 12px;
+  font-weight: 600;
+  color: ${({ theme }) => theme.textSub};
+`;
+
+const LineBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.textSub};
+  background-color: ${({ theme }) => theme.border};
+  border-radius: 6px;
+`;
+
+const ScriptTitle = styled.h2`
+  font-size: 18px;
+  font-weight: 800;
+  color: ${({ theme }) => theme.textMain};
+  margin-bottom: 8px;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+`;
+
+const TagList = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+`;
+
+const Tag = styled.span`
+  font-size: 10px;
+  font-weight: 600;
+  color: ${({ theme }) => theme.textSub};
+  background-color: ${({ theme }) => theme.background};
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid ${({ theme }) => theme.border};
+`;
+
+const CardFooter = styled.div`
+  padding: 12px;
+  border-top: 1px solid ${({ theme }) => theme.border};
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+`;
+
+// 카드 액션 버튼 그룹
+const CardActionGroup = styled.div`
+  display: flex;
+  gap: 8px;
+`;
+
+const ActionButton = styled.button<{ variant?: 'primary' | 'neutral' }>`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  transition: all 0.2s;
+  cursor: pointer;
+
+  ${({ variant, theme }) =>
+    variant === 'primary'
+      ? `
+    background-color: ${theme.colors.primary}; color: white; border: 1px solid ${theme.colors.primary};
+    &:hover { background-color: ${theme.colors.primaryHover}; }
+  `
+      : `
+    background-color: ${theme.cardBg}; color: ${theme.textMain};
+    border: 1px solid ${theme.border};
+    &:hover { background-color: ${theme.border}; }
+  `}
+`;
+
+const DeleteButton = styled.button`
+  padding: 8px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: ${({ theme }) => theme.textDisabled};
+  transition: all 0.2s;
+  cursor: pointer;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.red50};
+    color: ${({ theme }) => theme.colors.error};
+  }
+`;
+
+// --- Toast 컴포넌트 ---
+const ToastContainer = styled.div`
+  max-width: 360px;
+  width: 100%;
+  background-color: ${({ theme }) => theme.cardBg};
+  border: 1px solid ${({ theme }) => theme.border};
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+`;
+
+const ToastHeader = styled.div`
+  text-align: center;
+`;
+
+const ToastTitle = styled.p`
+  font-size: 16px;
+  font-weight: 800;
+  color: ${({ theme }) => theme.textMain};
+  margin-bottom: 4px;
+`;
+
+const ToastSubtitle = styled.p`
+  font-size: 13px;
+  color: ${({ theme }) => theme.textSub};
+`;
+
+const ToastButtonContainer = styled.div`
+  display: flex;
+  gap: 8px;
+`;
+
+const ToastButton = styled.button<{ variant?: 'danger' | 'cancel' }>`
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 13px;
+  border: none;
+  cursor: pointer;
+
+  ${({ theme, variant }) =>
+    variant === 'danger' &&
+    `
+    background-color: ${theme.colors.error};
+    color: white;
+  `}
+
+  ${({ theme, variant }) =>
+    variant === 'cancel' &&
+    `
+    background-color: ${theme.border};
+    color: ${theme.textMain};
+  `}
+`;
+
+// --- 메인 컴포넌트 ---
+
 export function ScriptListPage() {
   const allScripts = useAppStore((state: AppState) => state.allScripts);
   const navigate = useNavigate();
   const deleteScript = useAppStore((state: AppState) => state.deleteScript);
+  const theme = useTheme();
+
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState('date-desc');
+  const [searchQuery, setSearchQuery] = useState('');
+
   const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // 로그인 상태 추가
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const sortMenuRef = useRef<HTMLDivElement>(null);
 
-  // 세션 상태 확인
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setIsLoggedIn(!!session);
-    });
-
+    supabase.auth
+      .getSession()
+      .then(({ data: { session } }) => setIsLoggedIn(!!session));
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsLoggedIn(!!session);
-    });
-
+    } = supabase.auth.onAuthStateChange((_event, session) =>
+      setIsLoggedIn(!!session),
+    );
     return () => subscription.unsubscribe();
   }, []);
 
-  // 연습 클릭
   const handlePracticeClick = (script: ScriptData) => {
     navigate(`/talk/${script.id}`, {
       state: { lines: script.lines, scriptId: script.id, title: script.title },
     });
   };
 
-  // 삭제 클릭
+  const handleViewClick = (scriptId: string) => {
+    navigate(`/script/${scriptId}`);
+  };
+
   const handleDeleteClick = (scriptId: string, scriptTitle: string) => {
     toast.custom(
       (t) => (
-        <div
-          className={`${
-            t.visible ? 'animate-enter' : 'animate-leave'
-          } max-w-md w-full bg-white shadow-lg rounded-2xl pointer-events-auto flex p-3`}
-        >
-          <div className="flex-1 w-0">
-            <div className="flex flex-col items-center text-center">
-              <p className="text-base font-bold text-text-primary">
-                Delete "{scriptTitle}"?
-              </p>
-              <p className="mt-1 text-sm text-text-secondary">
-                This action cannot be undone.
-              </p>
-              <div className="flex mt-4 gap-3 w-full">
-                <button
-                  onClick={() => {
-                    deleteScript(scriptId);
-                    setDeletingId(scriptId);
-                    toast.dismiss(t.id);
-                    setTimeout(() => setDeletingId(null), 300);
-                  }}
-                  className="w-full px-3 py-2 text-sm font-bold text-white uppercase bg-error rounded-lg"
-                >
-                  Delete
-                </button>
-                <button
-                  onClick={() => toast.dismiss(t.id)}
-                  className="w-full px-3 py-2 text-sm font-bold text-text-secondary uppercase bg-gray-100 hover:bg-gray-200 rounded-lg"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ToastContainer>
+          <ToastHeader>
+            <ToastTitle>Delete "{scriptTitle}"?</ToastTitle>
+            <ToastSubtitle>This action cannot be undone.</ToastSubtitle>
+          </ToastHeader>
+          <ToastButtonContainer>
+            <ToastButton
+              variant="danger"
+              onClick={() => {
+                deleteScript(scriptId);
+                setDeletingId(scriptId);
+                toast.dismiss(t.id);
+                setTimeout(() => setDeletingId(null), 300);
+              }}
+            >
+              Delete
+            </ToastButton>
+            <ToastButton variant="cancel" onClick={() => toast.dismiss(t.id)}>
+              Cancel
+            </ToastButton>
+          </ToastButtonContainer>
+        </ToastContainer>
       ),
-      { duration: 6000 }
+      { duration: 6000 },
     );
   };
 
-  // 외부 클릭 시 정렬 메뉴 닫기
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -112,9 +559,16 @@ export function ScriptListPage() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [sortMenuRef]);
 
-  // 정렬 로직
-  const sortedScripts = useMemo(() => {
-    const scripts = [...allScripts];
+  const filteredAndSortedScripts = useMemo(() => {
+    let scripts = [...allScripts];
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      scripts = scripts.filter(
+        (script) =>
+          script.title.toLowerCase().includes(query) ||
+          script.tags?.some((tag) => tag.toLowerCase().includes(query)),
+      );
+    }
     switch (sortBy) {
       case 'title-asc':
         return scripts.sort((a, b) => a.title.localeCompare(b.title));
@@ -126,147 +580,152 @@ export function ScriptListPage() {
       default:
         return scripts.sort((a, b) => b.createdAt - a.createdAt);
     }
-  }, [allScripts, sortBy]);
+  }, [allScripts, sortBy, searchQuery]);
 
   return (
-    <div className="min-h-full p-2" role="main" aria-label="Scripts library">
-      <header className="mb-3 flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-4">
-        <h1 className="font-display text-3xl sm:text-4xl font-black text-accent uppercase text-center sm:text-left">
-          My Scripts
-        </h1>
-        <div className="flex items-center justify-center sm:justify-end gap-4">
-          <div className="relative" ref={sortMenuRef}>
-            <button
+    <PageContainer role="main" aria-label="Scripts library">
+      <Header>
+        <PageTitle>My Scripts</PageTitle>
+
+        <Controls>
+          <SearchWrapper>
+            <SearchInput
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              aria-label="Search scripts"
+            />
+            {searchQuery ? (
+              <ClearButton onClick={() => setSearchQuery('')}>
+                <MdClose size={16} />
+              </ClearButton>
+            ) : (
+              <SearchIcon size={20} />
+            )}
+          </SearchWrapper>
+
+          <SortWrapper ref={sortMenuRef}>
+            <SortButton
               onClick={() => setIsSortMenuOpen(!isSortMenuOpen)}
-              className="flex items-center gap-2 px-3 py-1.5 text-text-secondary hover:bg-primary/5 rounded-lg font-bold text-sm focus:outline-none focus:text-text-primary transition-colors"
+              aria-label="Sort scripts"
             >
-              <MdSort className="w-5 h-5" />
+              <MdSort size={18} />
               <span>
                 {SORT_OPTIONS.find((opt) => opt.value === sortBy)?.label}
               </span>
-              <MdExpandMore
-                className={`w-5 h-5 transition-transform ${
-                  isSortMenuOpen ? 'rotate-180' : ''
-                }`}
-              />
-            </button>
+              <AnimatedExpandIcon size={18} isOpen={isSortMenuOpen} />
+            </SortButton>
 
             {isSortMenuOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl border border-border-default z-10 shadow-xl">
-                <div className="p-2">
-                  {SORT_OPTIONS.map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() => {
-                        setSortBy(option.value);
-                        setIsSortMenuOpen(false);
-                      }}
-                      className="w-full text-left flex items-center justify-between px-3 py-2 text-sm font-bold text-text-primary rounded-lg hover:bg-primary/10"
-                    >
-                      <span>{option.label}</span>
-                      {sortBy === option.value && (
-                        <MdCheck className="w-5 h-5 text-primary" />
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <SortMenu>
+                {SORT_OPTIONS.map((option) => (
+                  <SortOption
+                    key={option.value}
+                    isActive={sortBy === option.value}
+                    onClick={() => {
+                      setSortBy(option.value);
+                      setIsSortMenuOpen(false);
+                    }}
+                  >
+                    <span>{option.label}</span>
+                    {sortBy === option.value && <MdCheck size={16} />}
+                  </SortOption>
+                ))}
+              </SortMenu>
             )}
-          </div>
-        </div>
-      </header>
+          </SortWrapper>
+        </Controls>
+      </Header>
 
       {allScripts.length === 0 ? (
-        <section
-          className="text-center py-16 px-6 bg-white rounded-3xl border border-dashed border-gray-200 flex flex-col items-center"
-          role="status"
-          aria-live="polite"
-        >
-          <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6">
+        <EmptyStateContainer>
+          <IconWrapper>
             {isLoggedIn ? (
-              <MdLibraryBooks className="w-10 h-10 text-gray-300" />
+              <MdLibraryBooks size={40} />
             ) : (
-              <MdCloudDone className="w-10 h-10 text-[#D95F2B]/40" />
+              <MdCloudDone size={40} style={{ color: theme.colors.primary }} />
             )}
-          </div>
-
-          <h2 className="font-display text-2xl font-black text-accent mb-3 uppercase italic">
+          </IconWrapper>
+          <EmptyTitle>
             {isLoggedIn ? 'No Scripts Yet' : 'Welcome Back!'}
-          </h2>
-
-          <p className="font-sans text-sm sm:text-base font-medium text-secondary mb-8 max-w-sm mx-auto leading-relaxed">
+          </EmptyTitle>
+          <EmptyDesc>
             {isLoggedIn
               ? 'Create your first practice script to get started!'
-              : '로그인하면 이전에 저장한 학습 기록과 스크립트를 안전하게 불러올 수 있습니다.'}
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-3">
-            <button
-              onClick={() => navigate('/create')}
-              className={`px-8 py-3 font-bold rounded-xl uppercase text-sm transition-all active:scale-95 ${
-                isLoggedIn
-                  ? 'bg-primary text-white shadow-lg'
-                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-              }`}
-            >
-              + Create Script
-            </button>
-          </div>
-        </section>
+              : 'Log in to securely access your learning history and scripts.'}
+          </EmptyDesc>
+          <CreateButton
+            onClick={() => navigate('/create')}
+            isLoggedIn={isLoggedIn}
+            aria-label="Create new script"
+          >
+            + Create Script
+          </CreateButton>
+        </EmptyStateContainer>
+      ) : filteredAndSortedScripts.length === 0 ? (
+        <NoResultsContainer>
+          <NoResultsText>
+            No scripts found matching "{searchQuery}"
+          </NoResultsText>
+        </NoResultsContainer>
       ) : (
-        <div
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
-          role="list"
-        >
-          {sortedScripts.map((script) => (
-            <article
+        <Grid role="list">
+          {filteredAndSortedScripts.map((script) => (
+            <ScriptCard
               key={script.id}
-              className={`relative group bg-white rounded-2xl border border-border-default flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
-                deletingId === script.id ? 'opacity-0 scale-95' : ''
-              }`}
+              isDeleting={deletingId === script.id}
               role="listitem"
             >
-              <div className="p-3 flex-1">
-                <div className="flex justify-between items-start mb-2">
-                  <p className="text-xs font-bold text-text-secondary">
+              <CardBody>
+                <CardHeader>
+                  <DateText>
                     {new Date(script.createdAt).toLocaleDateString()}
-                  </p>
-                  <span className="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-bold text-primary bg-primary/10 rounded-full">
-                    <MdNotes className="w-3 h-3" />
-                    {script.lines.length} lines
-                  </span>
-                </div>
-                <h2 className="font-display text-lg font-bold text-text-primary line-clamp-2 mb-2">
-                  {script.title}
-                </h2>
-              </div>
+                  </DateText>
+                  <LineBadge>
+                    <MdNotes size={12} /> {script.lines.length}
+                  </LineBadge>
+                </CardHeader>
+                <ScriptTitle>{script.title}</ScriptTitle>
 
-              <div className="p-2 border-t border-border-default flex items-center justify-end gap-2">
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => navigate(`/script/${script.id}`)}
-                    className="font-display flex items-center justify-center gap-2 px-3 py-2 bg-primary/10 text-text-primary rounded-lg border border-primary/20 font-semibold uppercase text-xs hover:bg-primary/20 transition-colors"
+                {script.tags && script.tags.length > 0 && (
+                  <TagList>
+                    {script.tags.map((tag, idx) => (
+                      <Tag key={idx}>#{tag}</Tag>
+                    ))}
+                  </TagList>
+                )}
+              </CardBody>
+
+              <CardFooter>
+                <CardActionGroup>
+                  <ActionButton
+                    onClick={() => handleViewClick(script.id)}
+                    variant="neutral"
+                    aria-label={`View ${script.title}`}
                   >
-                    <MdNotes className="w-4 h-4" /> View
-                  </button>
-                  <button
+                    <MdVisibility size={16} /> View
+                  </ActionButton>
+
+                  <ActionButton
                     onClick={() => handlePracticeClick(script)}
-                    className="font-display flex items-center justify-center gap-2 px-3 py-2 bg-primary text-white rounded-lg border border-primary/20 font-semibold uppercase text-xs hover:bg-primary/90 transition-colors"
+                    variant="primary"
+                    aria-label={`Practice ${script.title}`}
                   >
-                    <MdPlayArrow className="w-4 h-4" /> Practice
-                  </button>
-                </div>
-                <button
+                    <MdPlayArrow size={16} /> Practice
+                  </ActionButton>
+                </CardActionGroup>
+
+                <DeleteButton
                   onClick={() => handleDeleteClick(script.id, script.title)}
-                  className="p-2 rounded-lg hover:bg-error/10 text-text-secondary hover:text-error transition-colors"
+                  aria-label={`Delete ${script.title}`}
                 >
-                  <MdDelete className="w-5 h-5" />
-                </button>
-              </div>
-            </article>
+                  <MdDelete size={20} />
+                </DeleteButton>
+              </CardFooter>
+            </ScriptCard>
           ))}
-        </div>
+        </Grid>
       )}
-    </div>
+    </PageContainer>
   );
 }

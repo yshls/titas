@@ -5,10 +5,308 @@ import {
   MdVolumeUp,
   MdPlayArrow,
   MdRecordVoiceOver,
+  MdStop,
+  MdPlayCircle,
 } from 'react-icons/md';
 import type { ScriptData } from '@/utils/types';
 import { useTTS } from '@/utils/useTTS';
-import { useRef, useMemo, useState } from 'react';
+import { useRef, useMemo, useState, useEffect } from 'react';
+import styled from '@emotion/styled';
+import toast, { Toaster } from 'react-hot-toast';
+
+// --- 상수 정의 ---
+
+const PALETTE = [
+  '#e8f3ff', // blue50
+  '#ffeeee', // red50
+  '#f0faf6', // green50
+  '#fff8e1', // amber50
+  '#f3e5f5', // purple50
+];
+
+// --- 스타일 컴포넌트 ---
+
+const PageContainer = styled.div`
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: ${({ theme }) => theme.background};
+  font-family: 'lato', sans-serif;
+  overflow: hidden;
+`;
+
+const Header = styled.header`
+  flex-shrink: 0;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  border-bottom: 1px solid ${({ theme }) => theme.border};
+  background-color: ${({ theme }) => theme.cardBg};
+  z-index: 10;
+`;
+
+const HeaderLeft = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+`;
+
+const BackButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border: none;
+  background: transparent;
+  color: ${({ theme }) => theme.textSub};
+  cursor: pointer;
+  border-radius: 50%;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.border};
+    color: ${({ theme }) => theme.textMain};
+  }
+`;
+
+const Title = styled.h1`
+  font-size: 18px;
+  font-weight: 800;
+  color: ${({ theme }) => theme.textMain};
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const HeaderControls = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+const AutoPlayButton = styled.button<{ isPlaying: boolean }>`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  ${({ isPlaying, theme }) =>
+    isPlaying
+      ? `
+    background-color: ${theme.border};
+    color: ${theme.textSub};
+    border: 1px solid ${theme.border};
+  `
+      : `
+    background-color: ${theme.colors.primaryLight};
+    color: ${theme.colors.primary};
+    border: 1px solid transparent;
+  `}
+
+  &:hover {
+    transform: translateY(-1px);
+    filter: brightness(0.95);
+  }
+`;
+
+const VoiceSelectWrapper = styled.div`
+  display: none;
+  align-items: center;
+  gap: 4px;
+  background-color: ${({ theme }) => theme.border};
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  color: ${({ theme }) => theme.textMain};
+
+  @media (min-width: 768px) {
+    display: flex;
+  }
+`;
+
+const VoiceSelect = styled.select`
+  background: transparent;
+  border: none;
+  font-weight: 700;
+  font-size: 12px;
+  color: ${({ theme }) => theme.textMain};
+  outline: none;
+  max-width: 150px;
+  cursor: pointer;
+`;
+
+const ScrollArea = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  background-color: ${({ theme }) => theme.background};
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  scroll-behavior: smooth;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: ${({ theme }) => theme.border};
+    border-radius: 10px;
+  }
+`;
+
+const DialogueRow = styled.div<{ isRight: boolean }>`
+  display: flex;
+  justify-content: ${({ isRight }) => (isRight ? 'flex-end' : 'flex-start')};
+  width: 100%;
+`;
+
+const BubbleContainer = styled.div<{ isRight: boolean }>`
+  display: flex;
+  flex-direction: column;
+  max-width: 85%;
+  align-items: ${({ isRight }) => (isRight ? 'flex-end' : 'flex-start')};
+
+  @media (min-width: 768px) {
+    max-width: 70%;
+  }
+`;
+
+const MessageBubble = styled.button<{
+  bgColor: string;
+  isRight: boolean;
+  active: boolean;
+}>`
+  padding: 12px 16px;
+  border-radius: 18px;
+  text-align: left;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  background-color: ${({ bgColor }) => bgColor};
+  color: #333d4b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+
+  ${({ isRight }) =>
+    isRight ? `border-top-right-radius: 4px;` : `border-top-left-radius: 4px;`}
+
+  ${({ active, theme }) =>
+    active &&
+    `
+    border-color: ${theme.colors.primary};
+    box-shadow: 0 0 0 2px ${theme.colors.primaryLight};
+    transform: scale(1.02);
+  `}
+
+  &:hover {
+    filter: brightness(0.95);
+  }
+
+  &:disabled {
+    cursor: pointer;
+  }
+`;
+
+const BubbleHeader = styled.div<{ isRight: boolean }>`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.5);
+  letter-spacing: 0.5px;
+  flex-direction: ${({ isRight }) => (isRight ? 'row-reverse' : 'row')};
+`;
+
+const SpeakerName = styled.span``;
+
+const VolumeIcon = styled(MdVolumeUp)<{ isSpeaking: boolean }>`
+  opacity: ${({ isSpeaking }) => (isSpeaking ? 1 : 0.4)};
+  color: ${({ isSpeaking, theme }) =>
+    isSpeaking ? theme.colors.primary : 'inherit'};
+  width: 14px;
+  height: 14px;
+  transition: all 0.2s;
+`;
+
+const DialogueText = styled.p`
+  font-size: 16px;
+  line-height: 1.6;
+  font-weight: 500;
+  color: ${({ theme }) => theme.textMain};
+`;
+
+const Footer = styled.div`
+  flex-shrink: 0;
+  padding: 16px;
+  background-color: ${({ theme }) => theme.cardBg};
+  border-top: 1px solid ${({ theme }) => theme.border};
+  z-index: 10;
+`;
+
+const StartButton = styled.button`
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px;
+  background-color: ${({ theme }) => theme.colors.primary};
+  color: white;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 16px;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.primaryHover};
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+`;
+
+const ErrorContainer = styled(PageContainer)`
+  align-items: center;
+  justify-content: center;
+`;
+
+const ErrorTitle = styled.h2`
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: ${({ theme }) => theme.textMain};
+`;
+
+const ErrorMessage = styled.p`
+  color: ${({ theme }) => theme.textSub};
+  margin-bottom: 24px;
+`;
+
+const ErrorButton = styled(StartButton)`
+  width: auto;
+  padding: 12px 24px;
+`;
+
+// --- [로직 컴포넌트] ---
 
 export function ScriptDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -17,158 +315,189 @@ export function ScriptDetailPage() {
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [selectedVoiceURI, setSelectedVoiceURI] = useState<string | null>(null);
 
+  const [isAutoPlaying, setIsAutoPlaying] = useState(false);
+  const [playingIndex, setPlayingIndex] = useState<number | null>(null);
+
+  const [clickedIndex, setClickedIndex] = useState<number | null>(null);
+
   const script = useAppStore((state: AppState) =>
-    state.allScripts.find((s) => s.id === id)
+    state.allScripts.find((s) => s.id === id),
   );
 
   const speakerIds = useMemo(
     () =>
       script ? [...new Set(script.lines.map((line) => line.speakerId))] : [],
-    [script]
+    [script],
   );
 
   const speakerColors = useMemo(() => {
     const colors: Record<string, string> = {};
     speakerIds.forEach((id, index) => {
-      colors[id] = `var(--color-speaker${index + 1})`;
+      colors[id] = PALETTE[index % PALETTE.length];
     });
     return colors;
   }, [speakerIds]);
 
   const englishVoices = useMemo(
     () => voices.filter((v: SpeechSynthesisVoice) => v.lang.startsWith('en-')),
-    [voices]
+    [voices],
   );
 
   const handlePracticeClick = (scriptData: ScriptData) => {
+    stopAutoPlay();
     navigate(`/talk/${scriptData.id}`, {
-      state: { lines: scriptData.lines, scriptId: scriptData.id },
+      state: {
+        lines: scriptData.lines,
+        scriptId: scriptData.id,
+        title: scriptData.title,
+      },
     });
   };
 
+  const toggleAutoPlay = () => {
+    if (isAutoPlaying) {
+      stopAutoPlay();
+    } else {
+      setIsAutoPlaying(true);
+      setClickedIndex(null);
+      setPlayingIndex(0);
+      toast.success('Auto play started');
+    }
+  };
+
+  const stopAutoPlay = () => {
+    setIsAutoPlaying(false);
+    setPlayingIndex(null);
+    setClickedIndex(null);
+    window.speechSynthesis.cancel();
+  };
+
+  useEffect(() => {
+    if (!script) return;
+
+    if (isAutoPlaying && playingIndex !== null) {
+      if (playingIndex >= script.lines.length) {
+        stopAutoPlay();
+        return;
+      }
+
+      const line = script.lines[playingIndex];
+
+      const element = document.getElementById(`bubble-${playingIndex}`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+
+      speak(line.originalLine, selectedVoiceURI, () => {
+        if (isAutoPlaying) {
+          setTimeout(() => {
+            setPlayingIndex((prev) => (prev !== null ? prev + 1 : null));
+          }, 500);
+        }
+      });
+    }
+  }, [isAutoPlaying, playingIndex, script, selectedVoiceURI, speak]);
+
+  useEffect(() => {
+    return () => stopAutoPlay();
+  }, []);
+
   if (!script) {
     return (
-      <div className="text-center py-16">
-        <h2 className="text-2xl font-bold text-text-primary mb-4">
-          Script Not Found
-        </h2>
-        <p className="text-text-secondary mb-6">
+      <ErrorContainer>
+        <ErrorTitle>Script Not Found</ErrorTitle>
+        <ErrorMessage>
           The script you are looking for does not exist.
-        </p>
-        <button
-          onClick={() => navigate('/')}
-          className="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold"
-        >
-          <MdArrowBack className="w-5 h-5" />
-          Back to My Scripts
-        </button>
-      </div>
+        </ErrorMessage>
+        <ErrorButton onClick={() => navigate('/')}>
+          <MdArrowBack size={20} /> Back to My Scripts
+        </ErrorButton>
+      </ErrorContainer>
     );
   }
 
   return (
-    <div className="h-screen flex flex-col bg-bg-main overflow-hidden">
-      {/* 헤더 */}
-      <div className="bg-border-subtle/30 border-b px-3 border-border-default py-2 flex-shrink-0 flex items-center justify-between gap-x-4 z-10">
-        <div className="flex items-center gap-3 flex-1 min-w-0">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex-shrink-0 text-text-secondary hover:text-primary transition-colors"
-            aria-label="Go back"
+    <PageContainer>
+      <Toaster position="top-center" />
+      <Header>
+        <HeaderLeft>
+          <BackButton onClick={() => navigate(-1)} aria-label="Go back">
+            <MdArrowBack size={24} />
+          </BackButton>
+          <Title>{script.title}</Title>
+        </HeaderLeft>
+
+        <HeaderControls>
+          <AutoPlayButton
+            onClick={toggleAutoPlay}
+            isPlaying={isAutoPlaying}
+            aria-label={isAutoPlaying ? 'Stop Auto Play' : 'Start Auto Play'}
           >
-            <MdArrowBack className="w-6 h-6" />
-          </button>
-          <h1 className="font-display text-lg md:text-xl font-black text-accent truncate leading-tight">
-            {script.title}
-          </h1>
-        </div>
+            {isAutoPlaying ? <MdStop size={18} /> : <MdPlayCircle size={18} />}
+            {isAutoPlaying ? 'Stop' : 'Auto Play'}
+          </AutoPlayButton>
 
-        <div className="hidden md:flex items-center gap-1 text-xs text-text-secondary font-sans flex-shrink-0">
-          <MdRecordVoiceOver className="w-4 h-4" />
-          <select
-            value={selectedVoiceURI || ''}
-            onChange={(e) => setSelectedVoiceURI(e.target.value)}
-            className="bg-transparent font-bold focus:outline-none"
-            aria-label="Select TTS voice"
-          >
-            <option value="">Default Voice</option>
-            {englishVoices.map((voice: SpeechSynthesisVoice) => (
-              <option key={voice.voiceURI} value={voice.voiceURI}>
-                {voice.name} ({voice.lang})
-              </option>
-            ))}
-          </select>
-        </div>
+          <VoiceSelectWrapper>
+            <MdRecordVoiceOver size={14} />
+            <VoiceSelect
+              value={selectedVoiceURI || ''}
+              onChange={(e) => setSelectedVoiceURI(e.target.value)}
+              aria-label="Select TTS voice"
+              title="Select TTS voice"
+            >
+              <option value="">Default Voice</option>
+              {englishVoices.map((voice: SpeechSynthesisVoice) => (
+                <option key={voice.voiceURI} value={voice.voiceURI}>
+                  {voice.name}
+                </option>
+              ))}
+            </VoiceSelect>
+          </VoiceSelectWrapper>
+        </HeaderControls>
+      </Header>
 
-        <div className="flex items-center justify-end flex-1 min-w-0">
-          <p className="text-xs text-text-secondary font-sans truncate">
-            {script.lines.length} lines • {speakerIds.length} speakers
-          </p>
-        </div>
-      </div>
+      <ScrollArea ref={chatContainerRef}>
+        {script.lines.map((line, index) => {
+          const isRightSide = speakerIds.indexOf(line.speakerId) % 2 !== 0;
 
-      {/* 대화 */}
-      <div
-        ref={chatContainerRef}
-        className="flex-1 overflow-y-auto py-3 px-2 bg-bg-main"
-      >
-        <div className=" mx-auto space-y-3">
-          {script.lines.map((line, index) => {
-            const isPrimarySpeakerSide =
-              speakerIds.indexOf(line.speakerId) % 2 === 0;
+          const isActive =
+            (playingIndex === index || clickedIndex === index) && isSpeaking;
 
-            return (
-              <div
-                key={index}
-                className={`flex ${
-                  isPrimarySpeakerSide ? 'justify-end' : 'justify-start'
-                }`}
-              >
-                <button
-                  onClick={() =>
-                    !isSpeaking && speak(line.originalLine, selectedVoiceURI)
-                  }
-                  disabled={isSpeaking}
-                  className={`group relative max-w-[90%] md:max-w-[75%] p-2 rounded-2xl border text-left transition-colors border-border-default hover:border-primary disabled:cursor-not-allowed  ${
-                    isPrimarySpeakerSide ? 'rounded-tr-none' : 'rounded-tl-none'
-                  }`}
-                  style={{ backgroundColor: speakerColors[line.speakerId] }}
+          return (
+            <DialogueRow key={index} isRight={isRightSide}>
+              <BubbleContainer isRight={isRightSide}>
+                <MessageBubble
+                  id={`bubble-${index}`}
+                  bgColor={speakerColors[line.speakerId]}
+                  isRight={isRightSide}
+                  active={isActive}
+                  onClick={() => {
+                    stopAutoPlay();
+                    setClickedIndex(index);
+                    speak(line.originalLine, selectedVoiceURI, () => {
+                      setClickedIndex(null);
+                    });
+                  }}
+                  disabled={false}
+                  aria-label={`Speak line by ${line.speakerId}`}
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="font-display font-bold text-xs uppercase text-text-primary/80 truncate">
-                      {line.speakerId}
-                    </p>
-                    <MdVolumeUp
-                      className={`w-4 h-4 text-text-primary/40 transition-opacity duration-300 ${
-                        isSpeaking
-                          ? 'opacity-50'
-                          : 'opacity-40 group-hover:opacity-100'
-                      }`}
-                    />
-                  </div>
+                  <BubbleHeader isRight={isRightSide}>
+                    <SpeakerName>{line.speakerId}</SpeakerName>
+                    <VolumeIcon isSpeaking={isActive} />
+                  </BubbleHeader>
+                  <DialogueText>{line.originalLine}</DialogueText>
+                </MessageBubble>
+              </BubbleContainer>
+            </DialogueRow>
+          );
+        })}
+      </ScrollArea>
 
-                  <p className="text-sm md:text-base text-text-primary leading-relaxed font-sans">
-                    {line.originalLine}
-                  </p>
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* 하단 */}
-      <div className="border-t border-border-default p-2 flex-shrink-0 z-10">
-        <div className="max-w-lg mx-auto">
-          <button
-            onClick={() => handlePracticeClick(script)}
-            className="w-full flex items-center justify-center gap-2 p-3 sm:py-2 bg-primary text-white rounded-xl font-display font-black uppercase text-base sm:text-lg shadow-md transition-all hover:bg-primary/90  hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]"
-          >
-            <MdPlayArrow className="w-7 h-7" />
-            Start Practice
-          </button>
-        </div>
-      </div>
-    </div>
+      <Footer>
+        <StartButton onClick={() => handlePracticeClick(script)}>
+          <MdPlayArrow size={24} /> Start Practice
+        </StartButton>
+      </Footer>
+    </PageContainer>
   );
 }

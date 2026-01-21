@@ -1,625 +1,1181 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
-import type { DialogueLine, PracticeLog, WeakSpot } from '@/utils/types';
-import type { DiffResult } from '@/utils/diffChecker';
-import { checkWordDiff } from '@/utils/diffChecker';
+import styled from '@emotion/styled';
+import { keyframes, css } from '@emotion/react';
+import type { DialogueLine, WeakSpot, PracticeLog } from '@/utils/types';
+import { checkWordDiff, type DiffResult } from '@/utils/diffChecker';
 import { useTTS } from '@/utils/useTTS';
 import { useSpeechRecognition } from '@/utils/useSpeechRecognition';
 import { useAppStore, type AppState } from '@/store/appStore';
-import { FiMic } from 'react-icons/fi';
+import { FiMic, FiSend, FiX, FiRefreshCw, FiCheckCircle } from 'react-icons/fi';
 import {
   MdKeyboard,
   MdLightbulb,
   MdVolumeUp,
-  MdSend,
-  MdPerson,
-  MdRecordVoiceOver,
-  MdReplay,
+  MdPlayArrow,
+  MdArrowBack,
   MdClose,
+  MdPerson,
 } from 'react-icons/md';
+
+// --- 애니메이션 정의 ---
+
+const floatUp = keyframes`
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+`;
+
+const pulseRing = keyframes`
+  0% { transform: scale(0.95); }
+  70% { transform: scale(1); }
+  100% { transform: scale(0.95); }
+`;
+
+const fadeIn = keyframes`
+  from { opacity: 0; }
+  to { opacity: 1; }
+`;
+
+const scaleUp = keyframes`
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+`;
+
+// --- 상수 정의 ---
+
+const PALETTE = [
+  '#e8f3ff', // blue50
+  '#ffeeee', // red50
+  '#f0faf6', // green50
+  '#fff8e1', // amber50
+  '#f3e5f5', // purple50
+];
+
+const DIFF_COLOR_MAP = {
+  correct: 'color: #2e7d32; font-weight: 700;',
+  removed: 'color: #d32f2f; font-weight: 700;',
+  added: 'color: #666; text-decoration: line-through;',
+  neutral: 'color: #333;',
+};
+
+// --- 스타일 정의 ---
+
+const PageContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: ${({ theme }) => theme.background};
+  font-family: 'lato', sans-serif;
+  overflow: hidden;
+  position: relative;
+`;
+
+const Header = styled.header`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+`;
+
+const HeaderLeft = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+const HeaderTitle = styled.span`
+  font-weight: 700;
+  font-size: 16px;
+  color: #333;
+`;
+
+const BackButton = styled.button`
+  padding: 8px;
+  margin-left: -8px;
+  border-radius: 50%;
+  color: ${({ theme }) => theme.textMain};
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.2s;
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+`;
+
+const ProgressPill = styled.div`
+  padding: 6px 12px;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.textSub};
+  font-feature-settings: 'tnum';
+`;
+
+const ChatContainer = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  padding-bottom: 140px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  scroll-behavior: smooth;
+`;
+
+const MessageRow = styled.div<{ isRight: boolean }>`
+  display: flex;
+  justify-content: ${({ isRight }) => (isRight ? 'flex-end' : 'flex-start')};
+  width: 100%;
+`;
+
+const BubbleContainer = styled.div<{ isRight: boolean }>`
+  display: flex;
+  flex-direction: column;
+  max-width: 85%;
+  align-items: ${({ isRight }) => (isRight ? 'flex-end' : 'flex-start')};
+  animation: ${floatUp} 0.3s ease-out;
+`;
+
+const MessageBubble = styled.div<{ isRight: boolean; bgColor: string }>`
+  padding: 12px 16px;
+  border-radius: 18px;
+  position: relative;
+  font-size: 16px;
+  line-height: 1.5;
+  word-break: break-word;
+  background-color: ${({ bgColor }) => bgColor};
+  color: #333d4b;
+  box-shadow: none;
+  border: 1px solid rgba(0, 0, 0, 0.03);
+  min-width: 120px;
+
+  ${({ isRight }) =>
+    isRight
+      ? css`
+          border-top-right-radius: 4px;
+        `
+      : css`
+          border-top-left-radius: 4px;
+        `}
+`;
+
+const BubbleHeader = styled.div<{ isRight: boolean }>`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  opacity: 0.6;
+  gap: 8px;
+  flex-direction: ${({ isRight }) => (isRight ? 'row-reverse' : 'row')};
+`;
+
+const SpeakerName = styled.span`
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+`;
+
+const SpeakerIconBtn = styled.button`
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  color: inherit;
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+`;
+
+const UserInputText = styled.div`
+  margin-bottom: 6px;
+  font-weight: 600;
+`;
+
+const DialogueText = styled.div`
+  font-size: 16px;
+  line-height: 1.5;
+  font-weight: 500;
+`;
+
+const BlurredText = styled.div`
+  font-size: 16px;
+  line-height: 1.5;
+  filter: blur(6px);
+  user-select: none;
+  opacity: 0.5;
+  cursor: default;
+`;
+
+const FeedbackContainer = styled.div`
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  font-size: 15px;
+  line-height: 1.6;
+`;
+
+const Highlight = styled.span<{
+  type: 'correct' | 'wrong' | 'added' | 'neutral' | 'removed';
+}>`
+  font-weight: 600;
+  padding: 0 2px;
+
+  ${({ type }) => type === 'correct' && DIFF_COLOR_MAP.correct}
+  ${({ type }) => type === 'removed' && DIFF_COLOR_MAP.removed}
+  ${({ type }) => type === 'added' && DIFF_COLOR_MAP.added}
+  ${({ type }) => type === 'neutral' && DIFF_COLOR_MAP.neutral}
+`;
+
+const HintText = styled.span`
+  opacity: 0.5;
+`;
+
+// const ListeningText = styled.span`
+//   opacity: 0.5;
+//   font-style: italic;
+// `;
+
+const ActionButtons = styled.div`
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+  justify-content: flex-end;
+`;
+
+const ActionBtn = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  background-color: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  color: #555;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+`;
+
+const FloatingBarWrapper = styled.div`
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 0 20px 34px 20px;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    rgba(255, 255, 255, 1) 30%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  z-index: 30;
+`;
+
+const FloatingIsland = styled.div`
+  pointer-events: auto;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  padding: 6px 6px 6px 10px;
+  border-radius: 100px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  width: 100%;
+  max-width: 300px;
+  justify-content: space-between;
+  transform: translateZ(0);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+`;
+
+const SideButton = styled.button<{ active?: boolean }>`
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: ${({ active, theme }) => (active ? theme.textMain : '#9DAAB8')};
+  background: ${({ active }) => (active ? '#F2F4F6' : 'transparent')};
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  &:hover {
+    background: #f2f4f6;
+    color: ${({ theme }) => theme.textMain};
+  }
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+`;
+
+const HeroMicButton = styled.button<{ isListening: boolean }>`
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 4px solid white;
+  cursor: pointer;
+
+  ${({ isListening, theme }) =>
+    isListening
+      ? css`
+          background-color: ${theme.colors.error};
+          color: white;
+          animation: ${pulseRing} 2s infinite;
+        `
+      : css`
+          background-color: ${theme.colors.primary};
+          color: white;
+          &:hover {
+            transform: scale(1.08);
+          }
+        `}
+
+  &:disabled {
+    filter: grayscale(100%);
+    opacity: 0.5;
+    cursor: not-allowed;
+    animation: none;
+    transform: none;
+  }
+`;
+
+const KeyboardInputWrapper = styled.div`
+  pointer-events: auto;
+  width: 100%;
+  max-width: 500px;
+  background: white;
+  padding: 10px;
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+`;
+
+const StyledInput = styled.input`
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: #f2f4f6;
+  border: none;
+  font-size: 16px;
+  &:focus {
+    outline: none;
+    background: #eaecef;
+  }
+`;
+
+const SendBtn = styled.button`
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: ${({ theme }) => theme.colors.primary};
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s;
+  border: none;
+  cursor: pointer;
+  &:active {
+    transform: scale(0.9);
+  }
+  &:disabled {
+    background: #e1e4e8;
+    cursor: not-allowed;
+  }
+`;
+
+const RoleSelectionContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px;
+  height: 100%;
+  flex-direction: column;
+`;
+
+const RoleTitle = styled.h1`
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 10px;
+  color: #333d4b;
+`;
+
+const RoleSubtitle = styled.p`
+  color: #8b95a1;
+  margin-bottom: 40px;
+`;
+
+const RoleGrid = styled.div`
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+`;
+
+const RoleButton = styled.button`
+  width: 140px;
+  height: 160px;
+  border-radius: 24px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+  }
+`;
+
+const RoleAvatarCircle = styled.div<{ bgColor: string }>`
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: ${({ bgColor }) => bgColor};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 800;
+  color: rgba(0, 0, 0, 0.6);
+  margin-bottom: 16px;
+`;
+
+const RoleName = styled.span`
+  font-weight: 700;
+  font-size: 16px;
+  color: #333d4b;
+`;
+
+const VisualizerBars = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  height: 24px;
+`;
+
+const Bar = styled.div<{ height: number }>`
+  width: 4px;
+  background-color: white;
+  border-radius: 4px;
+  height: ${({ height }) => Math.max(4, height)}px;
+  transition: height 0.05s ease;
+`;
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  animation: ${fadeIn} 0.2s ease-out;
+`;
+
+const ModalContent = styled.div`
+  background: white;
+  padding: 32px;
+  border-radius: 24px;
+  text-align: center;
+  max-width: 320px;
+  width: 90%;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  animation: ${scaleUp} 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+`;
+
+const CloseButton = styled.button`
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: #9daab8;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  &:hover {
+    background: #f2f4f6;
+    color: #333;
+  }
+`;
+
+const ModalIcon = styled.div`
+  width: 64px;
+  height: 64px;
+  background: #e8f5e9;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4caf50;
+  font-size: 32px;
+  margin: 0 auto 16px;
+`;
+
+const ModalTitle = styled.h2`
+  font-size: 20px;
+  font-weight: 800;
+  color: #333;
+  margin-bottom: 8px;
+`;
+
+const ModalText = styled.p`
+  color: #6b7684;
+  margin-bottom: 24px;
+  font-size: 15px;
+`;
+
+const ModalButtonStack = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+`;
+
+const PrimaryButton = styled.button`
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  background: ${({ theme }) => theme.colors.primary};
+  color: white;
+  font-weight: 700;
+  font-size: 15px;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.1s;
+  &:active {
+    transform: scale(0.98);
+  }
+`;
+
+const SecondaryButton = styled.button`
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  background: #f2f4f6;
+  color: #4e5968;
+  font-weight: 700;
+  font-size: 15px;
+  border: none;
+  cursor: pointer;
+  &:hover {
+    background: #e5e8eb;
+  }
+`;
+
+const AudioVisualizer = ({ stream }: { stream: MediaStream }) => {
+  const [data, setData] = useState<number[]>([0, 0, 0, 0, 0]);
+
+  const animationRef = useRef<number | undefined>(undefined);
+  const analyserRef = useRef<AnalyserNode | undefined>(undefined);
+  const audioCtxRef = useRef<AudioContext | undefined>(undefined);
+
+  useEffect(() => {
+    if (!stream) return;
+    const ctx = new (
+      window.AudioContext || (window as any).webkitAudioContext
+    )();
+    audioCtxRef.current = ctx;
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 32;
+    const source = ctx.createMediaStreamSource(stream);
+    source.connect(analyser);
+    analyserRef.current = analyser;
+
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+
+    const draw = () => {
+      analyser.getByteFrequencyData(dataArray);
+      const bars = [
+        dataArray[0],
+        dataArray[2],
+        dataArray[4],
+        dataArray[6],
+        dataArray[8],
+      ].map((v) => (v / 255) * 32);
+      setData(bars);
+      animationRef.current = requestAnimationFrame(draw);
+    };
+    draw();
+
+    return () => {
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+      ctx.close();
+    };
+  }, [stream]);
+
+  return (
+    <VisualizerBars>
+      {data.map((h, i) => (
+        <Bar key={i} height={h} />
+      ))}
+    </VisualizerBars>
+  );
+};
+
+// --- 메인 컴포넌트 ---
 
 export function TalkPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const addNewPracticeLog = useAppStore(
-    (state: AppState) => state.addNewPracticeLog
+    (state: AppState) => state.addNewPracticeLog,
   );
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
-  const initialScriptLines: DialogueLine[] = useMemo(() => {
-    return location.state?.lines || [];
-  }, [location.state]);
+  const isSavedRef = useRef(false);
 
+  // 상태 관리
+  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
+  const [userAudioMap, setUserAudioMap] = useState<Record<number, string>>({});
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+
+  const initialScriptLines: DialogueLine[] = useMemo(
+    () => location.state?.lines || [],
+    [location.state],
+  );
   const speakerIds = useMemo(
-    () => [...new Set(initialScriptLines.map((line) => line.speakerId))],
-    [initialScriptLines]
+    () => [...new Set(initialScriptLines.map((l) => l.speakerId))],
+    [initialScriptLines],
   );
 
+  // 색상 매핑
   const speakerColors = useMemo(() => {
     const colors: Record<string, string> = {};
     speakerIds.forEach((id, index) => {
-      colors[id] = `var(--color-speaker${index + 1})`;
+      colors[id] = PALETTE[index % PALETTE.length];
     });
     return colors;
   }, [speakerIds]);
 
-  const [script] = useState<DialogueLine[]>(initialScriptLines);
   const [currentLineIndex, setCurrentLineIndex] = useState(0);
-  const [feedbackMap, setFeedbackMap] = useState<Record<number, DiffResult[]>>(
-    {}
-  );
-  const [userInputMap, setUserInputMap] = useState<Record<number, string>>({});
-  const [sessionStartTime, setSessionStartTime] = useState(Date.now());
   const [userSpeakerId, setUserSpeakerId] = useState<string | null>(null);
   const [isPracticeStarted, setIsPracticeStarted] = useState(false);
   const [inputMode, setInputMode] = useState<'mic' | 'keyboard'>('mic');
   const [typedInput, setTypedInput] = useState('');
   const [showHint, setShowHint] = useState(false);
-  const [sessionErrors, setSessionErrors] = useState<WeakSpot[]>([]);
-  const [selectedVoiceURI, setSelectedVoiceURI] = useState<string | null>(null);
-  const [showResultModal, setShowResultModal] = useState(false);
+
+  const [selectedVoiceURI] = useState<string | null>(null);
+
+  // 마이크 활성 체크
+  const [isMicActivatedForCurrentLine, setIsMicActivatedForCurrentLine] =
+    useState(false);
+
+  // 결과 모달 상태
+  const [showFinishModal, setShowFinishModal] = useState(false);
   const [practiceResult, setPracticeResult] = useState<{
     accuracy: number;
     timeSpent: number;
   } | null>(null);
 
-  const { transcript, isListening, startListening } = useSpeechRecognition();
-  const { speak, isSpeaking, voices } = useTTS();
-
-  const englishVoices = useMemo(
-    () => voices.filter((v: SpeechSynthesisVoice) => v.lang.startsWith('en-')),
-    [voices]
+  const [feedbackMap, setFeedbackMap] = useState<Record<number, DiffResult[]>>(
+    {},
   );
+  const [userInputMap, setUserInputMap] = useState<Record<number, string>>({});
+  const [sessionErrors, setSessionErrors] = useState<WeakSpot[]>([]);
+  const [startTime, setStartTime] = useState(Date.now());
 
-  const currentLine = script[currentLineIndex];
-  const isFinished = currentLineIndex >= script.length;
-  const isMyTurn = currentLine?.speakerId === userSpeakerId;
+  const { transcript, isListening, startListening, stopListening } =
+    useSpeechRecognition();
+  const { speak, isSpeaking } = useTTS();
 
-  const DIFF_COLOR_MAP = {
-    correct: 'text-success font-bold',
-    removed: 'text-error font-bold',
-    added: 'text-text-secondary/60 line-through',
-    neutral: 'text-text-primary',
+  const isFinished = currentLineIndex >= initialScriptLines.length;
+  const isMyTurn =
+    !isFinished &&
+    initialScriptLines[currentLineIndex].speakerId === userSpeakerId;
+
+  // 녹음 시작
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      setMediaStream(stream);
+      const recorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = recorder;
+      audioChunksRef.current = [];
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+      recorder.onstop = () => {
+        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const url = URL.createObjectURL(blob);
+        setUserAudioMap((prev) => ({ ...prev, [currentLineIndex]: url }));
+        stream.getTracks().forEach((t) => t.stop());
+        setMediaStream(null);
+      };
+      recorder.start();
+    } catch (e) {
+      toast.error('Microphone access denied');
+    }
   };
 
-  // 스크롤
-  useEffect(() => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop =
-        chatContainerRef.current.scrollHeight;
-    }
-  }, [currentLineIndex, feedbackMap]);
+  const stopRecording = useCallback(() => {
+    if (mediaRecorderRef.current?.state === 'recording')
+      mediaRecorderRef.current.stop();
+    if (isListening) stopListening();
+  }, [isListening, stopListening]);
 
-  // 자동 재생
+  const handleMicClick = () => {
+    if (!isMyTurn || isSpeaking) return;
+    if (isListening) {
+      stopRecording();
+    } else {
+      setTypedInput('');
+      setIsMicActivatedForCurrentLine(true);
+      startListening();
+      startRecording();
+    }
+  };
+
+  // 입력 처리
+  const processInput = useCallback(
+    (text: string) => {
+      const currentLine = initialScriptLines[currentLineIndex];
+      if (!currentLine) return;
+      stopRecording();
+
+      const diff = checkWordDiff(
+        currentLine.originalLine.replace(/[^\w\s]/g, ''),
+        text,
+      );
+      setFeedbackMap((p) => ({ ...p, [currentLineIndex]: diff }));
+      setUserInputMap((p) => ({ ...p, [currentLineIndex]: text }));
+
+      const errors: WeakSpot[] = diff
+        .filter((p) => p.status === 'removed' || p.status === 'added')
+        .map(
+          (p) =>
+            ({
+              id: crypto.randomUUID(),
+              timestamp: Date.now(),
+              original: p.status === 'removed' ? p.value : '',
+              spoken: p.status === 'added' ? p.value : '',
+              scriptId: location.state?.scriptId || 'unknown',
+              lineContent: currentLine.originalLine,
+            }) as unknown as WeakSpot,
+        );
+
+      setSessionErrors((p) => [...p, ...errors]);
+
+      // 입력 후 마이크 비활성
+      setIsMicActivatedForCurrentLine(false);
+
+      setTimeout(() => {
+        setCurrentLineIndex((i) => i + 1);
+        setShowHint(false);
+      }, 2000);
+    },
+    [currentLineIndex, stopRecording, location.state, initialScriptLines],
+  );
+
+  // 음성 인식 결과 처리
   useEffect(() => {
     if (
-      currentLine &&
-      !isMyTurn &&
-      !isSpeaking &&
+      transcript &&
       !isListening &&
-      isPracticeStarted &&
-      !isFinished
+      isMyTurn &&
+      !feedbackMap[currentLineIndex] &&
+      isMicActivatedForCurrentLine
     ) {
-      speak(currentLine.originalLine, selectedVoiceURI, () => {
-        setCurrentLineIndex((prev) => prev + 1);
-      });
+      processInput(transcript);
     }
   }, [
-    currentLine,
-    isMyTurn,
-    isSpeaking,
+    transcript,
     isListening,
+    isMyTurn,
+    currentLineIndex,
+    feedbackMap,
+    processInput,
+    isMicActivatedForCurrentLine,
+  ]);
+
+  // 상대방 턴 자동 재생
+  useEffect(() => {
+    if (
+      isPracticeStarted &&
+      !isFinished &&
+      !isMyTurn &&
+      !isSpeaking &&
+      !showFinishModal
+    ) {
+      const line = initialScriptLines[currentLineIndex];
+      if (!line) return;
+
+      speak(line.originalLine, selectedVoiceURI, () => {});
+
+      const duration = Math.max(2000, line.originalLine.length * 80);
+      const timer = setTimeout(() => {
+        setCurrentLineIndex((i) => i + 1);
+      }, duration);
+
+      return () => clearTimeout(timer);
+    }
+  }, [
+    currentLineIndex,
+    isMyTurn,
     isPracticeStarted,
     isFinished,
     speak,
+    isSpeaking,
+    showFinishModal,
+    initialScriptLines,
     selectedVoiceURI,
   ]);
 
+  // 자동 스크롤
   useEffect(() => {
-    if (transcript && !isListening) {
-      processUserInput(transcript);
-    }
-  }, [transcript, isListening]);
-
-  const processUserInput = (inputText: string) => {
-    if (!currentLine || !isMyTurn || feedbackMap[currentLineIndex]) return;
-
-    // 비교 전, 원본 대사에서 문장 부호를 제거하여 정확도 향상
-    const originalLineForDiff = currentLine.originalLine.replace(
-      /[.,?!\/#!$%\^&\*;:{}=\-_`~()]/g,
-      ''
-    );
-    const diffResult = checkWordDiff(originalLineForDiff, inputText);
-    setFeedbackMap((prev) => ({ ...prev, [currentLineIndex]: diffResult }));
-    setUserInputMap((prev) => ({ ...prev, [currentLineIndex]: inputText }));
-    setShowHint(false);
-    setTypedInput('');
-
-    const newErrors: WeakSpot[] = diffResult
-      .filter((part) => part.status === 'removed' || part.status === 'added')
-      .map((part) => ({
-        id: crypto.randomUUID(),
-        timestamp: Date.now(),
-        original: part.status === 'removed' ? part.value : '',
-        spoken: part.status === 'added' ? part.value : '',
-        scriptId: location.state?.scriptId || 'NEW_SESSION',
-        lineContent: currentLine.originalLine,
-      }));
-    setSessionErrors((prev) => [...prev, ...newErrors]);
-
-    // 다음 대사
-    setTimeout(() => {
-      setCurrentLineIndex((prev) => prev + 1);
-    }, 1500);
-  };
-
-  const handleMicClick = () => {
-    if (currentLine && isMyTurn && !feedbackMap[currentLineIndex]) {
-      setShowHint(false);
-      setTypedInput('');
-      startListening();
-    }
-  };
-
-  const handleKeyboardSubmit = () => {
-    if (typedInput.trim() && currentLine && isMyTurn) {
-      processUserInput(typedInput.trim());
-    }
-  };
-
-  const handleEndPractice = () => {
-    // 정확도 계산
-    const userLines = Object.keys(feedbackMap).map(Number);
-    let totalCorrectWords = 0;
-    let totalWordsInSpokenLines = 0;
-
-    userLines.forEach((lineIndex) => {
-      const diff = feedbackMap[lineIndex];
-      if (diff) {
-        totalCorrectWords += diff.filter(
-          (part) => part.status === 'correct'
-        ).length;
-        totalWordsInSpokenLines += diff.filter(
-          (part) => part.status !== 'added'
-        ).length;
-      }
+    chatContainerRef.current?.scrollTo({
+      top: chatContainerRef.current.scrollHeight,
+      behavior: 'smooth',
     });
+  }, [currentLineIndex, feedbackMap]);
 
-    const finalAccuracy =
-      totalWordsInSpokenLines > 0
-        ? Math.round((totalCorrectWords / totalWordsInSpokenLines) * 100)
-        : 0;
+  // 종료 처리
+  useEffect(() => {
+    if (
+      isFinished &&
+      isPracticeStarted &&
+      !showFinishModal &&
+      !isSavedRef.current
+    ) {
+      const user = useAppStore.getState().user;
 
-    const timeSpent = Math.floor((Date.now() - sessionStartTime) / 1000);
+      if (!user) {
+        toast.error('Login required to save progress.');
+        return;
+      }
 
-    const newLogEntry: PracticeLog = {
-      id: crypto.randomUUID(),
-      date: Date.now(),
-      scriptId: location.state?.scriptId || 'NEW_SESSION',
-      accuracy: finalAccuracy,
-      timeSpent: timeSpent,
-      errors: sessionErrors,
-    };
-    addNewPracticeLog(
-      newLogEntry,
-      location.state?.title || 'Practice Session'
-    );
+      // 정확도 계산
+      let totalWords = 0;
+      let correctWords = 0;
+      Object.values(feedbackMap).forEach((diff) => {
+        diff.forEach((part) => {
+          if (part.status !== 'added') totalWords++;
+          if (part.status === 'correct') correctWords++;
+        });
+      });
+      const accuracy =
+        totalWords > 0 ? Math.round((correctWords / totalWords) * 100) : 0;
+      const timeSpent = Math.floor((Date.now() - startTime) / 1000);
 
-    // 결과 모달을 위한 상태 업데이트
-    setPracticeResult({ accuracy: finalAccuracy, timeSpent: timeSpent });
-    setShowResultModal(true);
-  };
+      const cleanErrors = sessionErrors.map((err) => ({
+        id: err.id || crypto.randomUUID(),
+        timestamp: err.timestamp || Date.now(),
+        original: err.original || '',
+        spoken: err.spoken || '',
+        scriptId: err.scriptId || location.state?.scriptId || '', // camelCase
+        lineContent: (err as any).lineContent || '', // camelCase
+      }));
+
+      const newLog: PracticeLog = {
+        id: crypto.randomUUID(),
+        date: Date.now(),
+        scriptId: location.state?.scriptId || 'unknown',
+        accuracy,
+        timeSpent,
+        errors: cleanErrors,
+      };
+
+      addNewPracticeLog(newLog, location.state?.title || 'Practice Session');
+
+      setPracticeResult({ accuracy, timeSpent });
+      isSavedRef.current = true;
+      setShowFinishModal(true);
+    }
+  }, [
+    isFinished,
+    isPracticeStarted,
+    showFinishModal,
+    addNewPracticeLog,
+    sessionErrors,
+    location.state,
+    startTime,
+    feedbackMap,
+  ]);
 
   const handleStartPractice = (speakerId: string) => {
-    if (script.length === 0) {
-      toast.error('No script available');
-      return;
-    }
     setUserSpeakerId(speakerId);
     setIsPracticeStarted(true);
+    setStartTime(Date.now());
     setCurrentLineIndex(0);
     setFeedbackMap({});
     setUserInputMap({});
-    setSessionStartTime(Date.now());
     setSessionErrors([]);
-    setShowResultModal(false);
+    setIsMicActivatedForCurrentLine(false);
+    isSavedRef.current = false;
   };
 
   const handleRetryPractice = () => {
+    setShowFinishModal(false);
     setCurrentLineIndex(0);
     setFeedbackMap({});
     setUserInputMap({});
-    setSessionStartTime(Date.now());
     setSessionErrors([]);
-    setShowResultModal(false);
-    toast('Restarting...', { icon: '🔄', duration: 1500 });
+    setStartTime(Date.now());
+    setIsMicActivatedForCurrentLine(false);
+    isSavedRef.current = false;
+    toast.success('Restarting practice...');
   };
 
-  const handleCompletePractice = () => {
-    handleEndPractice(); // 연습이 끝나면 바로 저장 및 결과 계산
-  };
-
-  useEffect(() => {
-    if (isFinished && isPracticeStarted) {
-      handleCompletePractice();
-    }
-  }, [isFinished, isPracticeStarted]);
-
-  // 역할 선택
+  // 역할 선택 화면
   if (!isPracticeStarted) {
     return (
-      <div className="flex flex-col items-center justify-center h-full bg-bg-main">
-        <Toaster position="top-center" />
-        <div className="w-full max-w-3xl p-4">
-          <header className="text-center mb-8">
-            <h1 className="font-display text-3xl md:text-4xl font-black text-accent mb-2 uppercase">
-              Choose Your Role
-            </h1>
-            <p className="font-sans font-bold text-sm text-text-secondary">
-              Select your character
-            </p>
-          </header>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {speakerIds.map((id) => {
-              const lineCount = script.filter(
-                (line) => line.speakerId === id
-              ).length;
-              return (
-                <button
-                  key={id}
-                  onClick={() => {
-                    handleStartPractice(id);
-                  }}
-                  className="bg-white rounded-xl border border-border-default p-5 hover:border-primary transition-all min-h-[120px] flex flex-col items-center justify-center gap-3"
-                >
-                  <div
-                    className="w-12 h-12 rounded-full flex items-center justify-center"
-                    style={{ backgroundColor: speakerColors[id] }}
-                  >
-                    <MdPerson className="w-6 h-6 text-text-primary" />
-                  </div>
-                  <div className="text-center">
-                    <p className="font-display text-lg font-black text-text-primary uppercase">
-                      {id}
-                    </p>
-                    <p className="text-xs text-text-secondary">
-                      {lineCount} lines
-                    </p>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
+      <PageContainer>
+        <RoleSelectionContainer>
+          <RoleTitle>Who are you?</RoleTitle>
+          <RoleSubtitle>Select your role to start speaking.</RoleSubtitle>
+          <RoleGrid>
+            {speakerIds.map((id) => (
+              <RoleButton key={id} onClick={() => handleStartPractice(id)}>
+                <RoleAvatarCircle bgColor={speakerColors[id]}>
+                  <MdPerson />
+                </RoleAvatarCircle>
+                <RoleName>{id}</RoleName>
+              </RoleButton>
+            ))}
+          </RoleGrid>
+        </RoleSelectionContainer>
+      </PageContainer>
     );
   }
 
+  // 연습 화면
   return (
-    <div className="h-screen flex flex-col bg-bg-main ">
-      {/* 결과 모달 */}
-      {showResultModal && practiceResult && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="relative bg-white rounded-2xl p-6 sm:p-8 text-center max-w-sm w-full animate-enter">
-            <button
-              onClick={() => setShowResultModal(false)}
-              className="absolute top-3 right-3 p-1 rounded-full hover:bg-gray-100 transition-colors"
-              aria-label="Close results and review conversation"
-            >
-              <MdClose className="w-6 h-6 text-text-secondary" />
-            </button>
-            <h2 className="font-display text-3xl font-black text-accent uppercase mb-2">
-              Practice Complete!
-            </h2>
-            <p className="text-text-secondary mb-3">
-              Well done! Here are your results.
-            </p>
-
-            <div className="grid grid-cols-2 gap-4 mb-8">
-              {/* 정확도 */}
-              <div className="flex flex-col items-center justify-center bg-primary/5 p-4 rounded-xl border border-border-default">
-                <p className="font-display text-4xl font-black text-success">
-                  {practiceResult.accuracy}%
-                </p>
-                <p className="text-xs font-bold text-text-secondary uppercase mt-1">
-                  Accuracy
-                </p>
-              </div>
-              {/* 소요 시간 */}
-              <div className="flex flex-col items-center justify-center bg-primary/5 p-4 rounded-xl border border-border-default">
-                <p className="font-display text-4xl font-black text-primary">
-                  {Math.floor(practiceResult.timeSpent / 60)}
-                  <span className="text-2xl">m</span>{' '}
-                  {practiceResult.timeSpent % 60}
-                  <span className="text-2xl">s</span>
-                </p>
-                <p className="text-xs font-bold text-text-secondary uppercase mt-1">
-                  Time Spent
-                </p>
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-3">
-              <button
-                onClick={handleRetryPractice}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-accent/10 text-accent rounded-xl border border-border-default font-bold uppercase text-sm"
-              >
-                <MdReplay className="w-5 h-5" />
-                Retry
-              </button>
-              <button
-                onClick={() => navigate('/scripts')}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary text-white rounded-xl border border-border-default font-bold uppercase text-sm"
-              >
-                Back to List
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
+    <PageContainer>
       <Toaster position="top-center" />
 
-      {/* 상단 바 */}
-      <div className="bg-border-subtle/30 border-b px-3 border-border-default py-2 flex-shrink-0">
-        <div className="mx-auto flex flex-wrap items-center justify-between gap-y-2">
-          {/* 왼쪽: Speaker 라디오 버튼 그룹 */}
-          <div className="flex items-center gap-3">
-            {speakerIds.map((id) => (
-              <button
-                key={id}
-                onClick={() => {
-                  setUserSpeakerId(id);
-                  toast.success(`Switched to ${id}`, { duration: 1000 });
-                }}
-                className="flex items-center gap-1 focus:outline-none"
-                role="radio"
-                aria-checked={userSpeakerId === id ? 'true' : 'false'}
-                aria-label={`Select ${id}`}
-                tabIndex={0}
-              >
-                <span
-                  className={`rounded-full border transition-all duration-150 ${
-                    userSpeakerId === id
-                      ? 'border-primary ring-2 ring-primary'
-                      : 'border-border-default'
-                  }`}
-                  style={{
-                    width: 14,
-                    height: 14,
-                    backgroundColor: speakerColors[id],
-                    display: 'inline-block',
-                    boxShadow:
-                      userSpeakerId === id
-                        ? '0 0 0 1.5px var(--color-primary)'
-                        : undefined,
-                  }}
-                />
-                <span
-                  className={`font-display font-medium text-xs uppercase transition-colors ${
-                    userSpeakerId === id
-                      ? 'text-text-primary'
-                      : 'text-text-secondary'
-                  }`}
-                >
-                  {id}
-                </span>
-              </button>
-            ))}
-          </div>
+      <Header>
+        <HeaderLeft>
+          <BackButton onClick={() => navigate(-1)}>
+            <MdArrowBack size={24} />
+          </BackButton>
+          <HeaderTitle>Talking Practice</HeaderTitle>
+        </HeaderLeft>
+        <ProgressPill>
+          {Math.min(currentLineIndex + 1, initialScriptLines.length)} /{' '}
+          {initialScriptLines.length}
+        </ProgressPill>
+      </Header>
 
-          {/* 음성 선택 */}
-          <div className="flex items-center gap-2">
-            <MdRecordVoiceOver className="w-4 h-4 text-text-secondary" />
-            <select
-              value={selectedVoiceURI || ''}
-              onChange={(e) => setSelectedVoiceURI(e.target.value)}
-              className="bg-transparent text-xs font-bold text-text-secondary focus:outline-none"
-              aria-label="Select TTS voice"
-            >
-              <option value="" disabled>
-                Default Voice
-              </option>
-              {englishVoices.map((voice: SpeechSynthesisVoice) => (
-                <option key={voice.voiceURI} value={voice.voiceURI}>
-                  {voice.name} ({voice.lang})
-                </option>
-              ))}
-            </select>
-          </div>
+      <ChatContainer ref={chatContainerRef}>
+        {/* 현재 대화까지만 렌더링 */}
+        {initialScriptLines
+          .slice(0, isFinished ? undefined : currentLineIndex + 1)
+          .map((line, idx) => {
+            const isUser = line.speakerId === userSpeakerId;
+            const feedback = feedbackMap[idx];
+            const hasAudio = !!userAudioMap[idx];
 
-          {/* 오른쪽: 진행 정보 */}
-          <div className="flex items-center gap-2 text-xs text-text-secondary font-sans">
-            <span className="font-bold shrink-0">Role: {userSpeakerId}</span>
-            <span className="">•</span>
-            <span className="shrink-0">
-              {currentLineIndex + 1} / {script.length} lines
-            </span>
-          </div>
-        </div>
-      </div>
+            // 화자 색상 적용
+            const bubbleColor = speakerColors[line.speakerId];
 
-      {/* 대화 */}
-      <div
-        ref={chatContainerRef}
-        className="flex-1 overflow-y-auto  py-3 px-2"
-        style={{ maxHeight: 'calc(100vh - 200px)' } as React.CSSProperties}
-      >
-        <div className="mx-auto space-y-3">
-          {script
-            .slice(0, currentLineIndex + (isFinished ? 0 : 1))
-            .map((line, idx) => {
-              const isUser = line.speakerId === userSpeakerId;
-              return (
-                <div
-                  key={line.id || idx}
-                  className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}
-                >
-                  <button
-                    onClick={() =>
-                      !isSpeaking && speak(line.originalLine, selectedVoiceURI)
+            // 연속된 화자 확인 (헤더 생략 로직)
+            const prevLine = initialScriptLines[idx - 1];
+            const isSameSpeakerAsPrev =
+              idx > 0 && prevLine?.speakerId === line.speakerId;
+
+            return (
+              <MessageRow key={idx} isRight={isUser}>
+                <BubbleContainer isRight={isUser}>
+                  <MessageBubble
+                    isRight={isUser}
+                    bgColor={bubbleColor}
+                    style={
+                      isSameSpeakerAsPrev
+                        ? {
+                            marginTop: '2px',
+                            borderTopLeftRadius: isUser ? '18px' : '4px',
+                            borderTopRightRadius: isUser ? '4px' : '18px',
+                          }
+                        : {}
                     }
-                    disabled={isSpeaking}
-                    className={`group relative max-w-[90%] md:max-w-[75%] p-2 rounded-2xl border text-left transition-colors border-border-default hover:border-primary disabled:cursor-not-allowed ${
-                      isUser ? 'rounded-tr-none' : 'rounded-tl-none'
-                    }`}
-                    style={{ backgroundColor: speakerColors[line.speakerId] }}
                   >
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="font-display font-bold text-xs uppercase text-text-primary">
-                        {line.speakerId}
-                      </p>
-                      <MdVolumeUp
-                        className={`w-4 h-4 text-text-secondary/50 transition-opacity duration-300 ${
-                          isSpeaking
-                            ? 'opacity-50'
-                            : 'opacity-40 group-hover:opacity-100'
-                        }`}
-                      />
-                    </div>
+                    {/* 이전과 다른 화자일 때만 헤더 표시 */}
+                    {!isSameSpeakerAsPrev && (
+                      <BubbleHeader isRight={isUser}>
+                        <SpeakerName>{line.speakerId}</SpeakerName>
+                        <SpeakerIconBtn
+                          onClick={() =>
+                            speak(line.originalLine, selectedVoiceURI)
+                          }
+                          aria-label="Listen"
+                        >
+                          <MdVolumeUp size={14} />
+                        </SpeakerIconBtn>
+                      </BubbleHeader>
+                    )}
 
-                    <div className="font-sans text-sm text-text-primary">
-                      {isUser ? (
-                        <>
-                          {typeof userInputMap[idx] !== 'undefined' ||
-                          feedbackMap[idx] ? (
-                            <>
-                              <p className="mb-2">{userInputMap[idx]}</p>
-                              {feedbackMap[idx] && (
-                                <div className="mt-2 pt-2 border-t border-border-subtle text-xs flex flex-wrap gap-1">
-                                  {feedbackMap[idx].map((part, i) => (
-                                    <span
-                                      key={i}
-                                      className={
-                                        part.status === 'removed'
-                                          ? DIFF_COLOR_MAP.removed
-                                          : part.status === 'added'
-                                          ? DIFF_COLOR_MAP.added
-                                          : part.status === 'correct'
-                                          ? DIFF_COLOR_MAP.correct
-                                          : DIFF_COLOR_MAP.neutral
-                                      }
-                                    >
-                                      {part.value}
-                                    </span>
-                                  ))}
-                                </div>
-                              )}
-                            </>
-                          ) : (
-                            idx === currentLineIndex &&
-                            (showHint ? (
-                              <p className="italic text-text-secondary">
-                                {line.originalLine}
-                              </p>
-                            ) : (
-                              <p className="italic text-text-muted">
-                                Your turn...
-                              </p>
-                            ))
-                          )}
-                        </>
-                      ) : (
-                        <p>{line.originalLine}</p>
-                      )}
-                    </div>
-                  </button>
-                </div>
-              );
-            })}
-        </div>
-      </div>
+                    {isUser ? (
+                      <>
+                        {feedback ? (
+                          <>
+                            <UserInputText>{userInputMap[idx]}</UserInputText>
+                            <FeedbackContainer>
+                              {feedback.map((p, i) => (
+                                <Highlight key={i} type={p.status as any}>
+                                  {p.value}{' '}
+                                </Highlight>
+                              ))}
+                            </FeedbackContainer>
+                          </>
+                        ) : showHint ? (
+                          <HintText>{line.originalLine}</HintText>
+                        ) : (
+                          <BlurredText>{line.originalLine}</BlurredText>
+                        )}
+                      </>
+                    ) : (
+                      <DialogueText>{line.originalLine}</DialogueText>
+                    )}
+                  </MessageBubble>
 
-      {/* 하단 */}
-      <div className="bg-bg-main border-t-2 border-border-default p-3 flex-shrink-0">
-        <div className="max-w-4xl mx-auto">
-          {inputMode === 'keyboard' && (
-            <div className="mb-4 flex gap-3">
-              <input
-                type="text"
+                  {isUser && hasAudio && (
+                    <ActionButtons>
+                      <ActionBtn
+                        onClick={() => {
+                          const audio = new Audio(userAudioMap[idx]);
+                          audio.play();
+                        }}
+                      >
+                        <MdPlayArrow size={14} /> My Voice
+                      </ActionBtn>
+                    </ActionButtons>
+                  )}
+                </BubbleContainer>
+              </MessageRow>
+            );
+          })}
+      </ChatContainer>
+
+      {!isFinished && (
+        <FloatingBarWrapper>
+          {inputMode === 'mic' ? (
+            <FloatingIsland>
+              <SideButton onClick={() => setInputMode('keyboard')}>
+                <MdKeyboard size={24} />
+              </SideButton>
+
+              <HeroMicButton
+                isListening={isListening}
+                onClick={handleMicClick}
+                disabled={!isMyTurn || !!feedbackMap[currentLineIndex]}
+              >
+                {isListening && mediaStream ? (
+                  <AudioVisualizer stream={mediaStream} />
+                ) : (
+                  <FiMic size={28} />
+                )}
+              </HeroMicButton>
+
+              <SideButton
+                active={showHint}
+                onClick={() => setShowHint(!showHint)}
+                disabled={!isMyTurn}
+              >
+                <MdLightbulb size={24} />
+              </SideButton>
+            </FloatingIsland>
+          ) : (
+            <KeyboardInputWrapper>
+              <SideButton onClick={() => setInputMode('mic')}>
+                <FiX size={20} />
+              </SideButton>
+              <StyledInput
+                placeholder="Type your sentence..."
                 value={typedInput}
                 onChange={(e) => setTypedInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleKeyboardSubmit()}
-                placeholder={
-                  isMyTurn && !feedbackMap[currentLineIndex]
-                    ? 'Type your line here...'
-                    : 'Please wait...'
-                }
-                className="flex-1 px-3 py-3 border border-border-default rounded-xl focus:outline-none focus:ring-1 focus:ring-border-strong focus:border-ring-border-strong text-sm bg-white"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && typedInput.trim()) {
+                    processInput(typedInput);
+                    setTypedInput('');
+                  }
+                }}
                 autoFocus
-                disabled={!isMyTurn || !!feedbackMap[currentLineIndex]}
               />
-              <button
-                onClick={handleKeyboardSubmit}
-                disabled={
-                  !typedInput.trim() ||
-                  !isMyTurn ||
-                  !!feedbackMap[currentLineIndex]
-                }
-                className="px-5 py-3 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-30 disabled:bg-border-subtle "
-                aria-label="Send"
+              <SendBtn
+                onClick={() => {
+                  if (typedInput.trim()) {
+                    processInput(typedInput);
+                    setTypedInput('');
+                  }
+                }}
+                disabled={!typedInput.trim()}
               >
-                <MdSend className="w-5 h-5" />
-              </button>
-            </div>
+                <FiSend size={18} />
+              </SendBtn>
+            </KeyboardInputWrapper>
           )}
+        </FloatingBarWrapper>
+      )}
 
-          {/* 컨트롤 버튼 */}
-          <div className="flex justify-center items-center gap-6">
-            <button
-              onClick={() => {
-                setInputMode(inputMode === 'keyboard' ? 'mic' : 'keyboard');
-              }}
-              className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
-                inputMode === 'keyboard'
-                  ? 'bg-primary text-white '
-                  : 'bg-bg-main text-text-secondary border border-border-default hover:border-primary hover:bg-white'
-              }`}
-              aria-label={
-                inputMode === 'keyboard'
-                  ? 'Switch to microphone'
-                  : 'Switch to keyboard'
-              }
-            >
-              <MdKeyboard className="w-5 h-5" />
-            </button>
-
-            <button
-              onClick={handleMicClick}
-              disabled={
-                inputMode === 'keyboard' ||
-                isListening ||
-                isSpeaking ||
-                isFinished ||
-                !isMyTurn ||
-                !!feedbackMap[currentLineIndex]
-              }
-              className={`w-16 h-16 rounded-full flex items-center justify-center transition-all ${
-                isListening
-                  ? 'bg-error text-white animate-pulse scale-105'
-                  : 'bg-white text-text-primary border border-primary hover:bg-primary hover:text-white '
-              } disabled:opacity-30 disabled:cursor-not-allowed disabled:border-border-subtle disabled:text-text-muted disabled:shadow-none`}
-              aria-label={isListening ? 'Listening...' : 'Tap to speak'}
-            >
-              <FiMic className="w-7 h-7" />
-            </button>
-
-            <button
-              onClick={() => setShowHint(!showHint)}
-              disabled={!isMyTurn || !!feedbackMap[currentLineIndex]}
-              className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
-                showHint
-                  ? 'bg-accent text-white '
-                  : 'bg-bg-main text-text-secondary border border-border-default hover:border-accent hover:bg-white'
-              } disabled:opacity-30 disabled:cursor-not-allowed`}
-              aria-label={showHint ? 'Hide hint' : 'Show hint'}
-            >
-              <MdLightbulb className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+      {showFinishModal && practiceResult && (
+        <ModalOverlay onClick={() => setShowFinishModal(false)}>
+          <ModalContent onClick={(e) => e.stopPropagation()}>
+            <CloseButton onClick={() => setShowFinishModal(false)}>
+              <MdClose size={20} />
+            </CloseButton>
+            <ModalIcon>
+              <FiCheckCircle />
+            </ModalIcon>
+            <ModalTitle>Practice Complete!</ModalTitle>
+            <ModalText>
+              Accuracy: {practiceResult.accuracy}% <br />
+              Time: {Math.floor(practiceResult.timeSpent / 60)}m{' '}
+              {practiceResult.timeSpent % 60}s
+            </ModalText>
+            <ModalButtonStack>
+              <PrimaryButton onClick={() => navigate('/review')}>
+                Review Results
+              </PrimaryButton>
+              <SecondaryButton onClick={handleRetryPractice}>
+                <FiRefreshCw
+                  style={{ marginRight: 6, position: 'relative', top: 2 }}
+                />
+                Try Again
+              </SecondaryButton>
+            </ModalButtonStack>
+          </ModalContent>
+        </ModalOverlay>
+      )}
+    </PageContainer>
   );
 }

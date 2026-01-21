@@ -1,8 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import './index.css';
+import { ThemeProvider } from '@emotion/react'; // ✨ Emotion 불러오기
 
+import { theme } from '@/styles/theme';
+import GlobalStyle from '@/GlobalStyle';
+
+// 레이아웃 및 페이지
 import { RootLayout } from '@/layouts/RootLayout';
 import { GrowthHubPage } from '@/pages/GrowthHubPage';
 import { CreatorPage } from '@/pages/CreatorPage';
@@ -10,6 +14,7 @@ import { TalkPage } from '@/pages/TalkPage';
 import { ReviewPage } from '@/pages/ReviewPage';
 import { ScriptListPage } from '@/pages/ScriptListPage';
 import { ScriptDetailPage } from '@/pages/ScriptDetailPage';
+// import Privacy from '@/pages/Privacy';
 
 const router = createBrowserRouter([
   {
@@ -22,12 +27,17 @@ const router = createBrowserRouter([
       { path: '/review', element: <ReviewPage /> },
       { path: '/scripts', element: <ScriptListPage /> },
       { path: '/script/:id', element: <ScriptDetailPage /> },
+
+      // { path: '/privacy', element: <Privacy /> },
     ],
   },
 ]);
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <RouterProvider router={router} />
-  </React.StrictMode>
+    <ThemeProvider theme={theme}>
+      <GlobalStyle />
+      <RouterProvider router={router} />
+    </ThemeProvider>
+  </React.StrictMode>,
 );

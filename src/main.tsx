@@ -14,7 +14,8 @@ import { TalkPage } from '@/pages/TalkPage';
 import { ReviewPage } from '@/pages/ReviewPage';
 import { ScriptListPage } from '@/pages/ScriptListPage';
 import { ScriptDetailPage } from '@/pages/ScriptDetailPage';
-// import Privacy from '@/pages/Privacy';
+import { PrivacyPolicyPage } from '@/pages/PrivacyPolicyPage';
+import { TermsOfServicePage } from '@/pages/TermsOfServicePage';
 
 const router = createBrowserRouter([
   {
@@ -28,7 +29,8 @@ const router = createBrowserRouter([
       { path: '/scripts', element: <ScriptListPage /> },
       { path: '/script/:id', element: <ScriptDetailPage /> },
 
-      // { path: '/privacy', element: <Privacy /> },
+      { path: '/privacy', element: <PrivacyPolicyPage /> },
+      { path: '/terms', element: <TermsOfServicePage /> },
     ],
   },
 ]);

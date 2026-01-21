@@ -687,6 +687,7 @@ export function RootLayout() {
           <FooterContent>
             <p>© 2026 TiTaS. All rights reserved.</p>
             <FooterLinks>
+              <FooterLinkItem to="/terms">Terms of Service</FooterLinkItem>
               <FooterLinkItem to="/privacy">Privacy Policy</FooterLinkItem>
               <FooterAnchor
                 href="https://forms.gle/ijjHBFn7TQ3FYico7"

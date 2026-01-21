@@ -16,12 +16,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Gemini Code Reviewer
-        uses: anc95/ChatGPT-CodeReview@v1.0.13
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-          OPENAI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        uses: google-gemini/generative-ai-code-review@v1
+        with:
+          server_api_key: ${{ secrets.GEMINI_API_KEY }}
 
-          MODEL: gemini-1.5-flash
-
-          LANGUAGE: Korean
+          gh_token: ${{ secrets.GITHUB_TOKEN }}
+          model: 'gemini-1.5-flash'

@@ -808,24 +808,34 @@ export function TalkPage() {
   );
 
   // 음성 인식 결과 처리
+
   useEffect(() => {
     if (
-      transcript &&
-      !isListening &&
-      isMyTurn &&
-      !feedbackMap[currentLineIndex] &&
-      isMicActivatedForCurrentLine
+      isPracticeStarted &&
+      !isFinished &&
+      !isMyTurn &&
+      !isSpeaking &&
+      !showFinishModal
     ) {
-      processInput(transcript);
+      const line = initialScriptLines[currentLineIndex];
+      if (!line) return;
+
+      speak(line.originalLine, selectedVoiceURI, () => {
+        setTimeout(() => {
+          setCurrentLineIndex((i) => i + 1);
+        }, 500);
+      });
     }
   }, [
-    transcript,
-    isListening,
+    isPracticeStarted,
+    isFinished,
     isMyTurn,
     currentLineIndex,
-    feedbackMap,
-    processInput,
-    isMicActivatedForCurrentLine,
+    isSpeaking,
+    showFinishModal,
+    initialScriptLines,
+    selectedVoiceURI,
+    speak,
   ]);
 
   // 상대방 턴 자동 재생

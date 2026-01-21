@@ -12,10 +12,19 @@ import type { ScriptData } from '@/utils/types';
 import { useTTS } from '@/utils/useTTS';
 import { useRef, useMemo, useState, useEffect } from 'react';
 import styled from '@emotion/styled';
-// 미사용 훅 주석 처리
-// import { useTheme } from '@emotion/react';
+import toast, { Toaster } from 'react-hot-toast';
 
-// 스타일 컴포넌트 정의
+// --- 상수 정의 ---
+
+const PALETTE = [
+  '#e8f3ff', // blue50
+  '#ffeeee', // red50
+  '#f0faf6', // green50
+  '#fff8e1', // amber50
+  '#f3e5f5', // purple50
+];
+
+// --- 스타일 컴포넌트 ---
 
 const PageContainer = styled.div`
   height: 100vh;
@@ -77,16 +86,6 @@ const HeaderControls = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
-`;
-
-const LineCount = styled.div`
-  font-size: 12px;
-  color: ${({ theme }) => theme.textSub};
-  margin-right: 8px;
-  display: none;
-  @media (min-width: 640px) {
-    display: block;
-  }
 `;
 
 const AutoPlayButton = styled.button<{ isPlaying: boolean }>`
@@ -171,25 +170,35 @@ const DialogueRow = styled.div<{ isRight: boolean }>`
   width: 100%;
 `;
 
-const Bubble = styled.button<{
+const BubbleContainer = styled.div<{ isRight: boolean }>`
+  display: flex;
+  flex-direction: column;
+  max-width: 85%;
+  align-items: ${({ isRight }) => (isRight ? 'flex-end' : 'flex-start')};
+
+  @media (min-width: 768px) {
+    max-width: 70%;
+  }
+`;
+
+const MessageBubble = styled.button<{
   bgColor: string;
   isRight: boolean;
   active: boolean;
 }>`
-  max-width: 85%;
-  padding: 8px;
-  border-radius: 16px;
+  padding: 12px 16px;
+  border-radius: 18px;
   text-align: left;
   border: 1px solid rgba(0, 0, 0, 0.05);
   background-color: ${({ bgColor }) => bgColor};
   color: #333d4b;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 
   ${({ isRight }) =>
     isRight ? `border-top-right-radius: 4px;` : `border-top-left-radius: 4px;`}
 
-  /* 활성 상태 스타일 */
   ${({ active, theme }) =>
     active &&
     `
@@ -205,23 +214,23 @@ const Bubble = styled.button<{
   &:disabled {
     cursor: pointer;
   }
-
-  @media (min-width: 768px) {
-    max-width: 70%;
-  }
 `;
 
-const SpeakerLabel = styled.div`
+const BubbleHeader = styled.div<{ isRight: boolean }>`
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 6px;
-  font-size: 12px;
-  font-weight: 400;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
   color: rgba(0, 0, 0, 0.5);
+  letter-spacing: 0.5px;
+  flex-direction: ${({ isRight }) => (isRight ? 'row-reverse' : 'row')};
 `;
 
-// 활성 아이콘 색상 (진한 회색)
+const SpeakerName = styled.span``;
+
 const VolumeIcon = styled(MdVolumeUp)<{ isSpeaking: boolean }>`
   opacity: ${({ isSpeaking }) => (isSpeaking ? 1 : 0.4)};
   color: ${({ isSpeaking, theme }) =>
@@ -234,13 +243,13 @@ const VolumeIcon = styled(MdVolumeUp)<{ isSpeaking: boolean }>`
 const DialogueText = styled.p`
   font-size: 16px;
   line-height: 1.6;
-  font-weight: 600;
+  font-weight: 500;
   color: ${({ theme }) => theme.textMain};
 `;
 
 const Footer = styled.div`
   flex-shrink: 0;
-  padding: 12px;
+  padding: 16px;
   background-color: ${({ theme }) => theme.cardBg};
   border-top: 1px solid ${({ theme }) => theme.border};
   z-index: 10;
@@ -254,7 +263,7 @@ const StartButton = styled.button`
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 12px;
+  padding: 14px;
   background-color: ${({ theme }) => theme.colors.primary};
   color: white;
   border-radius: 12px;
@@ -297,15 +306,7 @@ const ErrorButton = styled(StartButton)`
   padding: 12px 24px;
 `;
 
-// 로직 컴포넌트
-
-const PALETTE = [
-  '#e8f3ff', // blue50
-  '#ffeeee', // red50
-  '#f0faf6', // green50
-  '#fff8e1', // amber50
-  '#f3e5f5', // purple50
-];
+// --- [로직 컴포넌트] ---
 
 export function ScriptDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -314,13 +315,9 @@ export function ScriptDetailPage() {
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [selectedVoiceURI, setSelectedVoiceURI] = useState<string | null>(null);
 
-  // 미사용 변수 주석 처리
-  // const theme = useTheme();
-
   const [isAutoPlaying, setIsAutoPlaying] = useState(false);
   const [playingIndex, setPlayingIndex] = useState<number | null>(null);
 
-  // 개별 클릭 상태 관리
   const [clickedIndex, setClickedIndex] = useState<number | null>(null);
 
   const script = useAppStore((state: AppState) =>
@@ -349,7 +346,11 @@ export function ScriptDetailPage() {
   const handlePracticeClick = (scriptData: ScriptData) => {
     stopAutoPlay();
     navigate(`/talk/${scriptData.id}`, {
-      state: { lines: scriptData.lines, scriptId: scriptData.id },
+      state: {
+        lines: scriptData.lines,
+        scriptId: scriptData.id,
+        title: scriptData.title,
+      },
     });
   };
 
@@ -358,19 +359,19 @@ export function ScriptDetailPage() {
       stopAutoPlay();
     } else {
       setIsAutoPlaying(true);
-      setClickedIndex(null); // 수동 클릭 초기화
+      setClickedIndex(null);
       setPlayingIndex(0);
+      toast.success('Auto play started');
     }
   };
 
   const stopAutoPlay = () => {
     setIsAutoPlaying(false);
     setPlayingIndex(null);
-    setClickedIndex(null); // 활성 상태 초기화
+    setClickedIndex(null);
     window.speechSynthesis.cancel();
   };
 
-  // 자동 재생 로직
   useEffect(() => {
     if (!script) return;
 
@@ -417,6 +418,7 @@ export function ScriptDetailPage() {
 
   return (
     <PageContainer>
+      <Toaster position="top-center" />
       <Header>
         <HeaderLeft>
           <BackButton onClick={() => navigate(-1)} aria-label="Go back">
@@ -431,7 +433,7 @@ export function ScriptDetailPage() {
             isPlaying={isAutoPlaying}
             aria-label={isAutoPlaying ? 'Stop Auto Play' : 'Start Auto Play'}
           >
-            {isAutoPlaying ? <MdStop size={16} /> : <MdPlayCircle size={16} />}
+            {isAutoPlaying ? <MdStop size={18} /> : <MdPlayCircle size={18} />}
             {isAutoPlaying ? 'Stop' : 'Auto Play'}
           </AutoPlayButton>
 
@@ -441,7 +443,6 @@ export function ScriptDetailPage() {
               value={selectedVoiceURI || ''}
               onChange={(e) => setSelectedVoiceURI(e.target.value)}
               aria-label="Select TTS voice"
-              // 접근성 준수용 title 속성
               title="Select TTS voice"
             >
               <option value="">Default Voice</option>
@@ -459,33 +460,34 @@ export function ScriptDetailPage() {
         {script.lines.map((line, index) => {
           const isRightSide = speakerIds.indexOf(line.speakerId) % 2 !== 0;
 
-          // 활성 상태 로직 (자동 재생 또는 수동 클릭)
           const isActive =
             (playingIndex === index || clickedIndex === index) && isSpeaking;
 
           return (
             <DialogueRow key={index} isRight={isRightSide}>
-              <Bubble
-                id={`bubble-${index}`}
-                bgColor={speakerColors[line.speakerId]}
-                isRight={isRightSide}
-                active={isActive}
-                onClick={() => {
-                  stopAutoPlay(); // 자동 재생 중지
-                  setClickedIndex(index); // 수동 클릭 인덱스 설정
-                  speak(line.originalLine, selectedVoiceURI, () => {
-                    setClickedIndex(null); // 말하기 종료 후 초기화
-                  });
-                }}
-                disabled={false}
-                aria-label={`Speak line by ${line.speakerId}`}
-              >
-                <SpeakerLabel>
-                  {line.speakerId}
-                  <VolumeIcon isSpeaking={isActive} />
-                </SpeakerLabel>
-                <DialogueText>{line.originalLine}</DialogueText>
-              </Bubble>
+              <BubbleContainer isRight={isRightSide}>
+                <MessageBubble
+                  id={`bubble-${index}`}
+                  bgColor={speakerColors[line.speakerId]}
+                  isRight={isRightSide}
+                  active={isActive}
+                  onClick={() => {
+                    stopAutoPlay();
+                    setClickedIndex(index);
+                    speak(line.originalLine, selectedVoiceURI, () => {
+                      setClickedIndex(null);
+                    });
+                  }}
+                  disabled={false}
+                  aria-label={`Speak line by ${line.speakerId}`}
+                >
+                  <BubbleHeader isRight={isRightSide}>
+                    <SpeakerName>{line.speakerId}</SpeakerName>
+                    <VolumeIcon isSpeaking={isActive} />
+                  </BubbleHeader>
+                  <DialogueText>{line.originalLine}</DialogueText>
+                </MessageBubble>
+              </BubbleContainer>
             </DialogueRow>
           );
         })}

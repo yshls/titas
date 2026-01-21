@@ -1,8 +1,8 @@
-
 import { useRef, useEffect } from 'react';
 import styled from '@emotion/styled';
 import { keyframes } from '@emotion/react';
-import type { DialogueLine, DiffResult } from '@/utils/types';
+import type { DialogueLine } from '@/utils/types';
+import { type DiffResult } from '@/utils/diffChecker';
 import { ChatBubble } from './ChatBubble';
 
 const floatUp = keyframes`
@@ -23,64 +23,68 @@ const ChatContainer = styled.div`
 `;
 
 interface ChatProps {
-    lines: DialogueLine[];
-    userSpeakerId: string | null;
-    currentLineIndex: number;
-    isFinished: boolean;
-    feedbackMap: Record<number, DiffResult[]>;
-    userInputMap: Record<number, string>;
-    userAudioMap: Record<number, string>;
-    showHint: boolean;
-    speakerColors: Record<string, string>;
-    onSpeak: (text: string) => void;
+  lines: DialogueLine[];
+  userSpeakerId: string | null;
+  currentLineIndex: number;
+  isFinished: boolean;
+  feedbackMap: Record<number, DiffResult[]>;
+  userInputMap: Record<number, string>;
+  userAudioMap: Record<number, string>;
+  showHint: boolean;
+  speakerColors: Record<string, string>;
+  onSpeak: (text: string) => void;
 }
 
 export function Chat({
-    lines,
-    userSpeakerId,
-    currentLineIndex,
-    isFinished,
-    feedbackMap,
-    userInputMap,
-    userAudioMap,
-    showHint,
-    speakerColors,
-    onSpeak,
+  lines,
+  userSpeakerId,
+  currentLineIndex,
+  isFinished,
+  feedbackMap,
+  userInputMap,
+  userAudioMap,
+  showHint,
+  speakerColors,
+  onSpeak,
 }: ChatProps) {
-    const chatContainerRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
-    // 자동 스크롤 효과
-    useEffect(() => {
-        chatContainerRef.current?.scrollTo({
-            top: chatContainerRef.current.scrollHeight,
-            behavior: 'smooth',
-        });
-    }, [currentLineIndex, feedbackMap]);
+  // 자동 스크롤 효과
+  useEffect(() => {
+    chatContainerRef.current?.scrollTo({
+      top: chatContainerRef.current.scrollHeight,
+      behavior: 'smooth',
+    });
+  }, [currentLineIndex, feedbackMap]);
 
-    const visibleLines = lines.slice(0, isFinished ? undefined : currentLineIndex + 1);
+  const visibleLines = lines.slice(
+    0,
+    isFinished ? undefined : currentLineIndex + 1,
+  );
 
-    return (
-        <ChatContainer ref={chatContainerRef}>
-            {visibleLines.map((line, idx) => {
-                const isUser = line.speakerId === userSpeakerId;
-                const prevLine = lines[idx - 1];
-                const isSameSpeakerAsPrev = idx > 0 && prevLine?.speakerId === line.speakerId;
+  return (
+    <ChatContainer ref={chatContainerRef}>
+      {visibleLines.map((line, idx) => {
+        const isUser = line.speakerId === userSpeakerId;
+        const prevLine = lines[idx - 1];
+        const isSameSpeakerAsPrev =
+          idx > 0 && prevLine?.speakerId === line.speakerId;
 
-                return (
-                    <ChatBubble
-                        key={idx}
-                        line={line}
-                        isUser={isUser}
-                        feedback={feedbackMap[idx]}
-                        userInput={userInputMap[idx]}
-                        showHint={showHint && isUser && currentLineIndex === idx}
-                        bubbleColor={speakerColors[line.speakerId] || '#e1e1e1'}
-                        isSameSpeakerAsPrev={isSameSpeakerAsPrev}
-                        onPlayAudio={() => onSpeak(line.originalLine)}
-                        userAudioUrl={userAudioMap[idx]}
-                    />
-                );
-            })}
-        </ChatContainer>
-    );
+        return (
+          <ChatBubble
+            key={idx}
+            line={line}
+            isUser={isUser}
+            feedback={feedbackMap[idx]}
+            userInput={userInputMap[idx]}
+            showHint={showHint && isUser && currentLineIndex === idx}
+            bubbleColor={speakerColors[line.speakerId] || '#e1e1e1'}
+            isSameSpeakerAsPrev={isSameSpeakerAsPrev}
+            onPlayAudio={() => onSpeak(line.originalLine)}
+            userAudioUrl={userAudioMap[idx]}
+          />
+        );
+      })}
+    </ChatContainer>
+  );
 }

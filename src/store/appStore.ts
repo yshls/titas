@@ -4,14 +4,20 @@ import { supabase } from '@/supabaseClient';
 import type { DialogueLine, ScriptData, PracticeLog } from '@/utils/types';
 import type { DiffResult } from '@/utils/diffChecker';
 
+// 마이그레이션 서비스
+import { migrateData } from '@/services/migrateService';
+
+// DB 서비스
 import {
   fetchScripts,
   saveScriptToDB,
   deleteScriptFromDB,
+  fetchLogs,
+  saveLogToDB,
 } from '@/services/dbService';
 
 export interface AppState {
-  // 상태 변수
+  // 상태
   allScripts: ScriptData[];
   practiceLogs: PracticeLog[];
   currentScript: DialogueLine[];
@@ -27,13 +33,10 @@ export interface AppState {
   loadScript: (script: DialogueLine[]) => void;
 
   // 비동기 액션
+  initialize: () => Promise<void>;
   loadInitialData: () => Promise<void>;
-
-  // 스크립트 관련
   saveNewScript: (script: ScriptData) => Promise<void>;
   deleteScript: (scriptId: string) => Promise<void>;
-
-  // 로그 관련 (Supabase 직접 연동)
   addNewPracticeLog: (
     logEntry: PracticeLog,
     scriptTitle: string,
@@ -42,7 +45,7 @@ export interface AppState {
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
-  // 초기 상태값 설정
+  // 초기값
   allScripts: [],
   practiceLogs: [],
   currentScript: [],
@@ -51,39 +54,62 @@ export const useAppStore = create<AppState>((set, get) => ({
   isLoading: false,
   user: null,
 
-  // 동기 액션 구현
   setUser: (user) => set({ user }),
   setSpokenText: (text) => set({ spokenText: text }),
   recordDiffResult: (result) => set({ lastDiffResult: result }),
   loadScript: (script) => set({ currentScript: script }),
 
-  // 비동기 액션 구현
+  // 초기화 로직
+  initialize: async () => {
+    // 세션 확인
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
 
-  // 앱 시작 시 초기 데이터 로드 (스크립트 및 로그)
+    if (session) {
+      await migrateData(session.user.id);
+    }
+
+    // 초기 데이터 로드
+    await get().loadInitialData();
+
+    // 로그인 감지
+    supabase.auth.onAuthStateChange(async (event, session) => {
+      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
+        // 마이그레이션 지연 실행
+        setTimeout(async () => {
+          await migrateData(session.user.id);
+          await get().loadInitialData();
+        }, 500);
+      } else if (event === 'SIGNED_OUT') {
+        await get().loadInitialData();
+      }
+    });
+  },
+
+  // 데이터 로드
   loadInitialData: async () => {
     set({ isLoading: true });
     try {
-      // 기존 스크립트 데이터 로드
+      // 스크립트 및 로그 조회
       const scripts = await fetchScripts();
       set({ allScripts: scripts });
-
-      // 학습 기록 데이터 로드
       await get().fetchPracticeLogs();
     } catch (error) {
-      console.error('Failed to load initial data:', error);
+      // 에러 발생 시 처리
     } finally {
       set({ isLoading: false });
     }
   },
 
-  // 새 스크립트 저장
+  // 스크립트 저장
   saveNewScript: async (script) => {
     try {
       await saveScriptToDB(script);
-      const updatedScripts = await fetchScripts();
+      const updatedScripts = await fetchScripts(); // 상태 동기화
       set({ allScripts: updatedScripts });
     } catch (error) {
-      console.error('Failed to save script:', error);
+      // 에러 발생 시 처리
     }
   },
 
@@ -95,80 +121,30 @@ export const useAppStore = create<AppState>((set, get) => ({
         allScripts: state.allScripts.filter((s) => s.id !== scriptId),
       }));
     } catch (error) {
-      console.error('Failed to delete script:', error);
+      // 에러 발생 시 처리
     }
   },
 
-  // 학습 기록 추가 (로컬 상태 업데이트 후 DB 저장)
+  // 학습 기록 추가
   addNewPracticeLog: async (log, title) => {
-    // 화면 갱신을 위해 로컬 상태에 먼저 반영
-    set((state) => ({
-      practiceLogs: [log, ...state.practiceLogs],
-    }));
+    // UI 선반영
+    set((state) => ({ practiceLogs: [log, ...state.practiceLogs] }));
 
+    // DB 저장
     try {
-      // 현재 로그인한 사용자 확인
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      // 비로그인 상태면 DB 저장 건너뜀
-      if (!user) {
-        console.warn('User not logged in. Log saved locally only.');
-        return;
-      }
-
-      // Supabase DB에 기록 저장
-      const { error } = await supabase.from('practice_logs').insert({
-        id: log.id,
-        user_id: user.id,
-        script_id: log.scriptId,
-        title: title,
-        accuracy: log.accuracy,
-        time_spent: log.timeSpent,
-        errors: log.errors, // JSON 형태로 저장됨
-        created_at: new Date(log.date).toISOString(),
-      });
-
-      if (error) {
-        console.error('Supabase insert error:', error);
-        throw error;
-      }
+      await saveLogToDB(log, title);
     } catch (err) {
-      console.error('Failed to save practice log to DB:', err);
+      // 에러 발생 시 처리
     }
   },
 
-  // 학습 기록 불러오기
+  // 학습 기록 조회
   fetchPracticeLogs: async () => {
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data, error } = await supabase
-        .from('practice_logs')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      if (data) {
-        // DB 데이터를 앱 내부 타입으로 변환
-        const formattedLogs: PracticeLog[] = data.map((row) => ({
-          id: row.id,
-          date: new Date(row.created_at).getTime(),
-          scriptId: row.script_id,
-          accuracy: row.accuracy,
-          timeSpent: row.time_spent,
-          errors: row.errors,
-        }));
-
-        set({ practiceLogs: formattedLogs });
-      }
+      const logs = await fetchLogs();
+      set({ practiceLogs: logs });
     } catch (err) {
-      console.error('Error fetching logs:', err);
+      // 에러 발생 시 처리
     }
   },
 }));

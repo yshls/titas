@@ -805,29 +805,9 @@ export function TalkPage() {
     [currentLineIndex, stopRecording, location.state, initialScriptLines],
   );
 
-  // 음성 인식 완료 자동 처리
+  // 상대방 대사 자동 재생 및 턴 관리 로직
   useEffect(() => {
-    if (
-      transcript &&
-      !isListening &&
-      isMyTurn &&
-      !feedbackMap[currentLineIndex] &&
-      isMicActivatedForCurrentLine
-    ) {
-      processInput(transcript);
-    }
-  }, [
-    transcript,
-    isListening,
-    isMyTurn,
-    currentLineIndex,
-    feedbackMap,
-    processInput,
-    isMicActivatedForCurrentLine,
-  ]);
-
-  // 상대방 대사 자동 재생 및 턴 전환
-  useEffect(() => {
+    // 실행 조건: 연습 중이며, 아직 대사가 남았고, 내 차례가 아니며, 현재 말하는 중이 아닐 때
     if (
       isPracticeStarted &&
       !isFinished &&
@@ -838,18 +818,22 @@ export function TalkPage() {
       const line = initialScriptLines[currentLineIndex];
       if (!line) return;
 
+      // TTS 재생 실행
       speak(line.originalLine, selectedVoiceURI, () => {
-        setTimeout(() => {
-          setCurrentLineIndex((i) => i + 1);
-        }, 500);
+        // 재생이 끝난 직후에만 다음 대사로 인덱스를 한 번 증가시킴
+        const timer = setTimeout(() => {
+          setCurrentLineIndex((prev) => prev + 1);
+        }, 500); // 0.5초의 자연스러운 여백 후 다음 차례로 이동
+
+        return () => clearTimeout(timer);
       });
     }
   }, [
     isPracticeStarted,
     isFinished,
     isMyTurn,
-    currentLineIndex,
-    isSpeaking,
+    currentLineIndex, // 인덱스 변경 감시
+    isSpeaking, // 재생 중 상태 감시 (중복 실행 방지 핵심)
     showFinishModal,
     initialScriptLines,
     selectedVoiceURI,

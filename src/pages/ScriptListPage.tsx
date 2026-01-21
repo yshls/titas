@@ -30,7 +30,7 @@ const SORT_OPTIONS = [
 // --- 스타일 컴포넌트 ---
 
 const PageContainer = styled.div`
-  padding: 16px;
+  padding: 12px;
   min-height: 100vh;
   font-family: 'lato', sans-serif;
   background-color: ${({ theme }) => theme.background};
@@ -304,7 +304,7 @@ const ScriptCard = styled.article<{ isDeleting: boolean }>`
 `;
 
 const CardBody = styled.div`
-  padding: 16px;
+  padding: 12px;
   flex: 1;
 `;
 
@@ -382,7 +382,7 @@ const ActionButton = styled.button<{ variant?: 'primary' | 'neutral' }>`
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 8px 14px;
+  padding: 8px 12px;
   border-radius: 8px;
   font-size: 12px;
   font-weight: 700;
@@ -425,7 +425,7 @@ const ToastContainer = styled.div`
   background-color: ${({ theme }) => theme.cardBg};
   border: 1px solid ${({ theme }) => theme.border};
   border-radius: 16px;
-  padding: 16px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 12px;

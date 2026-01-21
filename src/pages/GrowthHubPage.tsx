@@ -430,7 +430,7 @@ const StatValue = styled.h2`
 const ToastContainer = styled.div`
   background: ${({ theme }) => theme.cardBg};
   border: 1px solid ${({ theme }) => theme.border};
-  padding: 16px;
+  padding: 12px;
   color: ${({ theme }) => theme.textMain};
   border-radius: 12px;
   display: flex;

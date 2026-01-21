@@ -186,7 +186,7 @@ const MessageBubble = styled.button<{
   isRight: boolean;
   active: boolean;
 }>`
-  padding: 12px 16px;
+  padding: 8px 12px;
   border-radius: 18px;
   text-align: left;
   border: 1px solid rgba(0, 0, 0, 0.05);
@@ -249,7 +249,7 @@ const DialogueText = styled.p`
 
 const Footer = styled.div`
   flex-shrink: 0;
-  padding: 16px;
+  padding: 12px;
   background-color: ${({ theme }) => theme.cardBg};
   border-top: 1px solid ${({ theme }) => theme.border};
   z-index: 10;
@@ -263,7 +263,7 @@ const StartButton = styled.button`
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 14px;
+  padding: 12px;
   background-color: ${({ theme }) => theme.colors.primary};
   color: white;
   border-radius: 12px;

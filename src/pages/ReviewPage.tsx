@@ -240,7 +240,7 @@ const BulletPoint = styled.span`
 
 const PracticeArea = styled.div`
   background-color: ${({ theme }) => theme.cardBg};
-  padding: 16px;
+  padding: 12px;
   border-radius: 16px;
   border: 1px solid ${({ theme }) => theme.border};
   display: flex;

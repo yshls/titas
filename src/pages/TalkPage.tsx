@@ -75,7 +75,7 @@ const Header = styled.header`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 20px;
+  padding: 12px;
   background-color: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
@@ -146,7 +146,7 @@ const BubbleContainer = styled.div<{ isRight: boolean }>`
 `;
 
 const MessageBubble = styled.div<{ isRight: boolean; bgColor: string }>`
-  padding: 12px 16px;
+  padding: 8px 12px;
   border-radius: 18px;
   position: relative;
   font-size: 16px;
@@ -384,7 +384,7 @@ const KeyboardInputWrapper = styled.div`
 
 const StyledInput = styled.input`
   flex: 1;
-  padding: 12px 16px;
+  padding: 8px 12px;
   border-radius: 16px;
   background: #f2f4f6;
   border: none;

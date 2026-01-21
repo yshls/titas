@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import styled from '@emotion/styled';
 import { useTheme } from '@emotion/react';
 import toast from 'react-hot-toast';
@@ -21,7 +21,6 @@ import {
 } from 'react-icons/md';
 
 // 로직 헬퍼
-
 const getTimeBasedGreeting = (userName: string) => {
   const hour = new Date().getHours();
   if (hour >= 6 && hour < 12) {
@@ -59,12 +58,11 @@ const getTimeBasedGreeting = (userName: string) => {
   }
 };
 
-// 스타일 컴포넌트
-
+// 스타일
 const DashboardContainer = styled.div`
   width: 100%;
   padding-bottom: 40px;
-  background-color: ${({ theme }) => theme.modes.light.background};
+  background-color: ${({ theme }) => theme.background};
 `;
 
 const HeaderSection = styled.header`
@@ -75,7 +73,7 @@ const GreetingTitle = styled.h1`
   font-family: 'Lato', sans-serif;
   font-size: 24px;
   font-weight: 400;
-  color: ${({ theme }) => theme.colors.textMain};
+  color: ${({ theme }) => theme.textMain};
   margin-bottom: 8px;
   b {
     font-weight: 800;
@@ -91,11 +89,11 @@ const GridContainer = styled.div`
   }
 `;
 
-// 왼쪽 열: 캘린더 래퍼
+// 캘린더 카드
 const CalendarCard = styled.div`
-  background: white;
+  background: ${({ theme }) => theme.cardBg};
   border-radius: 24px;
-  border: 1px solid ${({ theme }) => theme.colors.grey100};
+  border: 1px solid ${({ theme }) => theme.border};
   padding: 24px 20px 20px;
   height: fit-content;
 
@@ -103,22 +101,23 @@ const CalendarCard = styled.div`
   flex-direction: column;
   align-items: center;
 
-  /* 달력 컨테이너 */
+  /* 캘린더 전체 */
   .react-calendar {
     width: 100%;
     max-width: 360px;
     border: none;
     font-family: 'Lato', 'Noto Sans KR', sans-serif;
+    background-color: transparent;
   }
 
-  /* 네비게이션 (년/월) */
+  /* 캘린더 네비게이션 */
   .react-calendar__navigation {
     margin-bottom: 24px;
   }
   .react-calendar__navigation button {
     font-size: 18px;
     font-weight: 800;
-    color: ${({ theme }) => theme.colors.textMain};
+    color: ${({ theme }) => theme.textMain};
 
     background-color: transparent !important;
     border: none;
@@ -128,7 +127,7 @@ const CalendarCard = styled.div`
     transition: background-color 0.2s;
 
     &:hover:not(:disabled) {
-      background-color: ${({ theme }) => theme.colors.grey100} !important;
+      background-color: ${({ theme }) => theme.border} !important;
 
       &:enabled:active,
       &:enabled:focus {
@@ -143,16 +142,16 @@ const CalendarCard = styled.div`
     background-color: transparent;
   }
 
-  /* 요일 헤더 */
+  /* 캘린더 요일 */
   .react-calendar__month-view__weekdays {
     text-align: center;
     font-size: 12px;
     font-weight: 800;
-    color: ${({ theme }) => theme.colors.grey800};
+    color: ${({ theme }) => theme.textSub};
     text-transform: uppercase;
     text-decoration: none;
 
-    border-bottom: 1px solid ${({ theme }) => theme.colors.grey200};
+    border-bottom: 1px solid ${({ theme }) => theme.border};
     padding-bottom: 12px;
     margin-bottom: 12px;
 
@@ -169,9 +168,9 @@ const CalendarCard = styled.div`
     color: ${({ theme }) => theme.colors.blue600};
   }
 
-  /* 타일 스타일 */
+  /* 캘린더 날짜 타일 */
   .react-calendar__tile {
-    /* 너비 계산 (한 줄에 7개) */
+    /* 날짜 타일 너비 */
     flex: 0 0 calc(14.2857% - 4px) !important;
     max-width: calc(14.2857% - 4px) !important;
 
@@ -183,11 +182,12 @@ const CalendarCard = styled.div`
     font-weight: 600;
     border-radius: 50%;
     margin: 2px;
+    color: ${({ theme }) => theme.textMain};
 
     transition: all 0.2s;
 
     &:hover {
-      background-color: ${({ theme }) => theme.colors.grey100};
+      background-color: ${({ theme }) => theme.border};
     }
   }
 
@@ -199,17 +199,12 @@ const CalendarCard = styled.div`
     color: ${({ theme }) => theme.colors.red600};
   }
 
-  /* 오늘 날짜 */
+  /* 오늘 날짜 타일 */
   .react-calendar__tile--now {
     background: transparent;
-    color: ${({ theme }) => theme.colors.textMain};
+    color: ${({ theme }) => theme.textMain};
     border: 2px solid ${({ theme }) => theme.colors.primary};
     font-weight: 800;
-
-    /* 오늘이 토요일일 경우 파란색 유지하려면 아래 코드 추가 */
-    /* &.react-calendar__month-view__days__day:nth-of-type(7n) {  color: ${({
-      theme,
-    }) => theme.colors.blue600}; } */
   }
 
   .react-calendar__tile--active {
@@ -217,7 +212,7 @@ const CalendarCard = styled.div`
     color: white !important;
   }
 
-  /* 히트맵 색상 클래스들 */
+  /* 히트맵 색상 */
   .color-scale-1 {
     background-color: ${({ theme }) => theme.colors.orange50} !important;
     color: ${({ theme }) => theme.colors.primary} !important;
@@ -248,13 +243,13 @@ const CalendarCard = styled.div`
   }
 `;
 
-// 하단 통계 영역 (변경 없음, 그대로 유지)
+// 연속 연습 정보
 const StreakInfo = styled.div`
   width: 100%;
   max-width: 360px;
   margin-top: 24px;
   padding-top: 24px;
-  border-top: 1px solid ${({ theme }) => theme.colors.grey100};
+  border-top: 1px solid ${({ theme }) => theme.border};
   display: flex;
   justify-content: space-around;
   align-items: center;
@@ -267,21 +262,27 @@ const StreakItem = styled.div`
   strong {
     font-size: 18px;
     font-weight: 800;
-    color: ${({ theme }) => theme.colors.textMain};
+    color: ${({ theme }) => theme.textMain};
   }
   span {
     font-size: 11px;
-    color: ${({ theme }) => theme.colors.grey500};
+    color: ${({ theme }) => theme.textSub};
   }
 `;
 
-// 중간 열: 미션
+// 일일 미션
 const SectionTitle = styled.h3`
   font-family: 'Lato', sans-serif;
   font-size: 18px;
   font-weight: 700;
-  color: ${({ theme }) => theme.colors.textMain};
+  color: ${({ theme }) => theme.textMain};
   margin-bottom: 16px;
+`;
+
+const SectionDate = styled.span`
+  font-size: 14px;
+  color: ${({ theme }) => theme.textSub};
+  font-weight: 500;
 `;
 
 const TaskList = styled.div`
@@ -290,12 +291,19 @@ const TaskList = styled.div`
   gap: 12px;
 `;
 
+const EmptyTask = styled.div`
+  padding: 20px;
+  text-align: center;
+  color: ${({ theme }) => theme.textSub};
+  font-size: 14px;
+`;
+
 const TaskItem = styled.div`
   display: flex;
   align-items: center;
   padding: 10px;
-  background-color: #ffffff;
-  border: 1px solid ${({ theme }) => theme.colors.grey100};
+  background-color: ${({ theme }) => theme.cardBg};
+  border: 1px solid ${({ theme }) => theme.border};
   border-radius: 12px;
   gap: 12px;
   position: relative;
@@ -309,22 +317,22 @@ const Checkbox = styled.button<{ checked?: boolean }>`
   width: 20px;
   height: 20px;
   border-radius: 6px;
-  border: 2px solid ${({ theme }) => theme.colors.grey400};
+  border: 2px solid ${({ theme }) => theme.textSub};
   display: flex;
   align-items: center;
   justify-content: center;
   background-color: ${({ checked, theme }) =>
-    checked ? theme.colors.grey700 : 'transparent'};
+    checked ? theme.textMain : 'transparent'};
   border-color: ${({ checked, theme }) =>
-    checked ? theme.colors.grey700 : theme.colors.grey400};
-  color: white;
+    checked ? theme.textMain : theme.textSub};
+  color: ${({ theme }) => theme.background};
   transition: all 0.2s;
   cursor: pointer;
 `;
 
 const TaskText = styled.span<{ checked?: boolean }>`
   font-size: 14px;
-  color: ${({ theme }) => theme.colors.grey700};
+  color: ${({ theme }) => theme.textMain};
   text-decoration: ${({ checked }) => (checked ? 'line-through' : 'none')};
   flex: 1;
 `;
@@ -334,6 +342,10 @@ const DeleteButton = styled.button`
   color: ${({ theme }) => theme.colors.error};
   transition: opacity 0.2s;
   padding: 4px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+
   &:hover {
     background-color: ${({ theme }) => theme.colors.red50};
     border-radius: 4px;
@@ -344,7 +356,7 @@ const TaskInputWrapper = styled.div`
   margin-top: 24px;
   display: flex;
   gap: 8px;
-  background: ${({ theme }) => theme.colors.grey100};
+  background: ${({ theme }) => theme.border};
   padding: 8px;
   border-radius: 16px;
 `;
@@ -356,8 +368,9 @@ const TaskInput = styled.input`
   padding: 4px 12px;
   font-size: 14px;
   outline: none;
+  color: ${({ theme }) => theme.textMain};
   &::placeholder {
-    color: ${({ theme }) => theme.colors.grey500};
+    color: ${({ theme }) => theme.textSub};
   }
 `;
 
@@ -368,22 +381,29 @@ const AddButton = styled.button`
   padding: 6px 18px;
   font-size: 14px;
   font-weight: 700;
+  border: none;
+  cursor: pointer;
   &:hover {
     opacity: 0.9;
   }
 `;
 
-// 오른쪽 열: 통계
+// 전체 통계
 const StatsStack = styled.div`
   display: flex;
   flex-direction: column;
   gap: 16px;
 `;
 
+const Column = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
 const StatCard = styled.div`
-  background: white;
+  background: ${({ theme }) => theme.cardBg};
   border-radius: 24px;
-  border: 1px solid ${({ theme }) => theme.colors.grey100};
+  border: 1px solid ${({ theme }) => theme.border};
   padding: 32px 24px;
   display: flex;
   flex-direction: column;
@@ -395,7 +415,7 @@ const StatCard = styled.div`
 const StatLabel = styled.p`
   font-size: 14px;
   font-weight: 600;
-  color: ${({ theme }) => theme.colors.textMain};
+  color: ${({ theme }) => theme.textMain};
   margin-bottom: 12px;
 `;
 
@@ -403,50 +423,102 @@ const StatValue = styled.h2`
   font-family: 'Lato', sans-serif;
   font-size: 36px;
   font-weight: 800;
-  color: ${({ theme }) => theme.colors.textMain};
+  color: ${({ theme }) => theme.textMain};
 `;
 
-// 컴포넌트 구현
+// Toast
+const ToastContainer = styled.div`
+  background: ${({ theme }) => theme.cardBg};
+  border: 1px solid ${({ theme }) => theme.border};
+  padding: 16px;
+  color: ${({ theme }) => theme.textMain};
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  min-width: 280px;
+`;
 
+const ToastMessage = styled.span`
+  font-weight: 600;
+  color: ${({ theme }) => theme.textMain};
+  font-size: 15px;
+`;
+
+const ToastActions = styled.div`
+  display: flex;
+  gap: 8px;
+  width: 100%;
+`;
+
+const ToastButton = styled.button<{ variant?: 'danger' | 'cancel' }>`
+  flex: 1;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 13px;
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 0.9;
+  }
+
+  ${({ theme, variant }) =>
+    variant === 'danger'
+      ? `
+    background: ${theme.colors.error};
+    color: white;
+  `
+      : `
+    background: ${theme.border};
+    color: ${theme.textMain};
+  `}
+`;
+
+// GrowthHub 페이지
 export function GrowthHubPage() {
   useTitle('Dashboard');
   const theme = useTheme();
   const { user, allScripts, practiceLogs } = useAppStore();
 
-  // 인사말 로직
+  // 시간에 따른 인사
   const userName = user?.user_metadata.full_name?.split(' ')[0] || 'User';
   const greeting = useMemo(() => getTimeBasedGreeting(userName), [userName]);
 
-  // 미션 상태 (DB)
+  // 미션 상태
   const [tasks, setTasks] = useState<Mission[]>([]);
   const [newTask, setNewTask] = useState('');
 
-  // 선택된 날짜 (기본값: 오늘)
+  // 선택된 날짜
   const [selectedDate, setSelectedDate] = useState(new Date());
 
-  // 달력 월 이동 상태
+  // 캘린더 표시 월
   const [activeStartDate, setActiveStartDate] = useState(new Date());
 
-  // 선택된 날짜 변경 시 미션 로드
+  // 날짜 변경시 미션 로드
   useEffect(() => {
     const loadMissions = async () => {
-      // 타임스탬프 전달 (dbService에서 범위 계산)
+      // DB에 타임스탬프 전달
       const data = await fetchMissions(selectedDate.getTime());
       setTasks(data);
     };
     loadMissions();
   }, [user, selectedDate]);
 
-  // 미션 추가 (선택된 날짜에 저장)
+  // 미션 추가
   const addTask = async () => {
     if (!newTask.trim()) return;
 
     if (!user) {
-      toast.error('Please log in to add missions.');
+      toast.error('You need to be logged in to add a mission.');
       return;
     }
 
-    // 선택된 날짜 전달
+    // 현재 선택된 날짜에 미션 저장
     const savedTask = await addMissionToDB(newTask, selectedDate);
 
     if (savedTask) {
@@ -455,7 +527,7 @@ export function GrowthHubPage() {
     }
   };
 
-  // 미션 토글
+  // 미션 완료 토글
   const toggleTask = async (id: string, currentStatus: boolean) => {
     setTasks((prev) =>
       prev.map((t) => (t.id === id ? { ...t, completed: !currentStatus } : t)),
@@ -471,61 +543,28 @@ export function GrowthHubPage() {
   };
 
   const confirmDelete = (id: string) => {
-    toast(
+    toast.custom(
       (t) => (
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '12px',
-          }}
-        >
-          <span style={{ fontWeight: 600, color: theme.colors.textMain }}>
-            Are you sure you want to delete?
-          </span>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button
-              style={{
-                background: theme.colors.error,
-                color: 'white',
-                border: 'none',
-                padding: '8px 16px',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontWeight: 700,
-              }}
+        <ToastContainer>
+          <ToastMessage>Are you sure you want to delete?</ToastMessage>
+          <ToastActions>
+            <ToastButton
+              variant="danger"
               onClick={() => {
                 deleteTask(id);
                 toast.dismiss(t.id);
               }}
             >
               Delete
-            </button>
-            <button
-              style={{
-                background: theme.colors.grey200,
-                color: theme.colors.grey700,
-                border: 'none',
-                padding: '8px 16px',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontWeight: 700,
-              }}
-              onClick={() => toast.dismiss(t.id)}
-            >
+            </ToastButton>
+            <ToastButton variant="cancel" onClick={() => toast.dismiss(t.id)}>
               Cancel
-            </button>
-          </div>
-        </div>
+            </ToastButton>
+          </ToastActions>
+        </ToastContainer>
       ),
       {
         duration: 4000,
-        style: {
-          background: 'white',
-          border: `1px solid ${theme.colors.grey200}`,
-          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-        },
       },
     );
   };
@@ -542,7 +581,7 @@ export function GrowthHubPage() {
     );
   }, [practiceLogs]);
 
-  // 캘린더 타일 클래스 (히트맵 색상)
+  // 캘린더 타일 클래스
   const tileClassName = ({ date, view }: { date: Date; view: string }) => {
     if (view === 'month') {
       const dateKey = dayjs(date).format('YYYY-MM-DD');
@@ -573,17 +612,17 @@ export function GrowthHubPage() {
       </HeaderSection>
 
       <GridContainer>
-        {/* Left Column: Calendar */}
+        {/* 왼쪽: 캘린더 */}
         <CalendarCard>
           <Calendar
             locale="en-US"
-            formatDay={(locale, date) => dayjs(date).format('D')}
+            formatDay={(_, date) => dayjs(date).format('D')}
             tileClassName={tileClassName}
             next2Label={null}
             prev2Label={null}
-            // 달력 상태 연결
+            // 캘린더 상태
             value={selectedDate}
-            onClickDay={setSelectedDate} // 날짜 클릭 시 업데이트
+            onClickDay={setSelectedDate} // 날짜 클릭
             activeStartDate={activeStartDate}
             onActiveStartDateChange={({ activeStartDate }) =>
               setActiveStartDate(activeStartDate!)
@@ -602,33 +641,16 @@ export function GrowthHubPage() {
           </StreakInfo>
         </CalendarCard>
 
-        {/* Middle Column: Daily Missions */}
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
+        {/* 중앙: 일일 미션 */}
+        <Column>
           <SectionTitle>
-            Daily Missions {/* 선택된 날짜 표시 */}
-            <span
-              style={{
-                fontSize: '14px',
-                color: theme.colors.grey500,
-                fontWeight: 500,
-              }}
-            >
-              ({dayjs(selectedDate).format('MMM D')})
-            </span>
+            Daily Missions{' '}
+            <SectionDate>({dayjs(selectedDate).format('MMM D')})</SectionDate>
           </SectionTitle>
 
           <TaskList>
             {tasks.length === 0 && (
-              <div
-                style={{
-                  padding: '20px',
-                  textAlign: 'center',
-                  color: theme.colors.grey500,
-                  fontSize: '14px',
-                }}
-              >
-                No missions for this day. Plan ahead!
-              </div>
+              <EmptyTask>No missions for this day. Plan ahead!</EmptyTask>
             )}
             {tasks.map((task) => (
               <TaskItem key={task.id}>
@@ -649,7 +671,7 @@ export function GrowthHubPage() {
             ))}
           </TaskList>
 
-          {/* 입력창 항상 표시 */}
+          {/* 새 미션 입력 */}
           <TaskInputWrapper>
             <TaskInput
               placeholder="Add a new mission..."
@@ -659,10 +681,10 @@ export function GrowthHubPage() {
             />
             <AddButton onClick={addTask}>Add</AddButton>
           </TaskInputWrapper>
-        </div>
+        </Column>
 
-        {/* Right Column: Stats */}
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
+        {/* 오른쪽: 통계 */}
+        <Column>
           <SectionTitle>Statistics</SectionTitle>
           <StatsStack>
             <StatCard>
@@ -683,7 +705,7 @@ export function GrowthHubPage() {
               <StatValue>{allScripts.length}</StatValue>
             </StatCard>
           </StatsStack>
-        </div>
+        </Column>
       </GridContainer>
     </DashboardContainer>
   );

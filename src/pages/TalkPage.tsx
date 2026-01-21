@@ -15,9 +15,7 @@ import {
   MdVolumeUp,
   MdPlayArrow,
   MdArrowBack,
-  MdRecordVoiceOver,
   MdClose,
-  MdReplay,
   MdPerson,
 } from 'react-icons/md';
 
@@ -129,7 +127,7 @@ const ChatContainer = styled.div`
   padding-bottom: 140px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   scroll-behavior: smooth;
 `;
 
@@ -247,10 +245,10 @@ const HintText = styled.span`
   opacity: 0.5;
 `;
 
-const ListeningText = styled.span`
-  opacity: 0.5;
-  font-style: italic;
-`;
+// const ListeningText = styled.span`
+//   opacity: 0.5;
+//   font-style: italic;
+// `;
 
 const ActionButtons = styled.div`
   display: flex;
@@ -696,7 +694,8 @@ export function TalkPage() {
   const [inputMode, setInputMode] = useState<'mic' | 'keyboard'>('mic');
   const [typedInput, setTypedInput] = useState('');
   const [showHint, setShowHint] = useState(false);
-  const [selectedVoiceURI, setSelectedVoiceURI] = useState<string | null>(null);
+
+  const [selectedVoiceURI] = useState<string | null>(null);
 
   // 마이크 활성 체크
   const [isMicActivatedForCurrentLine, setIsMicActivatedForCurrentLine] =
@@ -718,12 +717,7 @@ export function TalkPage() {
 
   const { transcript, isListening, startListening, stopListening } =
     useSpeechRecognition();
-  const { speak, isSpeaking, voices } = useTTS();
-
-  const englishVoices = useMemo(
-    () => voices.filter((v: SpeechSynthesisVoice) => v.lang.startsWith('en-')),
-    [voices],
-  );
+  const { speak, isSpeaking } = useTTS();
 
   const isFinished = currentLineIndex >= initialScriptLines.length;
   const isMyTurn =
@@ -908,8 +902,8 @@ export function TalkPage() {
         timestamp: err.timestamp || Date.now(),
         original: err.original || '',
         spoken: err.spoken || '',
-        script_id: err.scriptId || location.state?.scriptId || '',
-        line_content: (err as any).lineContent || '',
+        scriptId: err.scriptId || location.state?.scriptId || '', // camelCase
+        lineContent: (err as any).lineContent || '', // camelCase
       }));
 
       const newLog: PracticeLog = {
@@ -970,7 +964,7 @@ export function TalkPage() {
           <RoleTitle>Who are you?</RoleTitle>
           <RoleSubtitle>Select your role to start speaking.</RoleSubtitle>
           <RoleGrid>
-            {speakerIds.map((id, index) => (
+            {speakerIds.map((id) => (
               <RoleButton key={id} onClick={() => handleStartPractice(id)}>
                 <RoleAvatarCircle bgColor={speakerColors[id]}>
                   <MdPerson />
@@ -1014,22 +1008,41 @@ export function TalkPage() {
             // 화자 색상 적용
             const bubbleColor = speakerColors[line.speakerId];
 
+            // 연속된 화자 확인 (헤더 생략 로직)
+            const prevLine = initialScriptLines[idx - 1];
+            const isSameSpeakerAsPrev =
+              idx > 0 && prevLine?.speakerId === line.speakerId;
+
             return (
               <MessageRow key={idx} isRight={isUser}>
                 <BubbleContainer isRight={isUser}>
-                  <MessageBubble isRight={isUser} bgColor={bubbleColor}>
-                    {/* 이름표 항상 표시 */}
-                    <BubbleHeader isRight={isUser}>
-                      <SpeakerName>{line.speakerId}</SpeakerName>
-                      <SpeakerIconBtn
-                        onClick={() =>
-                          speak(line.originalLine, selectedVoiceURI)
-                        }
-                        aria-label="Listen"
-                      >
-                        <MdVolumeUp size={14} />
-                      </SpeakerIconBtn>
-                    </BubbleHeader>
+                  <MessageBubble
+                    isRight={isUser}
+                    bgColor={bubbleColor}
+                    style={
+                      isSameSpeakerAsPrev
+                        ? {
+                            marginTop: '2px',
+                            borderTopLeftRadius: isUser ? '18px' : '4px',
+                            borderTopRightRadius: isUser ? '4px' : '18px',
+                          }
+                        : {}
+                    }
+                  >
+                    {/* 이전과 다른 화자일 때만 헤더 표시 */}
+                    {!isSameSpeakerAsPrev && (
+                      <BubbleHeader isRight={isUser}>
+                        <SpeakerName>{line.speakerId}</SpeakerName>
+                        <SpeakerIconBtn
+                          onClick={() =>
+                            speak(line.originalLine, selectedVoiceURI)
+                          }
+                          aria-label="Listen"
+                        >
+                          <MdVolumeUp size={14} />
+                        </SpeakerIconBtn>
+                      </BubbleHeader>
+                    )}
 
                     {isUser ? (
                       <>

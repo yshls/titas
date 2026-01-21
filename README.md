@@ -64,31 +64,31 @@ TiTaS는 다음 핵심 기능을 통해 위 문제들을 해결합니다.
 ### 📊 3. 학습 성과 분석 및 리뷰 (Progress Analysis & Review)
 
 #### 학습 대시보드 (Growth Hub)
+
 - **연습 캘린더**: 어떤 날에 연습했는지 한눈에 볼 수 있는 커스텀 캘린더를 제공하여 꾸준한 학습을 유도합니다.
 - **핵심 지표**: 평균 정확도, 총 대본 수, 총 대사 라인 수 등 주요 성과 지표를 시각화하여 성장을 직관적으로 보여줍니다.
 
 #### 약점 분석 (My Weak Spots)
+
 - **핵심 약점 분석**: 모든 연습 기록을 분석하여 가장 많이 틀리는 단어 Top 10을 추출하고, 단어의 발음을 바로 들어볼 수 있습니다.
 
-### 4. 사용자 경험 (User Experience)
+### 4. 사용자 경험 및 데이터 관리 (User Experience & Data)
 
-- **데이터 영속성**: 모든 대본과 연습 기록은 로컬 스토리지(Local Storage)에 저장되어, 브라우저 종료 후에도 데이터가 유지됩니다.
+- **클라우드 동기화**: 모든 대본과 연습 기록은 **Supabase 클라우드 데이터베이스**에 안전하게 저장됩니다. 로그인 시 여러 기기에서 학습 데이터를 동기화하여 언제 어디서든 동일한 환경에서 학습을 이어갈 수 있습니다.
+- **매끄러운 데이터 마이그레이션**: 비로그인 상태에서 생성한 데이터는 브라우저(Local Storage)에 임시 저장되며, **회원가입 시 기존 데이터를 클라우드 계정으로 자동 마이그레이션**하여 학습 기록이 유실되지 않도록 지원합니다.
 - **반응형 디자인**: 데스크톱, 태블릿, 모바일 등 모든 디바이스 환경에 최적화된 UI를 제공합니다.
 
 <br>
 
-## 🛠️ 4. 기술 스택 (Tech Stack)
+## 🛠️ 5. 기술 스택 (Tech Stack)
 
-| Category | Stack |
-| :--- | :--- |
-| **Main** | `React` `TypeScript` `Vite` |
-| **Core Engine** | `Web Speech API` (음성 인식/합성) |
-| **State Management** | `Zustand` |
-| **Styling** | `Tailwind CSS` |
-| **Linting/Formatting** | `ESLint` `Prettier` |
+| Category             | Stack                       | Description                                               |
+| :------------------- | :-------------------------- | :-------------------------------------------------------- |
+| **Framework**        | `React` `TypeScript` `Vite` | 모던 웹 개발을 위한 핵심 프레임워크 및 빌드 도구          |
+| **Backend & DB**     | `Supabase`                  | PostgreSQL 기반의 BaaS. 인증, 데이터베이스, 스토리지 제공 |
+| **State Management** | `Zustand`                   | 가볍고 직관적인 상태 관리 라이브러리                      |
+| **Styling**          | `Emotion`                   | 유틸리티 우선 CSS 프레임워크와 CSS-in-JS를 함께 사용      |
+| **Core Engine**      | `Web Speech API`            | 브라우저 내장 음성 인식(STT) 및 음성 합성(TTS) 기능       |
+| **Formatting**       | `ESLint`, `Prettier`        | 코드 품질 및 스타일 일관성 유지                           |
 
 <br>
-
-
-
-

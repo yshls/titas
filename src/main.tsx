@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import { ThemeProvider } from '@emotion/react'; // ✨ Emotion 불러오기
+import { ThemeProvider } from '@emotion/react'; //  Emotion 불러오기
 
 import { theme } from '@/styles/theme';
 import GlobalStyle from '@/GlobalStyle';

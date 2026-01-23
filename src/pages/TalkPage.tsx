@@ -84,7 +84,6 @@ export function TalkPage() {
   const [showHint, setShowHint] = useState(false);
   const [showFinishModal, setShowFinishModal] = useState(false);
 
-  const isPracticeStarted = status === 'active' || status === 'finished';
   const isFinished = status === 'finished';
 
   useEffect(() => {

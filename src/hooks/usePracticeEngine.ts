@@ -6,6 +6,7 @@ import { checkWordDiff, type DiffResult } from '@/utils/diffChecker';
 import { useTTS } from '@/utils/useTTS';
 import { useSpeechRecognition } from '@/utils/useSpeechRecognition';
 import { useAppStore } from '@/store/appStore';
+import { addPracticeLog as addPracticeLogLocally } from '@/utils/storageService';
 
 const PALETTE = [
   '#e8f3ff', // blue50
@@ -106,7 +107,10 @@ export function usePracticeEngine({
       const originalText = currentLine.originalLine
         .replace(/[^\w\s']/g, '')
         .toLowerCase();
-      const spokenText = text.trim().replace(/[^\w\s']/g, '').toLowerCase();
+      const spokenText = text
+        .trim()
+        .replace(/[^\w\s']/g, '')
+        .toLowerCase();
 
       if (!spokenText) return;
 
@@ -158,7 +162,7 @@ export function usePracticeEngine({
       recorder.start();
     } catch (e) {
       toast.error(
-        "Oh, seems your microphone is shy! Could you please give it permissions in the browser settings?"
+        'Oh, seems your microphone is shy! Could you please give it permissions in the browser settings?',
       );
     }
   };
@@ -219,11 +223,6 @@ export function usePracticeEngine({
     ) {
       const user = useAppStore.getState().user;
 
-      if (!user) {
-        toast.error("Whoa there! You need to be logged in to save this awesome progress.");
-        return;
-      }
-
       let totalWords = 0;
       let correctWords = 0;
       Object.values(feedbackMap).forEach((diff) => {
@@ -245,7 +244,13 @@ export function usePracticeEngine({
         errors: sessionErrors,
       };
 
-      addNewPracticeLog(newLog, title || 'Practice Session');
+      if (user) {
+        addNewPracticeLog(newLog, title || 'Practice Session');
+        toast.success('Practice complete! Progress saved to your account.');
+      } else {
+        addPracticeLogLocally(newLog);
+        toast.success('Practice complete! Progress saved to this browser.');
+      }
 
       setPracticeResult({ accuracy, timeSpent });
       isSavedRef.current = true;

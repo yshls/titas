@@ -2,29 +2,12 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 
 export const useTTS = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-
-  // 초기값 설정
   const utterancesRef = useRef<SpeechSynthesisUtterance[]>([]);
   const speechTimerRef = useRef<number | undefined>(undefined);
 
+  // 컴포넌트 언마운트 시 정리
   useEffect(() => {
-    const handleVoicesChanged = () => {
-      const availableVoices = window.speechSynthesis.getVoices();
-      setVoices(availableVoices);
-    };
-
-    window.speechSynthesis.addEventListener(
-      'voiceschanged',
-      handleVoicesChanged,
-    );
-    handleVoicesChanged();
-
     return () => {
-      window.speechSynthesis.removeEventListener(
-        'voiceschanged',
-        handleVoicesChanged,
-      );
       if (speechTimerRef.current) {
         clearTimeout(speechTimerRef.current);
       }
@@ -33,49 +16,32 @@ export const useTTS = () => {
     };
   }, []);
 
-  // 최적 영어 목소리 탐색
-  const getBestEnglishVoice = useCallback(() => {
-    if (voices.length === 0) return null;
-    const lang = 'en-US';
-
-    // Google US English
-    const googleVoice = voices.find(
-      (v) => v.lang === lang && v.name.includes('Google'),
-    );
-    if (googleVoice) return googleVoice;
-
-    // Apple Samantha / Siri
-    const appleVoice = voices.find(
-      (v) =>
-        v.lang === lang &&
-        (v.name.includes('Samantha') || v.name.includes('Siri')),
-    );
-    if (appleVoice) return appleVoice;
-
-    // Microsoft Zira/David
-    const msVoice = voices.find(
-      (v) => v.lang === lang && v.name.includes('Microsoft'),
-    );
-    if (msVoice) return msVoice;
-
-    // 기본 영어 음성
-    return voices.find((v) => v.lang.startsWith('en'));
-  }, [voices]);
-
-  // TTS 취소
-  const cancel = useCallback(() => {
-    if (speechTimerRef.current) {
-      clearTimeout(speechTimerRef.current);
-    }
-    window.speechSynthesis.cancel();
-    setIsSpeaking(false);
-    utterancesRef.current = [];
-  }, []);
-
-  // TTS 실행
+  // 안정적인 speak 함수
   const speak = useCallback(
     (text: string, voiceURI: string | null = null, onEnd?: () => void) => {
-      // 기존 작업 중단
+      // 호출 시점에 최신 음성 목록 바로 가져오기
+      const availableVoices = window.speechSynthesis.getVoices();
+
+      const getBestEnglishVoice = () => {
+        if (availableVoices.length === 0) return null;
+        const lang = 'en-US';
+        const googleVoice = availableVoices.find(
+          (v) => v.lang === lang && v.name.includes('Google'),
+        );
+        if (googleVoice) return googleVoice;
+        const appleVoice = availableVoices.find(
+          (v) =>
+            v.lang === lang &&
+            (v.name.includes('Samantha') || v.name.includes('Siri')),
+        );
+        if (appleVoice) return appleVoice;
+        const msVoice = availableVoices.find(
+          (v) => v.lang === lang && v.name.includes('Microsoft'),
+        );
+        if (msVoice) return msVoice;
+        return availableVoices.find((v) => v.lang.startsWith('en'));
+      };
+
       if (speechTimerRef.current) {
         clearTimeout(speechTimerRef.current);
       }
@@ -83,13 +49,12 @@ export const useTTS = () => {
 
       speechTimerRef.current = window.setTimeout(() => {
         const utterance = new SpeechSynthesisUtterance(text);
-
-        // 기본 언어 설정
         utterance.lang = 'en-US';
 
-        // 목소리 설정
         if (voiceURI) {
-          const selectedVoice = voices.find((v) => v.voiceURI === voiceURI);
+          const selectedVoice = availableVoices.find(
+            (v) => v.voiceURI === voiceURI,
+          );
           if (selectedVoice) utterance.voice = selectedVoice;
         } else {
           const bestVoice = getBestEnglishVoice();
@@ -98,7 +63,6 @@ export const useTTS = () => {
           }
         }
 
-        // 속도 및 톤 설정
         utterance.rate = 0.9;
         utterance.pitch = 1.0;
 
@@ -109,14 +73,11 @@ export const useTTS = () => {
         };
 
         utterance.onstart = () => setIsSpeaking(true);
-
-        // 종료 처리
         utterance.onend = () => {
           setIsSpeaking(false);
           cleanup();
           if (onEnd) onEnd();
         };
-
         utterance.onerror = () => {
           setIsSpeaking(false);
           cleanup();
@@ -126,9 +87,25 @@ export const useTTS = () => {
         window.speechSynthesis.speak(utterance);
       }, 50);
     },
-    [voices, getBestEnglishVoice],
+    [], // 의존성 배열이 비어있어 항상 동일한 함수 인스턴스 반환
   );
 
-  // cancel 함수 반환
-  return { speak, isSpeaking, voices, cancel };
+  const cancel = useCallback(() => {
+    if (speechTimerRef.current) {
+      clearTimeout(speechTimerRef.current);
+    }
+    window.speechSynthesis.cancel();
+    setIsSpeaking(false);
+    utterancesRef.current = [];
+  }, []);
+
+  return {
+    speak,
+    isSpeaking,
+    voices:
+      typeof window !== 'undefined' && window.speechSynthesis
+        ? window.speechSynthesis.getVoices()
+        : [],
+    cancel,
+  };
 };

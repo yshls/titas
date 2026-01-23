@@ -6,7 +6,8 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import dayjs from 'dayjs';
 import { useAppStore } from '@/store/appStore';
-import { useTitle } from '@/hooks/useTitle';
+import { Seo } from '@/components/common/Seo';
+
 import {
   fetchMissions,
   addMissionToDB,
@@ -481,9 +482,8 @@ const ToastButton = styled.button<{ variant?: 'danger' | 'cancel' }>`
 
 // GrowthHub 페이지
 export function GrowthHubPage() {
-  useTitle('Dashboard');
+  const { user, allScripts, practiceLogs, language } = useAppStore();
   const theme = useTheme();
-  const { user, allScripts, practiceLogs } = useAppStore();
 
   // 시간에 따른 인사
   const userName = user?.user_metadata.full_name?.split(' ')[0] || 'User';
@@ -605,8 +605,22 @@ export function GrowthHubPage() {
     return practiceFrequency[today] ? 1 : 0; // 오늘 연습 여부 확인
   }, [practiceFrequency]);
 
+  const seoProps =
+    language === 'en'
+      ? {
+          title: 'Dashboard - Your English Growth Hub',
+          description:
+            'Track your English learning progress, manage daily missions, and see your practice statistics all in one place.',
+        }
+      : {
+          title: '대시보드 - 당신의 영어 성장 허브',
+          description:
+            '영어 학습 진행 상황을 추적하고, 일일 미션을 관리하며, 연습 통계를 한 곳에서 확인하세요.',
+        };
+
   return (
     <DashboardContainer>
+      <Seo {...seoProps} />
       <HeaderSection>
         <GreetingTitle>{greeting.title}</GreetingTitle>
       </HeaderSection>

@@ -2,6 +2,8 @@ import toast, { Toaster } from 'react-hot-toast';
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore, type AppState } from '@/store/appStore';
+import { Seo } from '@/components/common/Seo';
+
 import type { DialogueLine, ScriptData } from '@/utils/types';
 import styled from '@emotion/styled';
 import { useTheme } from '@emotion/react';
@@ -543,7 +545,7 @@ interface Speaker {
 export function CreatorPage() {
   const navigate = useNavigate();
   const theme = useTheme();
-  const saveNewScript = useAppStore((state: AppState) => state.saveNewScript);
+  const { saveNewScript, language } = useAppStore();
 
   const [speakers, setSpeakers] = useState<Speaker[]>(INITIAL_SPEAKERS);
 
@@ -760,8 +762,22 @@ export function CreatorPage() {
     }
   };
 
+  const seoProps =
+    language === 'en'
+      ? {
+          title: 'Create a New Script',
+          description:
+            'Create your own English shadowing script and start practicing conversation with the sentences you want.',
+        }
+      : {
+          title: '새 스크립트 작성하기',
+          description:
+            '나만의 영어 쉐도잉 스크립트를 만들고, 원하는 문장으로 회화 연습을 시작하세요.',
+        };
+
   return (
     <PageContainer>
+      <Seo {...seoProps} />
       <Toaster
         position="top-center"
         containerStyle={{ zIndex: 99999 }}

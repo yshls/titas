@@ -1,6 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import styled from '@emotion/styled';
 import { MdArrowBack } from 'react-icons/md';
+import { useAppStore } from '@/store/appStore';
+import { Seo } from '@/components/common/Seo';
 
 const PageContainer = styled.div`
   display: flex;
@@ -78,9 +80,24 @@ const ContentContainer = styled.div`
 
 export function PrivacyPolicyPage() {
   const navigate = useNavigate();
+  const { language } = useAppStore();
+
+  const seoProps =
+    language === 'en'
+      ? {
+          title: 'Privacy Policy',
+          description:
+            'Learn how TiTaS handles your data, including Google account information and voice data processing.',
+        }
+      : {
+          title: '개인정보 처리방침',
+          description:
+            'TiTaS가 구글 계정 정보, 음성 데이터 등을 포함한 사용자의 데이터를 어떻게 처리하는지 알아보세요.',
+        };
 
   return (
     <PageContainer>
+      <Seo {...seoProps} />
       <Header>
         <BackButton onClick={() => navigate(-1)}>
           <MdArrowBack size={24} />

@@ -6,6 +6,7 @@ import { useSpeechRecognition } from '@/utils/useSpeechRecognition';
 import type { PracticeLog, WeakSpot } from '@/utils/types';
 import styled from '@emotion/styled';
 import { keyframes } from '@emotion/react';
+import { Seo } from '@/components/common/Seo';
 import {
   MdBarChart,
   MdVolumeUp,
@@ -68,8 +69,8 @@ const WordCardContainer = styled.div<{
       isSolved
         ? theme.colors.success
         : isExpanded
-          ? theme.colors.primary
-          : 'transparent'};
+        ? theme.colors.primary
+        : 'transparent'};
   overflow: hidden;
   transition: all 0.2s ease-in-out;
   cursor: pointer;
@@ -265,10 +266,10 @@ const PracticeStatus = styled.p<{
     status === 'listening'
       ? theme.colors.primary
       : status === 'success'
-        ? theme.colors.success
-        : status === 'fail'
-          ? theme.colors.error
-          : theme.textSub};
+      ? theme.colors.success
+      : status === 'fail'
+        ? theme.colors.error
+        : theme.textSub};
 `;
 
 const TranscriptText = styled.p`
@@ -527,7 +528,8 @@ function WordCardItem({
 
 export function ReviewPage() {
   const navigate = useNavigate();
-  const practiceLogs = useAppStore((state: AppState) => state.practiceLogs);
+  const practiceLogs = useAppStore((state) => state.practiceLogs);
+  const language = useAppStore((state) => state.language);
 
   const wordStatsList = useMemo(() => {
     const stats: Record<string, WordStats> = {};
@@ -566,9 +568,23 @@ export function ReviewPage() {
 
   const maxCount = wordStatsList.length > 0 ? wordStatsList[0].count : 1;
 
+  const seoProps =
+    language === 'en'
+      ? {
+          title: 'Review Your Weak Spots',
+          description:
+            'Analyze your pronunciation mistakes and practice the words you struggle with to improve your English speaking.',
+        }
+      : {
+          title: '약점 분석 및 복습',
+          description:
+            '자주 틀리는 발음을 분석하고 어려운 단어를 집중적으로 연습하여 영어 스피킹 실력을 향상시키세요.',
+        };
+
   if (wordStatsList.length === 0) {
     return (
       <PageContainer>
+        <Seo {...seoProps} />
         <Header>
           <Title>Review</Title>
           <Subtitle>Your analytics will appear here.</Subtitle>
@@ -591,6 +607,7 @@ export function ReviewPage() {
 
   return (
     <PageContainer>
+      <Seo {...seoProps} />
       <Header>
         <Title>Weak Spots Analysis</Title>
         <Subtitle>
@@ -613,3 +630,4 @@ export function ReviewPage() {
     </PageContainer>
   );
 }
+

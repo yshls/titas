@@ -13,6 +13,7 @@ import { useTTS } from '@/utils/useTTS';
 import { useRef, useMemo, useState, useEffect } from 'react';
 import styled from '@emotion/styled';
 import toast, { Toaster } from 'react-hot-toast';
+import { Seo } from '@/components/common/Seo';
 
 // --- 상수 정의 ---
 
@@ -320,9 +321,9 @@ export function ScriptDetailPage() {
 
   const [clickedIndex, setClickedIndex] = useState<number | null>(null);
 
-  const script = useAppStore((state: AppState) =>
-    state.allScripts.find((s) => s.id === id),
-  );
+  const allScripts = useAppStore((state) => state.allScripts);
+  const language = useAppStore((state) => state.language);
+  const script = allScripts.find((s) => s.id === id);
 
   const speakerIds = useMemo(
     () =>
@@ -405,6 +406,9 @@ export function ScriptDetailPage() {
   if (!script) {
     return (
       <ErrorContainer>
+        <Seo
+          title={language === 'en' ? 'Script Not Found' : '스크립트를 찾을 수 없습니다'}
+        />
         <ErrorTitle>Script Not Found</ErrorTitle>
         <ErrorMessage>
           The script you are looking for does not exist.
@@ -416,8 +420,20 @@ export function ScriptDetailPage() {
     );
   }
 
+  const seoProps =
+    language === 'en'
+      ? {
+          title: `Listen to '${script.title}'`,
+          description: `Read and listen to the full English script for '${script.title}'. Prepare for your shadowing practice.`,
+        }
+      : {
+          title: `'${script.title}' 전체 대본 듣기`,
+          description: `'${script.title}' 영어 대본 전체를 읽고 들어보세요. 쉐도잉 연습을 위해 미리 준비할 수 있습니다.`,
+        };
+
   return (
     <PageContainer>
+      <Seo {...seoProps} />
       <Toaster position="top-center" />
       <Header>
         <HeaderLeft>

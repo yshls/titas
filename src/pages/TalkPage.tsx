@@ -2,6 +2,8 @@ import { useLocation } from 'react-router-dom';
 import styled from '@emotion/styled';
 import { Toaster } from 'react-hot-toast';
 import type { DialogueLine } from '@/utils/types';
+import { useAppStore } from '@/store/appStore';
+import { Seo } from '@/components/common/Seo';
 
 import { usePracticeEngine } from '@/hooks/usePracticeEngine';
 import { RoleSelection } from '@/components/Talk/RoleSelection';
@@ -23,7 +25,7 @@ const PageContainer = styled.div`
 
 export function TalkPage() {
   const location = useLocation();
-  // 안정성을 위한 null 체크 및 기본값 설정
+  const { language } = useAppStore();
   const {
     lines: initialScriptLines = [],
     scriptId = 'unknown',
@@ -69,10 +71,22 @@ export function TalkPage() {
     title,
   });
 
+  const seoProps =
+    language === 'en'
+      ? {
+          title: `Practice: '${title}'`,
+          description: `Start your English shadowing practice for the script '${title}'. Improve your speaking and pronunciation.`,
+        }
+      : {
+          title: `연습: '${title}'`,
+          description: `'${title}' 스크립트로 영어 쉐도잉 연습을 시작하세요. 스피킹과 발음 실력을 향상시킬 수 있습니다.`,
+        };
+
   // 역할 선택 화면 렌더링
   if (!isPracticeStarted) {
     return (
       <>
+        <Seo {...seoProps} />
         <Global
           styles={css`
             body {
@@ -92,6 +106,7 @@ export function TalkPage() {
   // 메인 연습 UI 렌더링
   return (
     <PageContainer>
+      <Seo {...seoProps} />
       <Toaster position="top-center" />
 
       <PracticeHeader

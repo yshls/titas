@@ -7,9 +7,27 @@ import { useAppStore } from '@/store/appStore';
 import { Analytics } from '@vercel/analytics/react';
 import { supabase } from '@/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Seo } from '@/components/common/Seo';
 import { migrateData } from '@/services/migrateService';
 
 // --- [스타일 컴포넌트] ---
+
+const LanguageSwitcher = styled.button`
+  background: none;
+  border: 1px solid ${({ theme }) => theme.border};
+  color: ${({ theme }) => theme.textSub};
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.border};
+    color: ${({ theme }) => theme.textMain};
+  }
+`;
 
 const LayoutWrapper = styled.div`
   min-height: 100vh;
@@ -410,7 +428,8 @@ const NAV_ITEMS = [
 ];
 
 export function RootLayout() {
-  const { user, setUser, loadInitialData } = useAppStore();
+  const { user, setUser, loadInitialData, language, setLanguage } =
+    useAppStore();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -542,6 +561,7 @@ export function RootLayout() {
 
   return (
     <LayoutWrapper>
+      <Seo lang={language} />
       <Toaster position="top-center" />
       <Analytics />
 
@@ -564,6 +584,11 @@ export function RootLayout() {
 
             <RightSection>
               <DesktopWrapper>
+                <LanguageSwitcher
+                  onClick={() => setLanguage(language === 'ko' ? 'en' : 'ko')}
+                >
+                  {language === 'ko' ? 'EN' : 'KO'}
+                </LanguageSwitcher>
                 {user ? (
                   <AvatarWrapper ref={dropdownRef}>
                     <div
@@ -638,7 +663,9 @@ export function RootLayout() {
                   <DrawerHeader>
                     <WelcomeText>
                       {user
-                        ? `Hello, ${user.user_metadata.full_name.split(' ')[0]}`
+                        ? `Hello, ${
+                            user.user_metadata.full_name.split(' ')[0]
+                          }`
                         : 'Welcome!'}
                     </WelcomeText>
                   </DrawerHeader>

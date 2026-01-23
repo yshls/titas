@@ -48,7 +48,6 @@ export function TalkPage() {
     currentLineIndex,
     lines,
     feedbackMap,
-    userInputMap,
     userAudioMap,
     inputMode,
     typedInput,
@@ -121,7 +120,6 @@ export function TalkPage() {
         currentLineIndex={currentLineIndex}
         isFinished={isFinished}
         feedbackMap={feedbackMap}
-        userInputMap={userInputMap}
         userAudioMap={userAudioMap}
         showHint={showHint}
         speakerColors={speakerColors}

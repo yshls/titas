@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAppStore, type AppState } from '@/store/appStore';
+import { useAppStore } from '@/store/appStore';
 import {
   MdArrowBack,
   MdVolumeUp,

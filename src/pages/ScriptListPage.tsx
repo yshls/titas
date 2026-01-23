@@ -1,4 +1,4 @@
-import { useAppStore, type AppState } from '@/store/appStore';
+import { useAppStore } from '@/store/appStore';
 import { useNavigate } from 'react-router-dom';
 import type { ScriptData } from '@/utils/types';
 import styled from '@emotion/styled';

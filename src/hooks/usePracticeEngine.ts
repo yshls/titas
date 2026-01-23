@@ -103,10 +103,14 @@ export function usePracticeEngine({
 
       stopRecording();
 
-      const diff = checkWordDiff(
-        currentLine.originalLine.replace(/[^\\w\\s']/g, '').toLowerCase(),
-        text.toLowerCase(),
-      );
+      const originalText = currentLine.originalLine
+        .replace(/[^\w\s']/g, '')
+        .toLowerCase();
+      const spokenText = text.trim().replace(/[^\w\s']/g, '').toLowerCase();
+
+      if (!spokenText) return;
+
+      const diff = checkWordDiff(originalText, spokenText);
 
       setFeedbackMap((p) => ({ ...p, [currentLineIndex]: diff }));
       setUserInputMap((p) => ({ ...p, [currentLineIndex]: text }));

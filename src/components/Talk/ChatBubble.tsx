@@ -80,10 +80,7 @@ const SpeakerIconBtn = styled.button`
   }
 `;
 
-const UserInputText = styled.div`
-  margin-bottom: 6px;
-  font-weight: 600;
-`;
+
 
 const DialogueText = styled.div`
   font-size: 16px;
@@ -156,7 +153,6 @@ interface ChatBubbleProps {
   line: DialogueLine;
   isUser: boolean;
   feedback: DiffResult[] | undefined;
-  userInput: string | undefined;
   showHint: boolean;
   bubbleColor: string;
   isSameSpeakerAsPrev: boolean;
@@ -168,7 +164,6 @@ export function ChatBubble({
   line,
   isUser,
   feedback,
-  userInput,
   showHint,
   bubbleColor,
   isSameSpeakerAsPrev,
@@ -194,13 +189,17 @@ export function ChatBubble({
             <>
               {feedback ? (
                 <>
-                  <UserInputText>{userInput}</UserInputText>
+                  <DialogueText style={{ opacity: 0.7, fontSize: '15px' }}>
+                    {line.originalLine}
+                  </DialogueText>
                   <FeedbackContainer>
-                    {feedback.map((p, i) => (
-                      <Highlight key={i} type={p.status as any}>
-                        {p.value}{' '}
-                      </Highlight>
-                    ))}
+                    {feedback
+                      .filter((p) => p.value.trim() !== '')
+                      .map((p, i) => (
+                        <Highlight key={i} type={p.status as any}>
+                          {p.value}
+                        </Highlight>
+                      ))}
                   </FeedbackContainer>
                 </>
               ) : showHint ? (

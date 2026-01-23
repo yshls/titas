@@ -1,7 +1,7 @@
 import toast, { Toaster } from 'react-hot-toast';
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAppStore, type AppState } from '@/store/appStore';
+import { useAppStore } from '@/store/appStore';
 import { Seo } from '@/components/common/Seo';
 
 import type { DialogueLine, ScriptData } from '@/utils/types';

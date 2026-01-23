@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { useAppStore, type AppState } from '@/store/appStore';
+import { useAppStore } from '@/store/appStore';
 import { useNavigate } from 'react-router-dom';
 import { useTTS } from '@/utils/useTTS';
 import { useSpeechRecognition } from '@/utils/useSpeechRecognition';

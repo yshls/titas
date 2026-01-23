@@ -16,6 +16,9 @@ import {
   saveLogToDB,
 } from '@/services/dbService';
 
+// 언어 타입 정의
+export type Language = 'ko' | 'en';
+
 export interface AppState {
   // 상태
   allScripts: ScriptData[];
@@ -25,12 +28,14 @@ export interface AppState {
   lastDiffResult: DiffResult[];
   isLoading: boolean;
   user: User | null;
+  language: Language;
 
   // 동기 액션
   setUser: (user: User | null) => void;
   setSpokenText: (text: string) => void;
   recordDiffResult: (result: DiffResult[]) => void;
   loadScript: (script: DialogueLine[]) => void;
+  setLanguage: (language: Language) => void;
 
   // 비동기 액션
   initialize: () => Promise<void>;
@@ -44,6 +49,20 @@ export interface AppState {
   fetchPracticeLogs: () => Promise<void>;
 }
 
+const getInitialLanguage = (): Language => {
+  if (typeof window !== 'undefined') {
+    const storedLang = localStorage.getItem('titas_lang') as Language;
+    if (storedLang && ['ko', 'en'].includes(storedLang)) {
+      return storedLang;
+    }
+    const browserLang = navigator.language.split('-')[0];
+    if (browserLang === 'ko' || browserLang === 'en') {
+      return browserLang as Language;
+    }
+  }
+  return 'ko';
+};
+
 export const useAppStore = create<AppState>((set, get) => ({
   // 초기값
   allScripts: [],
@@ -53,11 +72,16 @@ export const useAppStore = create<AppState>((set, get) => ({
   lastDiffResult: [],
   isLoading: false,
   user: null,
+  language: getInitialLanguage(),
 
   setUser: (user) => set({ user }),
   setSpokenText: (text) => set({ spokenText: text }),
   recordDiffResult: (result) => set({ lastDiffResult: result }),
   loadScript: (script) => set({ currentScript: script }),
+  setLanguage: (language) => {
+    set({ language });
+    localStorage.setItem('titas_lang', language);
+  },
 
   // 초기화 로직
   initialize: async () => {

@@ -6,7 +6,8 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import dayjs from 'dayjs';
 import { useAppStore } from '@/store/appStore';
-import { useTitle } from '@/hooks/useTitle';
+import { Seo } from '@/components/common/Seo';
+
 import {
   fetchMissions,
   addMissionToDB,
@@ -479,11 +480,38 @@ const ToastButton = styled.button<{ variant?: 'danger' | 'cancel' }>`
   `}
 `;
 
+import {
+  loadAllScripts as loadAllScriptsFromLocal,
+  loadPracticeLogs as loadPracticeLogsFromLocal,
+} from '@/utils/storageService';
+import type { PracticeLog, ScriptData } from '@/utils/types';
+
+
+
+
+
 // GrowthHub 페이지
 export function GrowthHubPage() {
-  useTitle('Dashboard');
   const theme = useTheme();
-  const { user, allScripts, practiceLogs } = useAppStore();
+
+  // 데이터 소스 분기 처리
+  const user = useAppStore((state) => state.user);
+  const storeScripts = useAppStore((state) => state.allScripts);
+  const storeLogs = useAppStore((state) => state.practiceLogs);
+  const language = useAppStore((state) => state.language);
+
+  const [localScripts, setLocalScripts] = useState<ScriptData[]>([]);
+  const [localLogs, setLocalLogs] = useState<PracticeLog[]>([]);
+
+  useEffect(() => {
+    if (!user) {
+      setLocalScripts(loadAllScriptsFromLocal());
+      setLocalLogs(loadPracticeLogsFromLocal());
+    }
+  }, [user]);
+
+  const allScripts = user ? storeScripts : localScripts;
+  const practiceLogs = user ? storeLogs : localLogs;
 
   // 시간에 따른 인사
   const userName = user?.user_metadata.full_name?.split(' ')[0] || 'User';
@@ -499,12 +527,15 @@ export function GrowthHubPage() {
   // 캘린더 표시 월
   const [activeStartDate, setActiveStartDate] = useState(new Date());
 
-  // 날짜 변경시 미션 로드
+  // 날짜 변경시 미션 로드 (로그인 사용자만)
   useEffect(() => {
     const loadMissions = async () => {
-      // DB에 타임스탬프 전달
-      const data = await fetchMissions(selectedDate.getTime());
-      setTasks(data);
+      if (user) {
+        const data = await fetchMissions(selectedDate.getTime());
+        setTasks(data);
+      } else {
+        setTasks([]); // 비로그인 시 미션 초기화
+      }
     };
     loadMissions();
   }, [user, selectedDate]);
@@ -512,15 +543,11 @@ export function GrowthHubPage() {
   // 미션 추가
   const addTask = async () => {
     if (!newTask.trim()) return;
-
     if (!user) {
       toast.error('You need to be logged in to add a mission.');
       return;
     }
-
-    // 현재 선택된 날짜에 미션 저장
     const savedTask = await addMissionToDB(newTask, selectedDate);
-
     if (savedTask) {
       setTasks((prev) => [...prev, savedTask]);
       setNewTask('');
@@ -605,8 +632,22 @@ export function GrowthHubPage() {
     return practiceFrequency[today] ? 1 : 0; // 오늘 연습 여부 확인
   }, [practiceFrequency]);
 
+  const seoProps =
+    language === 'en'
+      ? {
+          title: 'Dashboard - Your English Growth Hub',
+          description:
+            'Track your English learning progress, manage daily missions, and see your practice statistics all in one place.',
+        }
+      : {
+          title: '대시보드 - 당신의 영어 성장 허브',
+          description:
+            '영어 학습 진행 상황을 추적하고, 일일 미션을 관리하며, 연습 통계를 한 곳에서 확인하세요.',
+        };
+
   return (
     <DashboardContainer>
+      <Seo {...seoProps} />
       <HeaderSection>
         <GreetingTitle>{greeting.title}</GreetingTitle>
       </HeaderSection>
@@ -620,9 +661,8 @@ export function GrowthHubPage() {
             tileClassName={tileClassName}
             next2Label={null}
             prev2Label={null}
-            // 캘린더 상태
             value={selectedDate}
-            onClickDay={setSelectedDate} // 날짜 클릭
+            onClickDay={setSelectedDate}
             activeStartDate={activeStartDate}
             onActiveStartDateChange={({ activeStartDate }) =>
               setActiveStartDate(activeStartDate!)
@@ -650,7 +690,11 @@ export function GrowthHubPage() {
 
           <TaskList>
             {tasks.length === 0 && (
-              <EmptyTask>No missions for this day. Plan ahead!</EmptyTask>
+              <EmptyTask>
+                {user
+                  ? 'No missions for this day. Plan ahead!'
+                  : 'Log in to use Daily Missions.'}
+              </EmptyTask>
             )}
             {tasks.map((task) => (
               <TaskItem key={task.id}>
@@ -671,16 +715,18 @@ export function GrowthHubPage() {
             ))}
           </TaskList>
 
-          {/* 새 미션 입력 */}
-          <TaskInputWrapper>
-            <TaskInput
-              placeholder="Add a new mission..."
-              value={newTask}
-              onChange={(e) => setNewTask(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && addTask()}
-            />
-            <AddButton onClick={addTask}>Add</AddButton>
-          </TaskInputWrapper>
+          {/* 새 미션 입력 (로그인 시에만 렌더링) */}
+          {user && (
+            <TaskInputWrapper>
+              <TaskInput
+                placeholder="Add a new mission..."
+                value={newTask}
+                onChange={(e) => setNewTask(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && addTask()}
+              />
+              <AddButton onClick={addTask}>Add</AddButton>
+            </TaskInputWrapper>
+          )}
         </Column>
 
         {/* 오른쪽: 통계 */}
@@ -710,3 +756,4 @@ export function GrowthHubPage() {
     </DashboardContainer>
   );
 }
+

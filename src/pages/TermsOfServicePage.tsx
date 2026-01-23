@@ -1,6 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import styled from '@emotion/styled';
 import { MdArrowBack } from 'react-icons/md';
+import { useAppStore } from '@/store/appStore';
+import { Seo } from '@/components/common/Seo';
 
 const PageContainer = styled.div`
   display: flex;
@@ -78,9 +80,24 @@ const ContentContainer = styled.div`
 
 export function TermsOfServicePage() {
   const navigate = useNavigate();
+  const { language } = useAppStore();
+
+  const seoProps =
+    language === 'en'
+      ? {
+          title: 'Terms of Service',
+          description:
+            'Read the terms and conditions for using the TiTaS English shadowing and speaking practice service.',
+        }
+      : {
+          title: '서비스 이용약관',
+          description:
+            'TiTaS 영어 쉐도잉 및 스피킹 연습 서비스 이용에 대한 약관을 확인하세요.',
+        };
 
   return (
     <PageContainer>
+      <Seo {...seoProps} />
       <Header>
         <BackButton onClick={() => navigate(-1)}>
           <MdArrowBack size={24} />

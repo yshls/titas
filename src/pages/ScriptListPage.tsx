@@ -1,4 +1,4 @@
-import { useAppStore, type AppState } from '@/store/appStore';
+import { useAppStore } from '@/store/appStore';
 import { useNavigate } from 'react-router-dom';
 import type { ScriptData } from '@/utils/types';
 import styled from '@emotion/styled';
@@ -18,6 +18,7 @@ import {
 } from 'react-icons/md';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import toast from 'react-hot-toast';
+import { Seo } from '@/components/common/Seo';
 import { supabase } from '../supabaseClient';
 
 const SORT_OPTIONS = [
@@ -156,7 +157,9 @@ const SortButton = styled.button`
 `;
 
 // 회전하는 아이콘
-const AnimatedExpandIcon = styled(MdExpandMore)<{ isOpen: boolean }>`
+const AnimatedExpandIcon = styled(MdExpandMore, {
+  shouldForwardProp: (prop) => prop !== 'isOpen',
+})<{ isOpen: boolean }>`
   transition: transform 0.2s;
   transform: ${({ isOpen }) => (isOpen ? 'rotate(180deg)' : 'rotate(0deg)')};
 `;
@@ -481,9 +484,10 @@ const ToastButton = styled.button<{ variant?: 'danger' | 'cancel' }>`
 // --- 메인 컴포넌트 ---
 
 export function ScriptListPage() {
-  const allScripts = useAppStore((state: AppState) => state.allScripts);
+  const allScripts = useAppStore((state) => state.allScripts);
+  const deleteScript = useAppStore((state) => state.deleteScript);
+  const language = useAppStore((state) => state.language);
   const navigate = useNavigate();
-  const deleteScript = useAppStore((state: AppState) => state.deleteScript);
   const theme = useTheme();
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -582,8 +586,22 @@ export function ScriptListPage() {
     }
   }, [allScripts, sortBy, searchQuery]);
 
+  const seoProps =
+    language === 'en'
+      ? {
+          title: 'My Scripts',
+          description:
+            'Browse, manage, and start practicing from your collection of English scripts.',
+        }
+      : {
+          title: '내 스크립트 목록',
+          description:
+            '저장된 영어 스크립트 목록을 확인하고, 관리하며, 바로 연습을 시작할 수 있습니다.',
+        };
+
   return (
     <PageContainer role="main" aria-label="Scripts library">
+      <Seo {...seoProps} />
       <Header>
         <PageTitle>My Scripts</PageTitle>
 

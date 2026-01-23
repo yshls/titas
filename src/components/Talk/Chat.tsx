@@ -28,7 +28,6 @@ interface ChatProps {
   currentLineIndex: number;
   isFinished: boolean;
   feedbackMap: Record<number, DiffResult[]>;
-  userInputMap: Record<number, string>;
   userAudioMap: Record<number, string>;
   showHint: boolean;
   speakerColors: Record<string, string>;
@@ -41,7 +40,6 @@ export function Chat({
   currentLineIndex,
   isFinished,
   feedbackMap,
-  userInputMap,
   userAudioMap,
   showHint,
   speakerColors,
@@ -76,7 +74,6 @@ export function Chat({
             line={line}
             isUser={isUser}
             feedback={feedbackMap[idx]}
-            userInput={userInputMap[idx]}
             showHint={showHint && isUser && currentLineIndex === idx}
             bubbleColor={speakerColors[line.speakerId] || '#e1e1e1'}
             isSameSpeakerAsPrev={isSameSpeakerAsPrev}

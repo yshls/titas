@@ -35,23 +35,17 @@ export function usePracticeEngine({
   const navigate = useNavigate();
 
   // --- 스토어 액션 및 상태
-  const {
-    preparePractice,
-    exitPractice,
-    startPractice,
-    retryPractice,
-    isMyTurn,
-  } = usePracticeStore((state) => {
+  const preparePractice = usePracticeStore((state) => state.preparePractice);
+  const exitPractice = usePracticeStore((state) => state.exitPractice);
+  const startPractice = usePracticeStore((state) => state.startPractice);
+  const retryPractice = usePracticeStore((state) => state.retryPractice);
+
+  const isMyTurn = usePracticeStore((state) => {
     const currentLine = state.lines[state.currentLineIndex];
-    return {
-      preparePractice: state.preparePractice,
-      exitPractice: state.exitPractice,
-      startPractice: state.startPractice,
-      retryPractice: state.retryPractice,
-      isMyTurn:
-        state.status === 'active' &&
-        currentLine?.speakerId === state.userSpeakerId,
-    };
+    return (
+      state.status === 'active' &&
+      currentLine?.speakerId === state.userSpeakerId
+    );
   });
 
   // --- 전문 로직 훅

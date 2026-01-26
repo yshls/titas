@@ -134,11 +134,17 @@ export function useUserInput() {
 
   // --- 핸들러
   const handleMicClick = async () => {
-    if (!isMyTurn || isListening || isSpeaking) return;
-    setTypedInput('');
-    const recordingStarted = await startRecording();
-    if (recordingStarted) {
-      startListening();
+    if (isSpeaking) return;
+
+    if (isListening) {
+      stopRecordingAndListening();
+    } else {
+      if (!isMyTurn) return;
+      setTypedInput('');
+      const recordingStarted = await startRecording();
+      if (recordingStarted) {
+        startListening();
+      }
     }
   };
 

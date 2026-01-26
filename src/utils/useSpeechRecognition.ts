@@ -30,14 +30,18 @@ export function useSpeechRecognition() {
 
     const recognition = new SpeechRecognition();
     recognition.lang = 'en-US';
-    recognition.interimResults = false;
-    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.continuous = true;
 
     // 음성 인식 결과 처리
     recognition.onresult = (event: any) => {
-      const lastResult = event.results[event.results.length - 1];
-      const spokenText = lastResult[0].transcript;
-      setTranscript(spokenText);
+      console.log('Speech Recognition Result:', event.results);
+      const transcript_parts = [];
+      for (let i = 0; i < event.results.length; ++i) {
+        transcript_parts.push(event.results[i][0].transcript);
+      }
+      const full_transcript = transcript_parts.join(' ');
+      setTranscript(full_transcript.trim());
     };
 
     // 에러 처리

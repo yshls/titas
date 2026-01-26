@@ -1,10 +1,11 @@
 import { useLocation } from 'react-router-dom';
 import styled from '@emotion/styled';
 import { Toaster } from 'react-hot-toast';
+import { useState, useEffect } from 'react';
 import type { DialogueLine } from '@/utils/types';
 import { useAppStore } from '@/store/appStore';
+import { usePracticeStore } from '@/store/practiceStore';
 import { Seo } from '@/components/common/Seo';
-
 import { usePracticeEngine } from '@/hooks/usePracticeEngine';
 import { RoleSelection } from '@/components/Talk/RoleSelection';
 import { PracticeHeader } from '@/components/Talk/PracticeHeader';
@@ -26,6 +27,7 @@ const PageContainer = styled.div`
 export function TalkPage() {
   const location = useLocation();
   const { language } = useAppStore();
+
   const {
     lines: initialScriptLines = [],
     scriptId = 'unknown',
@@ -36,39 +38,61 @@ export function TalkPage() {
     title: string;
   }) || {};
 
+  // --- 스토어 상태 선택
   const {
-    isPracticeStarted,
-    isFinished,
-    isMyTurn,
-    isListening,
-    mediaStream,
-    speakerIds,
-    speakerColors,
-    userSpeakerId,
-    currentLineIndex,
+    status,
     lines,
+    currentLineIndex,
+    userSpeakerId,
     feedbackMap,
     userAudioMap,
-    inputMode,
-    typedInput,
-    showHint,
-    showFinishModal,
     practiceResult,
+  } = usePracticeStore((state) => ({
+    status: state.status,
+    lines: state.lines,
+    currentLineIndex: state.currentLineIndex,
+    userSpeakerId: state.userSpeakerId,
+    feedbackMap: state.feedbackMap,
+    userAudioMap: state.userAudioMap,
+    practiceResult: state.practiceResult,
+  }));
+
+  // --- 오케스트레이터 훅 사용
+  const {
+    inputMode,
     setInputMode,
+    typedInput,
     setTypedInput,
-    setShowHint,
-    setShowFinishModal,
+    isListening,
+    isMyTurn,
+    mediaStream,
+    handleMicClick,
+    handleKeyboardSubmit,
     handleStartPractice,
     handleRetryPractice,
     handleStopPractice,
-    handleMicClick,
-    handleSendTypedInput,
+    speakerIds,
+    speakerColors,
     speak,
   } = usePracticeEngine({
     lines: initialScriptLines,
     scriptId,
     title,
   });
+
+  // --- 로컬 UI 상태 관리
+  const [showHint, setShowHint] = useState(false);
+  const [showFinishModal, setShowFinishModal] = useState(false);
+
+  const isFinished = status === 'finished';
+
+  useEffect(() => {
+    if (isFinished) {
+      setShowFinishModal(true);
+    } else {
+      setShowFinishModal(false);
+    }
+  }, [isFinished]);
 
   const seoProps =
     language === 'en'
@@ -81,8 +105,8 @@ export function TalkPage() {
           description: `'${title}' 스크립트로 영어 쉐도잉 연습을 시작하세요. 스피킹과 발음 실력을 향상시킬 수 있습니다.`,
         };
 
-  // 역할 선택 화면 렌더링
-  if (!isPracticeStarted) {
+  // --- UI 렌더링
+  if (status === 'preparing' || status === 'idle') {
     return (
       <>
         <Seo {...seoProps} />
@@ -102,7 +126,6 @@ export function TalkPage() {
     );
   }
 
-  // 메인 연습 UI 렌더링
   return (
     <PageContainer>
       <Seo {...seoProps} />
@@ -139,7 +162,7 @@ export function TalkPage() {
           setShowHint={setShowHint}
           typedInput={typedInput}
           setTypedInput={setTypedInput}
-          handleSendTypedInput={handleSendTypedInput}
+          handleSendTypedInput={handleKeyboardSubmit}
         />
       )}
 

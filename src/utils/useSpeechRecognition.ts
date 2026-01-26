@@ -14,7 +14,7 @@ const SpeechRecognition =
 // API 미지원 브라우저 경고
 if (!SpeechRecognition && typeof window !== 'undefined') {
   console.warn(
-    'Your browser does not support the Web Speech API. Please use Chrome.'
+    'Your browser does not support the Web Speech API. Please use Chrome.',
   );
 }
 
@@ -23,7 +23,6 @@ export function useSpeechRecognition() {
   const [isListening, setIsListening] = useState(false);
 
   const recognitionRef = useRef<any>(null);
-  const timeoutRef = useRef<number | null>(null);
 
   // 음성 인식 인스턴스 초기화
   useEffect(() => {
@@ -36,40 +35,26 @@ export function useSpeechRecognition() {
 
     // 음성 인식 결과 처리
     recognition.onresult = (event: any) => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-
-      console.log('Speech Recognition Result:', event.results);
-      const transcript_parts = [];
-      for (let i = 0; i < event.results.length; ++i) {
-        transcript_parts.push(event.results[i][0].transcript);
-      }
-      const full_transcript = transcript_parts.join(' ');
-      setTranscript(full_transcript.trim());
-
-      timeoutRef.current = window.setTimeout(() => {
-        if (recognitionRef.current) {
-          recognitionRef.current.stop();
+      let finalTranscript = '';
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript;
         }
-      }, 2000); // 2초간 말이 없으면 자동 종료
+      }
+      setTranscript((prev) => prev + finalTranscript);
     };
 
     // 에러 처리
     recognition.onerror = (event: any) => {
       console.error('Speech Recognition Error:', event.error);
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
       setIsListening(false);
     };
 
     // 인식 종료 처리
     recognition.onend = () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
       setIsListening(false);
+      // 모바일에서 자동 중단 감지 후 필요한 경우 여기에 로직 추가
+      // 예: if (!manualStopRef.current) { startListening(); }
     };
 
     recognitionRef.current = recognition;
@@ -79,12 +64,12 @@ export function useSpeechRecognition() {
   const startListening = () => {
     if (recognitionRef.current && !isListening) {
       try {
+        setTranscript(''); // 시작할 때 이전 텍스트 초기화
         recognitionRef.current.start();
         setIsListening(true);
-        setTranscript('');
       } catch (e) {
         console.warn(
-          'Recognition start failed (already started or permission issue).'
+          'Recognition start failed (already started or permission issue).',
         );
       }
     }
@@ -92,11 +77,9 @@ export function useSpeechRecognition() {
 
   // 음성 인식 중지
   const stopListening = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
     if (recognitionRef.current && isListening) {
       recognitionRef.current.stop();
+      setIsListening(false); // 수동 중지 시 즉시 상태 변경
     }
   };
 

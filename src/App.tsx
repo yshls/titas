@@ -1,8 +1,9 @@
-import { useEffect } from 'react';
-import { supabase } from '@/supabaseClient';
+import DebugConsole from '@/components/common/DebugConsole';
+import { TalkPage } from '@/pages/TalkPage';
 import { useAppStore } from '@/store/appStore';
 import { migrateData } from '@/services/migrateService';
-import { TalkPage } from '@/pages/TalkPage';
+import { supabase } from '@/supabaseClient';
+import { useEffect } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 
 function App() {
@@ -45,6 +46,7 @@ function App() {
 
   return (
     <>
+      {import.meta.env.DEV && <DebugConsole />}
       <TalkPage />
       <Toaster />
     </>

@@ -64,11 +64,16 @@ export function useUserInput() {
     (text: string) => {
       if (
         !currentLine ||
-        !text.trim() ||
         isProcessing ||
         hasProcessedCurrentLine.current
       )
         return;
+
+      if (!text.trim()) {
+        toast.error("Oops! I didn't catch that. Could you please try again?");
+        stopRecordingAndListening(); // 마이크 종료 보장
+        return;
+      }
 
       setIsProcessing(true);
       hasProcessedCurrentLine.current = true;
@@ -104,6 +109,8 @@ export function useUserInput() {
       addUserInput,
       currentLineIndex,
       advanceLine,
+      clearTranscript,
+      hasProcessedCurrentLine,
     ],
   );
 
@@ -139,6 +146,7 @@ export function useUserInput() {
       processAndAdvance(transcript);
     }
   }, [transcript, isListening, isMyTurn, status, processAndAdvance]);
+
 
   // --- 핸들러
   const handleMicClick = async () => {

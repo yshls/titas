@@ -23,6 +23,7 @@ export function useSpeechRecognition() {
   const [isListening, setIsListening] = useState(false);
 
   const recognitionRef = useRef<any>(null);
+  const timeoutRef = useRef<number | null>(null);
 
   // 음성 인식 인스턴스 초기화
   useEffect(() => {
@@ -35,6 +36,10 @@ export function useSpeechRecognition() {
 
     // 음성 인식 결과 처리
     recognition.onresult = (event: any) => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+
       console.log('Speech Recognition Result:', event.results);
       const transcript_parts = [];
       for (let i = 0; i < event.results.length; ++i) {
@@ -42,16 +47,28 @@ export function useSpeechRecognition() {
       }
       const full_transcript = transcript_parts.join(' ');
       setTranscript(full_transcript.trim());
+
+      timeoutRef.current = window.setTimeout(() => {
+        if (recognitionRef.current) {
+          recognitionRef.current.stop();
+        }
+      }, 2000); // 2초간 말이 없으면 자동 종료
     };
 
     // 에러 처리
     recognition.onerror = (event: any) => {
       console.error('Speech Recognition Error:', event.error);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
       setIsListening(false);
     };
 
     // 인식 종료 처리
     recognition.onend = () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
       setIsListening(false);
     };
 
@@ -75,6 +92,9 @@ export function useSpeechRecognition() {
 
   // 음성 인식 중지
   const stopListening = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
     if (recognitionRef.current && isListening) {
       recognitionRef.current.stop();
     }

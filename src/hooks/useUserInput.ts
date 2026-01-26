@@ -47,37 +47,57 @@ export function useUserInput() {
   }, [currentLineIndex]);
 
   // --- 핵심 로직
-  const stopRecordingAndListening = useCallback(() => {
-    if (mediaRecorderRef.current?.state === 'recording') {
-      mediaRecorderRef.current.stop();
-    }
-    if (isListening) {
-      stopListening();
-    }
-    if (mediaStream) {
-      mediaStream.getTracks().forEach((track) => track.stop());
-      setMediaStream(null);
-    }
-  }, [isListening, stopListening, mediaStream]);
+  const stopRecordingAndListening = useCallback(async () => {
+    return new Promise<void>((resolve) => {
+      let resolved = false;
+
+      const cleanup = () => {
+        if (!resolved) {
+          resolved = true;
+          if (mediaStream) {
+            mediaStream.getTracks().forEach((track) => track.stop());
+            setMediaStream(null);
+          }
+          resolve();
+        }
+      };
+
+      if (mediaRecorderRef.current?.state === 'recording') {
+        mediaRecorderRef.current.onstop = () => {
+          const blob = new Blob(audioChunksRef.current, {
+            type: 'audio/webm',
+          });
+          const url = URL.createObjectURL(blob);
+          addUserAudio(currentLineIndex, url);
+          cleanup();
+        };
+        mediaRecorderRef.current.stop();
+      } else {
+        cleanup();
+      }
+
+      if (isListening) {
+        stopListening();
+      }
+
+      setTimeout(() => cleanup(), 500);
+    });
+  }, [isListening, stopListening, mediaStream, addUserAudio, currentLineIndex]);
 
   const processAndAdvance = useCallback(
-    (text: string) => {
-      if (
-        !currentLine ||
-        isProcessing ||
-        hasProcessedCurrentLine.current
-      )
+    async (text: string) => {
+      if (!currentLine || isProcessing || hasProcessedCurrentLine.current)
         return;
 
       if (!text.trim()) {
         toast.error("Oops! I didn't catch that. Could you please try again?");
-        stopRecordingAndListening(); // 마이크 종료 보장
+        await stopRecordingAndListening();
         return;
       }
 
       setIsProcessing(true);
       hasProcessedCurrentLine.current = true;
-      stopRecordingAndListening();
+      await stopRecordingAndListening();
 
       const originalText = currentLine.originalLine
         .replace(/[^\w\s']/g, '')
@@ -96,7 +116,6 @@ export function useUserInput() {
       addUserInput(currentLineIndex, text, diff);
       clearTranscript();
 
-      // 피드백 확인 시간
       setTimeout(() => {
         advanceLine();
         setIsProcessing(false);
@@ -110,7 +129,6 @@ export function useUserInput() {
       currentLineIndex,
       advanceLine,
       clearTranscript,
-      hasProcessedCurrentLine,
     ],
   );
 
@@ -118,14 +136,19 @@ export function useUserInput() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       setMediaStream(stream);
-      const recorder = new MediaRecorder(stream);
+
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm')
+        ? 'audio/webm'
+        : 'audio/mp4';
+
+      const recorder = new MediaRecorder(stream, { mimeType });
       mediaRecorderRef.current = recorder;
       audioChunksRef.current = [];
       recorder.ondataavailable = (e) => {
         if (e.data.size > 0) audioChunksRef.current.push(e.data);
       };
       recorder.onstop = () => {
-        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const blob = new Blob(audioChunksRef.current, { type: mimeType });
         const url = URL.createObjectURL(blob);
         addUserAudio(currentLineIndex, url);
       };
@@ -146,7 +169,6 @@ export function useUserInput() {
       processAndAdvance(transcript);
     }
   }, [transcript, isListening, isMyTurn, status, processAndAdvance]);
-
 
   // --- 핸들러
   const handleMicClick = async () => {

@@ -21,27 +21,43 @@ if (!SpeechRecognition && typeof window !== 'undefined') {
 export function useSpeechRecognition() {
   const [transcript, setTranscript] = useState('');
   const [isListening, setIsListening] = useState(false);
-
   const recognitionRef = useRef<any>(null);
+  const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // 음성 인식 인스턴스 초기화
   useEffect(() => {
     if (!SpeechRecognition) return;
 
     const recognition = new SpeechRecognition();
-    recognition.lang = 'en-US';
+    recognition.lang = 'ko-KR';
     recognition.interimResults = true;
     recognition.continuous = true;
 
     // 음성 인식 결과 처리
     recognition.onresult = (event: any) => {
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+      }
+
+      let interimTranscript = '';
       let finalTranscript = '';
       for (let i = event.resultIndex; i < event.results.length; ++i) {
+        const transcriptPart = event.results[i][0].transcript;
         if (event.results[i].isFinal) {
-          finalTranscript += event.results[i][0].transcript;
+          finalTranscript += transcriptPart;
+        } else {
+          interimTranscript += transcriptPart;
         }
       }
-      setTranscript((prev) => prev + finalTranscript);
+      console.log('Interim Transcript:', interimTranscript);
+      if (finalTranscript) {
+        console.log('Final Transcript:', finalTranscript);
+        setTranscript((prev) => prev + finalTranscript);
+      }
+
+      silenceTimerRef.current = setTimeout(() => {
+        stopListening();
+      }, 2000); // 2초 동안 말이 없으면 중지
     };
 
     // 에러 처리
@@ -53,11 +69,18 @@ export function useSpeechRecognition() {
     // 인식 종료 처리
     recognition.onend = () => {
       setIsListening(false);
-      // 모바일에서 자동 중단 감지 후 필요한 경우 여기에 로직 추가
-      // 예: if (!manualStopRef.current) { startListening(); }
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+      }
     };
 
     recognitionRef.current = recognition;
+
+    return () => {
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+      }
+    };
   }, []);
 
   // 음성 인식 시작
@@ -67,6 +90,12 @@ export function useSpeechRecognition() {
         setTranscript(''); // 시작할 때 이전 텍스트 초기화
         recognitionRef.current.start();
         setIsListening(true);
+        if (silenceTimerRef.current) {
+          clearTimeout(silenceTimerRef.current);
+        }
+        silenceTimerRef.current = setTimeout(() => {
+          stopListening();
+        }, 2000); 
       } catch (e) {
         console.warn(
           'Recognition start failed (already started or permission issue).',
@@ -79,7 +108,10 @@ export function useSpeechRecognition() {
   const stopListening = () => {
     if (recognitionRef.current && isListening) {
       recognitionRef.current.stop();
-      setIsListening(false); // 수동 중지 시 즉시 상태 변경
+      setIsListening(false);
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+      }
     }
   };
 

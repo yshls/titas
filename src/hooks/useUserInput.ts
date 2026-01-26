@@ -27,8 +27,13 @@ export function useUserInput() {
   const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
 
   // --- 외부 훅
-  const { transcript, isListening, startListening, stopListening } =
-    useSpeechRecognition();
+  const {
+    transcript,
+    isListening,
+    startListening,
+    stopListening,
+    clearTranscript,
+  } = useSpeechRecognition();
   const { isSpeaking } = useTTS();
 
   // --- Ref
@@ -80,6 +85,7 @@ export function useUserInput() {
 
       const diff = checkWordDiff(originalText, processedInput);
       addUserInput(currentLineIndex, text, diff);
+      clearTranscript();
 
       // 피드백 확인 시간
       setTimeout(() => {

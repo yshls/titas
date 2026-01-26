@@ -80,10 +80,15 @@ export function useSpeechRecognition() {
     }
   };
 
+  const clearTranscript = () => {
+    setTranscript('');
+  };
+
   return {
     transcript,
     isListening,
     startListening,
     stopListening,
+    clearTranscript,
   };
 }

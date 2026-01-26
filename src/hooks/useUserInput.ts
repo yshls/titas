@@ -54,7 +54,11 @@ export function useUserInput() {
     if (isListening) {
       stopListening();
     }
-  }, [isListening, stopListening]);
+    if (mediaStream) {
+      mediaStream.getTracks().forEach((track) => track.stop());
+      setMediaStream(null);
+    }
+  }, [isListening, stopListening, mediaStream]);
 
   const processAndAdvance = useCallback(
     (text: string) => {
@@ -117,8 +121,6 @@ export function useUserInput() {
         const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         const url = URL.createObjectURL(blob);
         addUserAudio(currentLineIndex, url);
-        stream.getTracks().forEach((t) => t.stop());
-        setMediaStream(null);
       };
       recorder.start();
       return true;

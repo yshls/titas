@@ -5,6 +5,7 @@ import { useUserInput } from './useUserInput';
 import { usePracticeFlow } from './usePracticeFlow';
 import { useTTS } from '@/utils/useTTS';
 import type { DialogueLine } from '@/utils/types';
+import { shallow } from 'zustand/shallow';
 
 const PALETTE = [
   '#e8f3ff', // blue50
@@ -35,24 +36,16 @@ export function usePracticeEngine({
   const navigate = useNavigate();
 
   // --- 스토어 액션 및 상태
-  const {
-    preparePractice,
-    exitPractice,
-    startPractice,
-    retryPractice,
-    isMyTurn,
-  } = usePracticeStore((state) => {
+  const { preparePractice, exitPractice, startPractice, retryPractice } =
+    usePracticeStore.getState();
+
+  const isMyTurn = usePracticeStore((state) => {
     const currentLine = state.lines[state.currentLineIndex];
-    return {
-      preparePractice: state.preparePractice,
-      exitPractice: state.exitPractice,
-      startPractice: state.startPractice,
-      retryPractice: state.retryPractice,
-      isMyTurn:
-        state.status === 'active' &&
-        currentLine?.speakerId === state.userSpeakerId,
-    };
-  });
+    return (
+      state.status === 'active' &&
+      currentLine?.speakerId === state.userSpeakerId
+    );
+  }, shallow);
 
   // --- 전문 로직 훅
   usePracticeFlow();

@@ -1,7 +1,7 @@
 import { useLocation } from 'react-router-dom';
 import styled from '@emotion/styled';
 import { Toaster } from 'react-hot-toast';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import type { DialogueLine } from '@/utils/types';
 import { useAppStore } from '@/store/appStore';
 import { usePracticeStore } from '@/store/practiceStore';
@@ -28,34 +28,36 @@ export function TalkPage() {
   const location = useLocation();
   const { language } = useAppStore();
 
-  const {
-    lines: initialScriptLines = [],
-    scriptId = 'unknown',
-    title = 'Practice Session',
-  } = (location.state as {
+  const locationState = location.state as {
     lines: DialogueLine[];
     scriptId: string;
     title: string;
-  }) || {};
+  } | null;
+
+  const initialScriptLines = useMemo(
+    () => locationState?.lines || [],
+    [locationState],
+  );
+  const scriptId = locationState?.scriptId || 'unknown';
+  const title = locationState?.title || 'Practice Session';
 
   // --- 스토어 상태 선택
-  const {
-    status,
-    lines,
-    currentLineIndex,
-    userSpeakerId,
-    feedbackMap,
-    userAudioMap,
-    practiceResult,
-  } = usePracticeStore((state) => ({
-    status: state.status,
-    lines: state.lines,
-    currentLineIndex: state.currentLineIndex,
-    userSpeakerId: state.userSpeakerId,
-    feedbackMap: state.feedbackMap,
-    userAudioMap: state.userAudioMap,
-    practiceResult: state.practiceResult,
-  }));
+  const status = usePracticeStore((state) => state.status);
+  const lines = usePracticeStore((state) => state.lines);
+  const currentLineIndex = usePracticeStore((state) => state.currentLineIndex);
+  const userSpeakerId = usePracticeStore((state) => state.userSpeakerId);
+  const feedbackMap = usePracticeStore((state) => state.feedbackMap);
+  const userAudioMap = usePracticeStore((state) => state.userAudioMap);
+  const practiceResult = usePracticeStore((state) => state.practiceResult);
+
+  const engineProps = useMemo(
+    () => ({
+      lines: initialScriptLines,
+      scriptId,
+      title,
+    }),
+    [initialScriptLines, scriptId, title],
+  );
 
   // --- 오케스트레이터 훅 사용
   const {
@@ -74,11 +76,7 @@ export function TalkPage() {
     speakerIds,
     speakerColors,
     speak,
-  } = usePracticeEngine({
-    lines: initialScriptLines,
-    scriptId,
-    title,
-  });
+  } = usePracticeEngine(engineProps);
 
   // --- 로컬 UI 상태 관리
   const [showHint, setShowHint] = useState(false);

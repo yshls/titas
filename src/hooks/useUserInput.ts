@@ -18,35 +18,38 @@ export function useUserInput() {
   const advanceLine = usePracticeStore((state) => state.advanceLine);
 
   const isMyTurn =
-    status === 'active' && currentLine?.speakerId === userSpeakerId;
+    status === 'active' && currentLine?.speakerId === userSpeakerId; // --- 내부 UI 상태
 
-  // --- 내부 UI 상태
   const [inputMode, setInputMode] = useState<'mic' | 'keyboard'>('mic');
   const [typedInput, setTypedInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
+  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null); // --- 외부 훅
 
-  // --- 외부 훅
   const {
     transcript,
     isListening,
     startListening,
     stopListening,
     clearTranscript,
+    permissionStatus,
   } = useSpeechRecognition();
-  const { isSpeaking } = useTTS();
 
-  // --- Ref
+  const { isSpeaking } = useTTS(); // --- Ref
+
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
-  const hasProcessedCurrentLine = useRef(false);
+  const hasProcessedCurrentLine = useRef(false); // 라인 변경 시 처리 플래그 초기화
 
   useEffect(() => {
-    // 라인 변경 시 처리 플래그 초기화
     hasProcessedCurrentLine.current = false;
-  }, [currentLineIndex]);
+  }, [currentLineIndex]); // 디버깅: transcript 변화 추적
 
-  // --- 핵심 로직
+  useEffect(() => {
+    console.log('🔵 [useUserInput] transcript changed:', transcript);
+    console.log('🔵 [useUserInput] isListening:', isListening);
+    console.log('🔵 [useUserInput] isMyTurn:', isMyTurn);
+  }, [transcript, isListening, isMyTurn]); // --- 핵심 로직: 녹음 및 음성 인식 중지
+
   const stopRecordingAndListening = useCallback(async () => {
     return new Promise<void>((resolve) => {
       let resolved = false;
@@ -82,12 +85,18 @@ export function useUserInput() {
 
       setTimeout(() => cleanup(), 500);
     });
-  }, [isListening, stopListening, mediaStream, addUserAudio, currentLineIndex]);
+  }, [isListening, stopListening, mediaStream, addUserAudio, currentLineIndex]); // --- 핵심 로직: 입력 처리 및 다음 라인 진행
 
   const processAndAdvance = useCallback(
     async (text: string) => {
-      if (!currentLine || isProcessing || hasProcessedCurrentLine.current)
+      if (!currentLine || isProcessing || hasProcessedCurrentLine.current) {
+        console.log('⚠️ [processAndAdvance] Skipped:', {
+          hasCurrentLine: !!currentLine,
+          isProcessing,
+          hasProcessed: hasProcessedCurrentLine.current,
+        });
         return;
+      }
 
       if (!text.trim()) {
         toast.error("Oops! I didn't catch that. Could you please try again?");
@@ -95,6 +104,7 @@ export function useUserInput() {
         return;
       }
 
+      console.log('✅ [processAndAdvance] Starting to process:', text);
       setIsProcessing(true);
       hasProcessedCurrentLine.current = true;
       await stopRecordingAndListening();
@@ -112,7 +122,14 @@ export function useUserInput() {
         return;
       }
 
+      console.log('📊 [processAndAdvance] Comparing:', {
+        original: originalText,
+        spoken: processedInput,
+      });
+
       const diff = checkWordDiff(originalText, processedInput);
+      console.log('📊 [processAndAdvance] Diff result:', diff);
+
       addUserInput(currentLineIndex, text, diff);
       clearTranscript();
 
@@ -130,61 +147,110 @@ export function useUserInput() {
       advanceLine,
       clearTranscript,
     ],
-  );
+  ); // --- 자동 제출: transcript가 완성되면 자동으로 처리
 
-  const startRecording = useCallback(async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      setMediaStream(stream);
-
-      const mimeType = MediaRecorder.isTypeSupported('audio/webm')
-        ? 'audio/webm'
-        : 'audio/mp4';
-
-      const recorder = new MediaRecorder(stream, { mimeType });
-      mediaRecorderRef.current = recorder;
-      audioChunksRef.current = [];
-      recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) audioChunksRef.current.push(e.data);
-      };
-      recorder.onstop = () => {
-        const blob = new Blob(audioChunksRef.current, { type: mimeType });
-        const url = URL.createObjectURL(blob);
-        addUserAudio(currentLineIndex, url);
-      };
-      recorder.start();
-      return true;
-    } catch (e) {
-      toast.error(
-        'Oh, seems your microphone is shy! Could you please give it permissions?',
-      );
-      return false;
-    }
-  }, [addUserAudio, currentLineIndex]);
-
-  // --- 이펙트
   useEffect(() => {
-    // 음성 인식 결과 처리
-    if (transcript && !isListening && isMyTurn && status === 'active') {
+    console.log('🟢 [Auto-submit check]', {
+      hasTranscript: !!transcript,
+      transcriptLength: transcript.length,
+      notListening: !isListening,
+      isMyTurn,
+      hasProcessed: hasProcessedCurrentLine.current,
+    }); // transcript가 있고, 음성 인식이 끝났고, 내 차례이고, 아직 처리 안 했을 때
+
+    if (
+      transcript &&
+      transcript.trim().length > 0 &&
+      !isListening &&
+      isMyTurn &&
+      !hasProcessedCurrentLine.current
+    ) {
+      console.log('✅ [Auto-submit] Conditions met! Processing...');
       processAndAdvance(transcript);
     }
-  }, [transcript, isListening, isMyTurn, status, processAndAdvance]);
+  }, [transcript, isListening, isMyTurn, processAndAdvance]); // --- 녹음 시작
 
-  // --- 핸들러
+  const startRecording = useCallback(async () => {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    setMediaStream(stream);
+
+    const mimeType = MediaRecorder.isTypeSupported('audio/webm')
+      ? 'audio/webm'
+      : 'audio/mp4';
+
+    const recorder = new MediaRecorder(stream, { mimeType });
+    mediaRecorderRef.current = recorder;
+    audioChunksRef.current = [];
+    recorder.ondataavailable = (e) => {
+      if (e.data.size > 0) audioChunksRef.current.push(e.data);
+    };
+    recorder.onstop = () => {
+      const blob = new Blob(audioChunksRef.current, { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      addUserAudio(currentLineIndex, url);
+    };
+    recorder.start();
+    return true;
+  }, [addUserAudio, currentLineIndex]); // --- 권한 관리
+
+  const [isPermissionRequestPending, setIsPermissionRequestPending] =
+    useState(false);
+
+  const requestPermission = useCallback(async () => {
+    console.log('[useUserInput] Requesting microphone permission...');
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      console.log('[useUserInput] Permission granted.');
+      stream.getTracks().forEach((track) => track.stop());
+    } catch (error) {
+      console.error('[useUserInput] Permission denied.', error);
+      toast.error('Microphone access is required to use voice input.');
+    }
+  }, []); // --- 음성 인식 시작
+
+  const startRecognition = useCallback(async () => {
+    if (!isMyTurn) return;
+    setTypedInput('');
+    const recordingStarted = await startRecording();
+    if (recordingStarted) {
+      startListening();
+    }
+  }, [isMyTurn, startRecording, startListening]); // 권한 승인 후 자동 시작
+
+  useEffect(() => {
+    if (permissionStatus === 'granted' && isPermissionRequestPending) {
+      startRecognition();
+      setIsPermissionRequestPending(false);
+    }
+  }, [permissionStatus, isPermissionRequestPending, startRecognition]); // --- 이벤트 핸들러: 마이크 버튼 클릭
+
   const handleMicClick = async () => {
     if (isSpeaking) return;
 
     if (isListening) {
+      console.log('🛑 [handleMicClick] Stopping...');
       stopRecordingAndListening();
-    } else {
-      if (!isMyTurn) return;
-      setTypedInput('');
-      const recordingStarted = await startRecording();
-      if (recordingStarted) {
-        startListening();
-      }
+      return;
     }
-  };
+
+    if (permissionStatus === 'denied') {
+      toast.error(
+        'Microphone access is denied. Please enable it in your browser settings.',
+      );
+      return;
+    }
+
+    if (permissionStatus === 'prompt') {
+      setIsPermissionRequestPending(true);
+      await requestPermission();
+      return;
+    }
+
+    if (permissionStatus === 'granted') {
+      console.log('🎤 [handleMicClick] Starting recognition...');
+      startRecognition();
+    }
+  }; // --- 이벤트 핸들러: 키보드 제출
 
   const handleKeyboardSubmit = () => {
     if (typedInput.trim()) {
@@ -198,6 +264,7 @@ export function useUserInput() {
     setInputMode,
     typedInput,
     setTypedInput,
+    transcript,
     isListening,
     isProcessing,
     isSpeaking,

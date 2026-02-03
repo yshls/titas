@@ -8,6 +8,7 @@ import type { DialogueLine, ScriptData } from '@/utils/types';
 import styled from '@emotion/styled';
 import { useTheme } from '@emotion/react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { generateUUID } from '@/utils/uuid';
 import {
   MdAdd,
   MdSave,
@@ -617,7 +618,7 @@ export function CreatorPage() {
       .filter((text) => text.length > 0)
       .map((text) => {
         return {
-          id: crypto.randomUUID(),
+          id: generateUUID(),
           speakerId: activeSpeaker?.name || 'Unknown',
           originalLine: text,
           speakerColor:
@@ -700,7 +701,7 @@ export function CreatorPage() {
     }
 
     const newScript: ScriptData = {
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       title: scriptTitle.trim(),
       createdAt: Date.now(),
       lines: scriptLines,

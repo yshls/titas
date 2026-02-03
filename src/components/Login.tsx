@@ -40,7 +40,10 @@ export default function Login() {
   const handleLogin = async () => {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { queryParams: { access_type: 'offline', prompt: 'consent' } },
+      options: {
+        queryParams: { access_type: 'offline', prompt: 'consent' },
+        redirectTo: window.location.origin,
+      },
     });
   };
 

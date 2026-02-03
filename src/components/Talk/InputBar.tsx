@@ -1,9 +1,11 @@
-
 import styled from '@emotion/styled';
 import { keyframes, css } from '@emotion/react';
 import { FiMic, FiSend, FiX } from 'react-icons/fi';
 import { MdKeyboard, MdLightbulb } from 'react-icons/md';
 import { AudioVisualizer } from './AudioVisualizer';
+
+//  모바일 감지 추가
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
 const pulseRing = keyframes`
   0% { transform: scale(0.95); }
@@ -149,88 +151,114 @@ const SendBtn = styled.button`
   }
 `;
 
+// 모바일 안내 메시지 스타일
+const MobileHint = styled.div`
+  position: absolute;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.85);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 20px;
+  font-size: 14px;
+  white-space: nowrap;
+  z-index: 1000;
+  pointer-events: none;
+  animation: ${keyframes`
+    0% { opacity: 0; transform: translate(-50%, 10px); }
+    100% { opacity: 1; transform: translate(-50%, 0); }
+  `} 0.3s ease-out;
+`;
+
 interface InputBarProps {
-    inputMode: 'mic' | 'keyboard';
-    setInputMode: (mode: 'mic' | 'keyboard') => void;
-    isListening: boolean;
-    handleMicClick: () => void;
-    isMyTurn: boolean;
-    hasFeedback: boolean;
-    mediaStream: MediaStream | null;
-    showHint: boolean;
-    setShowHint: (show: boolean) => void;
-    typedInput: string;
-    setTypedInput: (text: string) => void;
-    handleSendTypedInput: () => void;
+  inputMode: 'mic' | 'keyboard';
+  setInputMode: (mode: 'mic' | 'keyboard') => void;
+  isListening: boolean;
+  handleMicClick: () => void;
+  isMyTurn: boolean;
+  hasFeedback: boolean;
+  mediaStream: MediaStream | null;
+  showHint: boolean;
+  setShowHint: (show: boolean) => void;
+  typedInput: string;
+  setTypedInput: (text: string) => void;
+  handleSendTypedInput: () => void;
 }
 
 export function InputBar({
-    inputMode,
-    setInputMode,
-    isListening,
-    handleMicClick,
-    isMyTurn,
-    hasFeedback,
-    mediaStream,
-    showHint,
-    setShowHint,
-    typedInput,
-    setTypedInput,
-    handleSendTypedInput
+  inputMode,
+  setInputMode,
+  isListening,
+  handleMicClick,
+  isMyTurn,
+  hasFeedback,
+  mediaStream,
+  showHint,
+  setShowHint,
+  typedInput,
+  setTypedInput,
+  handleSendTypedInput,
 }: InputBarProps) {
-    return (
-        <FloatingBarWrapper>
-          {inputMode === 'mic' ? (
-            <FloatingIsland>
-              <SideButton onClick={() => setInputMode('keyboard')} disabled={!isMyTurn}>
-                <MdKeyboard size={24} />
-              </SideButton>
+  return (
+    <FloatingBarWrapper>
+      {/*  모바일 안내 메시지 추가 */}
+      {isMobile && isListening && <MobileHint>📱Tap when done</MobileHint>}
 
-              <HeroMicButton
-                isListening={isListening}
-                onClick={handleMicClick}
-                disabled={!isMyTurn || hasFeedback}
-              >
-                {isListening && mediaStream ? (
-                  <AudioVisualizer stream={mediaStream} />
-                ) : (
-                  <FiMic size={28} />
-                )}
-              </HeroMicButton>
+      {inputMode === 'mic' ? (
+        <FloatingIsland>
+          <SideButton
+            onClick={() => setInputMode('keyboard')}
+            disabled={!isMyTurn}
+          >
+            <MdKeyboard size={24} />
+          </SideButton>
 
-              <SideButton
-                active={showHint}
-                onClick={() => setShowHint(!showHint)}
-                disabled={!isMyTurn}
-              >
-                <MdLightbulb size={24} />
-              </SideButton>
-            </FloatingIsland>
-          ) : (
-            <KeyboardInputWrapper>
-              <SideButton onClick={() => setInputMode('mic')}>
-                <FiX size={20} />
-              </SideButton>
-              <StyledInput
-                placeholder="Type your sentence..."
-                value={typedInput}
-                onChange={(e) => setTypedInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && typedInput.trim()) {
-                    handleSendTypedInput();
-                  }
-                }}
-                autoFocus
-                disabled={!isMyTurn || hasFeedback}
-              />
-              <SendBtn
-                onClick={handleSendTypedInput}
-                disabled={!typedInput.trim() || !isMyTurn || hasFeedback}
-              >
-                <FiSend size={18} />
-              </SendBtn>
-            </KeyboardInputWrapper>
-          )}
-        </FloatingBarWrapper>
-    )
+          <HeroMicButton
+            isListening={isListening}
+            onClick={handleMicClick}
+            disabled={!isMyTurn || hasFeedback}
+          >
+            {isListening && mediaStream ? (
+              <AudioVisualizer stream={mediaStream} />
+            ) : (
+              <FiMic size={28} />
+            )}
+          </HeroMicButton>
+
+          <SideButton
+            active={showHint}
+            onClick={() => setShowHint(!showHint)}
+            disabled={!isMyTurn}
+          >
+            <MdLightbulb size={24} />
+          </SideButton>
+        </FloatingIsland>
+      ) : (
+        <KeyboardInputWrapper>
+          <SideButton onClick={() => setInputMode('mic')}>
+            <FiX size={20} />
+          </SideButton>
+          <StyledInput
+            placeholder="Type your sentence..."
+            value={typedInput}
+            onChange={(e) => setTypedInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && typedInput.trim()) {
+                handleSendTypedInput();
+              }
+            }}
+            autoFocus
+            disabled={!isMyTurn || hasFeedback}
+          />
+          <SendBtn
+            onClick={handleSendTypedInput}
+            disabled={!typedInput.trim() || !isMyTurn || hasFeedback}
+          >
+            <FiSend size={18} />
+          </SendBtn>
+        </KeyboardInputWrapper>
+      )}
+    </FloatingBarWrapper>
+  );
 }

@@ -4,9 +4,9 @@ import { usePracticeStore } from '@/store/practiceStore';
 import { useSpeechRecognition } from '@/utils/useSpeechRecognition';
 import { useTTS } from '@/utils/useTTS';
 import { checkWordDiff } from '@/utils/diffChecker';
+import { transcribeAudio } from '@/api/groqWhisper';
 
 export function useUserInput() {
-  // --- 스토어 상태 선택
   const status = usePracticeStore((state) => state.status);
   const currentLineIndex = usePracticeStore((state) => state.currentLineIndex);
   const currentLine = usePracticeStore(
@@ -18,12 +18,12 @@ export function useUserInput() {
   const advanceLine = usePracticeStore((state) => state.advanceLine);
 
   const isMyTurn =
-    status === 'active' && currentLine?.speakerId === userSpeakerId; // --- 내부 UI 상태
+    status === 'active' && currentLine?.speakerId === userSpeakerId;
 
   const [inputMode, setInputMode] = useState<'mic' | 'keyboard'>('mic');
   const [typedInput, setTypedInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null); // --- 외부 훅
+  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
 
   const {
     transcript,
@@ -34,22 +34,70 @@ export function useUserInput() {
     permissionStatus,
   } = useSpeechRecognition();
 
-  const { isSpeaking } = useTTS(); // --- Ref
+  const { isSpeaking } = useTTS();
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
-  const hasProcessedCurrentLine = useRef(false); // 라인 변경 시 처리 플래그 초기화
+  const hasProcessedCurrentLine = useRef(false);
 
+  // 라인 변경 시 초기화
   useEffect(() => {
     hasProcessedCurrentLine.current = false;
-  }, [currentLineIndex]); // 디버깅: transcript 변화 추적
+    audioChunksRef.current = [];
+  }, [currentLineIndex]);
 
-  useEffect(() => {
-    console.log('🔵 [useUserInput] transcript changed:', transcript);
-    console.log('🔵 [useUserInput] isListening:', isListening);
-    console.log('🔵 [useUserInput] isMyTurn:', isMyTurn);
-  }, [transcript, isListening, isMyTurn]); // --- 핵심 로직: 녹음 및 음성 인식 중지
+  // 음성/텍스트 처리 및 다음 라인 진행
+  const processAndAdvance = useCallback(
+    async (text: string) => {
+      if (!currentLine || isProcessing || hasProcessedCurrentLine.current) {
+        return;
+      }
 
+      if (!text.trim()) {
+        return;
+      }
+
+      setIsProcessing(true);
+      hasProcessedCurrentLine.current = true;
+
+      // 원본 텍스트와 사용자 입력 비교
+      const originalText = currentLine.originalLine
+        .replace(/[^\w\s']/g, '')
+        .toLowerCase();
+      const processedInput = text
+        .trim()
+        .replace(/[^\w\s']/g, '')
+        .toLowerCase();
+
+      if (!processedInput) {
+        setIsProcessing(false);
+        hasProcessedCurrentLine.current = false;
+        return;
+      }
+
+      const diff = checkWordDiff(originalText, processedInput);
+
+      // 사용자 입력 저장
+      addUserInput(currentLineIndex, text, diff);
+      clearTranscript();
+
+      // 다음 라인으로
+      setTimeout(() => {
+        advanceLine();
+        setIsProcessing(false);
+      }, 2000);
+    },
+    [
+      currentLine,
+      isProcessing,
+      addUserInput,
+      currentLineIndex,
+      advanceLine,
+      clearTranscript,
+    ],
+  );
+
+  // 녹음 및 음성 인식 중지
   const stopRecordingAndListening = useCallback(async () => {
     return new Promise<void>((resolve) => {
       let resolved = false;
@@ -66,14 +114,54 @@ export function useUserInput() {
       };
 
       if (mediaRecorderRef.current?.state === 'recording') {
-        mediaRecorderRef.current.onstop = () => {
-          const blob = new Blob(audioChunksRef.current, {
-            type: 'audio/webm',
-          });
+        mediaRecorderRef.current.onstop = async () => {
+          if (audioChunksRef.current.length === 0) {
+            cleanup();
+            return;
+          }
+
+          // 녹음 파일 저장
+          const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
           const url = URL.createObjectURL(blob);
           addUserAudio(currentLineIndex, url);
+
+          if (hasProcessedCurrentLine.current) {
+            cleanup();
+            return;
+          }
+
+          let finalTranscript = transcript;
+
+          // Web Speech API 실패 시 Groq Whisper 사용
+          if (!finalTranscript || finalTranscript.trim().length === 0) {
+            try {
+              toast.loading('Transcribing...', { id: 'stt' });
+              finalTranscript = await transcribeAudio(blob);
+              toast.dismiss('stt');
+            } catch (error) {
+              console.error('[Groq] Transcription failed:', error);
+              toast.dismiss('stt');
+              toast.error('Speech recognition failed - Please type instead');
+              setInputMode('keyboard');
+              cleanup();
+              return;
+            }
+          }
+
+          // 텍스트 처리
+          if (finalTranscript && finalTranscript.trim().length > 0) {
+            processAndAdvance(finalTranscript);
+          } else {
+            toast('Speech recognition failed - Please type instead', {
+              icon: '⌨️',
+              duration: 2000,
+            });
+            setInputMode('keyboard');
+          }
+
           cleanup();
         };
+
         mediaRecorderRef.current.stop();
       } else {
         cleanup();
@@ -85,79 +173,19 @@ export function useUserInput() {
 
       setTimeout(() => cleanup(), 500);
     });
-  }, [isListening, stopListening, mediaStream, addUserAudio, currentLineIndex]); // --- 핵심 로직: 입력 처리 및 다음 라인 진행
+  }, [
+    isListening,
+    stopListening,
+    mediaStream,
+    addUserAudio,
+    currentLineIndex,
+    transcript,
+    processAndAdvance,
+    setInputMode,
+  ]);
 
-  const processAndAdvance = useCallback(
-    async (text: string) => {
-      if (!currentLine || isProcessing || hasProcessedCurrentLine.current) {
-        console.log('⚠️ [processAndAdvance] Skipped:', {
-          hasCurrentLine: !!currentLine,
-          isProcessing,
-          hasProcessed: hasProcessedCurrentLine.current,
-        });
-        return;
-      }
-
-      if (!text.trim()) {
-        toast.error("Oops! I didn't catch that. Could you please try again?");
-        await stopRecordingAndListening();
-        return;
-      }
-
-      console.log('✅ [processAndAdvance] Starting to process:', text);
-      setIsProcessing(true);
-      hasProcessedCurrentLine.current = true;
-      await stopRecordingAndListening();
-
-      const originalText = currentLine.originalLine
-        .replace(/[^\w\s']/g, '')
-        .toLowerCase();
-      const processedInput = text
-        .trim()
-        .replace(/[^\w\s']/g, '')
-        .toLowerCase();
-
-      if (!processedInput) {
-        setIsProcessing(false);
-        return;
-      }
-
-      console.log('📊 [processAndAdvance] Comparing:', {
-        original: originalText,
-        spoken: processedInput,
-      });
-
-      const diff = checkWordDiff(originalText, processedInput);
-      console.log('📊 [processAndAdvance] Diff result:', diff);
-
-      addUserInput(currentLineIndex, text, diff);
-      clearTranscript();
-
-      setTimeout(() => {
-        advanceLine();
-        setIsProcessing(false);
-      }, 2000);
-    },
-    [
-      currentLine,
-      isProcessing,
-      stopRecordingAndListening,
-      addUserInput,
-      currentLineIndex,
-      advanceLine,
-      clearTranscript,
-    ],
-  ); // --- 자동 제출: transcript가 완성되면 자동으로 처리
-
+  // Web Speech API 결과 자동 처리
   useEffect(() => {
-    console.log('🟢 [Auto-submit check]', {
-      hasTranscript: !!transcript,
-      transcriptLength: transcript.length,
-      notListening: !isListening,
-      isMyTurn,
-      hasProcessed: hasProcessedCurrentLine.current,
-    }); // transcript가 있고, 음성 인식이 끝났고, 내 차례이고, 아직 처리 안 했을 때
-
     if (
       transcript &&
       transcript.trim().length > 0 &&
@@ -165,11 +193,11 @@ export function useUserInput() {
       isMyTurn &&
       !hasProcessedCurrentLine.current
     ) {
-      console.log('✅ [Auto-submit] Conditions met! Processing...');
       processAndAdvance(transcript);
     }
-  }, [transcript, isListening, isMyTurn, processAndAdvance]); // --- 녹음 시작
+  }, [transcript, isListening, isMyTurn, processAndAdvance]);
 
+  // 녹음 시작
   const startRecording = useCallback(async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     setMediaStream(stream);
@@ -181,33 +209,31 @@ export function useUserInput() {
     const recorder = new MediaRecorder(stream, { mimeType });
     mediaRecorderRef.current = recorder;
     audioChunksRef.current = [];
+
     recorder.ondataavailable = (e) => {
-      if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      if (e.data.size > 0) {
+        audioChunksRef.current.push(e.data);
+      }
     };
-    recorder.onstop = () => {
-      const blob = new Blob(audioChunksRef.current, { type: mimeType });
-      const url = URL.createObjectURL(blob);
-      addUserAudio(currentLineIndex, url);
-    };
+
     recorder.start();
     return true;
-  }, [addUserAudio, currentLineIndex]); // --- 권한 관리
+  }, []);
 
   const [isPermissionRequestPending, setIsPermissionRequestPending] =
     useState(false);
 
+  // 마이크 권한 요청
   const requestPermission = useCallback(async () => {
-    console.log('[useUserInput] Requesting microphone permission...');
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      console.log('[useUserInput] Permission granted.');
       stream.getTracks().forEach((track) => track.stop());
     } catch (error) {
-      console.error('[useUserInput] Permission denied.', error);
-      toast.error('Microphone access is required to use voice input.');
+      toast.error('Microphone permission required');
     }
-  }, []); // --- 음성 인식 시작
+  }, []);
 
+  // 음성 인식 시작
   const startRecognition = useCallback(async () => {
     if (!isMyTurn) return;
     setTypedInput('');
@@ -215,28 +241,27 @@ export function useUserInput() {
     if (recordingStarted) {
       startListening();
     }
-  }, [isMyTurn, startRecording, startListening]); // 권한 승인 후 자동 시작
+  }, [isMyTurn, startRecording, startListening]);
 
+  // 권한 승인 후 자동 시작
   useEffect(() => {
     if (permissionStatus === 'granted' && isPermissionRequestPending) {
       startRecognition();
       setIsPermissionRequestPending(false);
     }
-  }, [permissionStatus, isPermissionRequestPending, startRecognition]); // --- 이벤트 핸들러: 마이크 버튼 클릭
+  }, [permissionStatus, isPermissionRequestPending, startRecognition]);
 
+  // 마이크 버튼 클릭
   const handleMicClick = async () => {
     if (isSpeaking) return;
 
     if (isListening) {
-      console.log('🛑 [handleMicClick] Stopping...');
       stopRecordingAndListening();
       return;
     }
 
     if (permissionStatus === 'denied') {
-      toast.error(
-        'Microphone access is denied. Please enable it in your browser settings.',
-      );
+      toast.error('Microphone permission denied');
       return;
     }
 
@@ -247,11 +272,11 @@ export function useUserInput() {
     }
 
     if (permissionStatus === 'granted') {
-      console.log('🎤 [handleMicClick] Starting recognition...');
       startRecognition();
     }
-  }; // --- 이벤트 핸들러: 키보드 제출
+  };
 
+  // 키보드 입력 제출
   const handleKeyboardSubmit = () => {
     if (typedInput.trim()) {
       processAndAdvance(typedInput);

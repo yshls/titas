@@ -18,6 +18,11 @@ if (!SpeechRecognition && typeof window !== 'undefined') {
   );
 }
 
+// ✅ 모바일 감지
+const isMobile =
+  typeof window !== 'undefined' &&
+  /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
 // 마이크 권한 요청 함수
 const requestMicrophonePermission = async (
   setPermissionStatus: (status: PermissionState) => void,
@@ -89,10 +94,16 @@ export function useSpeechRecognition() {
     const recognition = new SpeechRecognition();
     recognition.lang = 'en-US';
     recognition.interimResults = true;
-    recognition.continuous = true;
+
+    // ✅ 모바일에서는 continuous false
+    recognition.continuous = isMobile ? false : true;
     recognition.maxAlternatives = 1;
 
-    // ✅ 디버깅: 오디오 이벤트 추가
+    console.log(
+      `🔧 [CONFIG] isMobile: ${isMobile}, continuous: ${recognition.continuous}`,
+    );
+
+    // 디버깅: 오디오 이벤트
     recognition.onaudiostart = () => {
       console.log('🎙️ [onaudiostart] 마이크 입력 감지 시작!');
     };
@@ -126,7 +137,7 @@ export function useSpeechRecognition() {
     // 이벤트 핸들러: 결과
     recognition.onresult = (event: any) => {
       console.log('>>> [onresult] Result received');
-      console.log('>>> [onresult] Raw event:', event);
+      console.log('>>> [onresult] Results length:', event.results.length);
 
       // 기존 침묵 타이머 취소
       clearSilenceTimer();
@@ -134,8 +145,8 @@ export function useSpeechRecognition() {
       let interimText = '';
       let finalText = '';
 
-      // 결과 파싱
-      for (let i = event.resultIndex; i < event.results.length; i++) {
+      // ✅ 모든 결과를 처리 (resultIndex부터가 아닌 전체)
+      for (let i = 0; i < event.results.length; i++) {
         const text = event.results[i][0].transcript;
         const confidence = event.results[i][0].confidence;
         console.log(
@@ -152,6 +163,10 @@ export function useSpeechRecognition() {
       // 임시 결과 로깅
       if (interimText) {
         console.log('[Interim]:', interimText);
+        // ✅ 모바일에서는 interim도 transcript에 반영
+        if (isMobile) {
+          setTranscript(interimText);
+        }
       }
 
       // 확정 결과 처리
@@ -164,11 +179,12 @@ export function useSpeechRecognition() {
           return newValue;
         });
 
-        // 2초간 침묵 시 자동 중지
+        // ✅ 모바일: 1초, PC: 2초
+        const timeout = isMobile ? 1000 : 2000;
         silenceTimerRef.current = setTimeout(() => {
-          console.log('[Auto-stop] 2초 침묵 감지 → 자동 중지');
+          console.log(`[Auto-stop] ${timeout / 1000}초 침묵 감지 → 자동 중지`);
           stopRecognition();
-        }, 2000);
+        }, timeout);
       }
     };
 
@@ -176,9 +192,14 @@ export function useSpeechRecognition() {
     recognition.onerror = (event: any) => {
       console.error(`!!! [onerror] ${event.error}`, event);
 
-      // no-speech 에러는 일반적이므로 무시하고 계속 시도
+      // no-speech 에러: 모바일에서는 그냥 중지
       if (event.error === 'no-speech') {
-        console.log('[Info] No speech detected - 다시 말씀해주세요!');
+        console.log('[Info] No speech detected');
+        if (isMobile) {
+          // ✅ 모바일: interim 결과라도 있으면 사용
+          console.log('[Mobile] Checking interim results...');
+          stopRecognition();
+        }
         return;
       }
 
@@ -203,8 +224,14 @@ export function useSpeechRecognition() {
     // 이벤트 핸들러: 종료
     recognition.onend = () => {
       console.log('>>> [onend] Recognition ended');
+      console.log('>>> [onend] Final transcript:', transcript);
       setIsListening(false);
       clearSilenceTimer();
+
+      // ✅ 모바일: continuous false라서 자동 재시작 방지
+      if (isMobile) {
+        console.log('[Mobile] Recognition ended naturally');
+      }
     };
 
     recognitionRef.current = recognition;
@@ -220,11 +247,12 @@ export function useSpeechRecognition() {
         }
       }
     };
-  }, []); // 빈 배열: 한 번만 초기화
+  }, []);
 
   // 음성 인식 시작
   const startListening = useCallback(async () => {
     console.log('[START] Attempting to start recognition...');
+    console.log('[START] isMobile:', isMobile);
 
     // 권한 체크
     if (permissionStatus === 'prompt') {
@@ -272,7 +300,7 @@ export function useSpeechRecognition() {
     setTranscript('');
   }, []);
 
-  // 권한 재요청 (사용자가 권한 거부 후 다시 시도할 때)
+  // 권한 재요청
   const requestPermission = useCallback(async () => {
     return await requestMicrophonePermission(setPermissionStatus);
   }, []);

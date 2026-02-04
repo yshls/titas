@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import { ThemeProvider } from '@emotion/react'; //  Emotion 불러오기
+import { ThemeProvider } from '@emotion/react';
 import { HelmetProvider } from 'react-helmet-async';
 
 import { theme } from '@/styles/theme';
@@ -17,6 +17,10 @@ import { ScriptListPage } from '@/pages/ScriptListPage';
 import { ScriptDetailPage } from '@/pages/ScriptDetailPage';
 import { PrivacyPolicyPage } from '@/pages/PrivacyPolicyPage';
 import { TermsOfServicePage } from '@/pages/TermsOfServicePage';
+
+if (new URLSearchParams(window.location.search).has('debug')) {
+  import('eruda').then((eruda) => eruda.default.init());
+}
 
 const router = createBrowserRouter([
   {

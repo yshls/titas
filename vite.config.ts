@@ -9,8 +9,10 @@ export default defineConfig({
   server: {
     host: true,
     https: {
-      key: fs.readFileSync('./.certs/localhost-key.pem'),
-      cert: fs.readFileSync('./.certs/localhost.pem'),
+      key: fs.readFileSync(
+        path.resolve(__dirname, './.certs/localhost-key.pem'),
+      ),
+      cert: fs.readFileSync(path.resolve(__dirname, './.certs/localhost.pem')),
     },
     headers: {
       'Cross-Origin-Embedder-Policy': 'credentialless',

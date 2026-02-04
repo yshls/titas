@@ -77,6 +77,21 @@ Desktop.ini
 .env.production
 
 # ----------------------------------------
+#  Security & Certificates (보안 관련 - 절대 공개 금지!)
+# ----------------------------------------
+# Local SSL certificates
+certs/
+*.pem
+*.key
+*.crt
+*.cert
+
+# API Keys & Secrets (혹시 모를 실수 방지)
+*.secret
+secrets/
+.secrets/
+
+# ----------------------------------------
 #  Deployment & Frameworks (배포 툴 임시 파일)
 # ----------------------------------------
 .vercel

@@ -87,3 +87,8 @@ build
 #  Supabase Local Dev (로컬 개발용 임시 파일)
 # ----------------------------------------
 supabase/.temp
+
+# ----------------------------------------
+#  Local Development SSL Certificates
+# ----------------------------------------
+.certs/

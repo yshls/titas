@@ -2,18 +2,13 @@ import { defineConfig } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import fs from 'fs';
+import basicSsl from '@vitejs/plugin-basic-ssl';
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), basicSsl()],
   server: {
     host: true,
-    https: {
-      key: fs.readFileSync(
-        path.resolve(__dirname, './.certs/localhost-key.pem'),
-      ),
-      cert: fs.readFileSync(path.resolve(__dirname, './.certs/localhost.pem')),
-    },
+    https: {},
     headers: {
       'Cross-Origin-Embedder-Policy': 'credentialless',
       'Cross-Origin-Opener-Policy': 'same-origin',

@@ -12,11 +12,12 @@ export default defineConfig({
     https: (() => {
       const keyPath = './.certs/localhost-key.pem';
       const certPath = './.certs/localhost.pem';
+
       if (!fs.existsSync(keyPath) || !fs.existsSync(certPath)) {
-        throw new Error(
-          'SSL certificate files not found in ./.certs/. Please generate them for local development. See project documentation for details.',
-        );
+        console.log('⚠️  SSL certificates not found, using HTTP for local dev');
+        return undefined;
       }
+
       return {
         key: fs.readFileSync(keyPath),
         cert: fs.readFileSync(certPath),

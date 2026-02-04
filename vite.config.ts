@@ -8,10 +8,19 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     host: true,
-    https: {
-      key: fs.readFileSync('./.certs/localhost-key.pem'),
-      cert: fs.readFileSync('./.certs/localhost.pem'),
-    },
+    https: (() => {
+      const keyPath = './.certs/localhost-key.pem';
+      const certPath = './.certs/localhost.pem';
+      if (!fs.existsSync(keyPath) || !fs.existsSync(certPath)) {
+        throw new Error(
+          'SSL certificate files not found in ./.certs/. Please generate them for local development. See project documentation for details.',
+        );
+      }
+      return {
+        key: fs.readFileSync(keyPath),
+        cert: fs.readFileSync(certPath),
+      };
+    })(),
     headers: {
       'Cross-Origin-Embedder-Policy': 'credentialless',
       'Cross-Origin-Opener-Policy': 'same-origin',

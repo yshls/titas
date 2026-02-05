@@ -1,7 +1,7 @@
 import { supabase } from '@/supabaseClient';
 
 //  복습 로그 타입 정의
-interface PracticeLog {
+export interface PracticeLog {
   id: string;
   script_id: string; // 스크립트 ID
   line_index: number; // 문장 인덱스

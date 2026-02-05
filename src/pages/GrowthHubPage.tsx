@@ -8,6 +8,8 @@ import dayjs from 'dayjs';
 import { useAppStore } from '@/store/appStore';
 import { Seo } from '@/components/common/Seo';
 import confetti from 'canvas-confetti';
+import { motion, useSpring, useTransform } from 'framer-motion';
+import { supabase } from '@/supabaseClient';
 
 import {
   fetchMissions,
@@ -20,9 +22,18 @@ import {
   MdLocalFireDepartment,
   MdCheck,
   MdDeleteOutline,
+  MdPlayArrow,
+  MdDescription,
+  MdBarChart,
 } from 'react-icons/md';
 
-// 로직 헬퍼
+import {
+  loadAllScripts as loadAllScriptsFromLocal,
+  loadPracticeLogs as loadPracticeLogsFromLocal,
+} from '@/utils/storageService';
+import type { PracticeLog, ScriptData } from '@/utils/types';
+
+// 시간대별 인사말 생성 함수
 const getTimeBasedGreeting = (userName: string) => {
   const hour = new Date().getHours();
   if (hour >= 6 && hour < 12) {
@@ -60,17 +71,19 @@ const getTimeBasedGreeting = (userName: string) => {
   }
 };
 
-// 스타일
+// 메인 컨테이너
 const DashboardContainer = styled.div`
   width: 100%;
   padding-bottom: 40px;
   background-color: ${({ theme }) => theme.background};
 `;
 
+// 헤더 영역
 const HeaderSection = styled.header`
   margin-bottom: 32px;
 `;
 
+// 인사말 타이틀
 const GreetingTitle = styled.h1`
   font-family: 'Lato', sans-serif;
   font-size: 24px;
@@ -82,6 +95,7 @@ const GreetingTitle = styled.h1`
   }
 `;
 
+// 그리드 레이아웃 컨테이너
 const GridContainer = styled.div`
   display: grid;
   grid-template-columns: 1fr;
@@ -103,7 +117,6 @@ const CalendarCard = styled.div`
   flex-direction: column;
   align-items: center;
 
-  /* 캘린더 전체 */
   .react-calendar {
     width: 100%;
     max-width: 360px;
@@ -112,7 +125,6 @@ const CalendarCard = styled.div`
     background-color: transparent;
   }
 
-  /* 캘린더 네비게이션 */
   .react-calendar__navigation {
     margin-bottom: 24px;
   }
@@ -144,7 +156,6 @@ const CalendarCard = styled.div`
     background-color: transparent;
   }
 
-  /* 캘린더 요일 */
   .react-calendar__month-view__weekdays {
     text-align: center;
     font-size: 12px;
@@ -170,9 +181,7 @@ const CalendarCard = styled.div`
     color: ${({ theme }) => theme.colors.blue600};
   }
 
-  /* 캘린더 날짜 타일 */
   .react-calendar__tile {
-    /* 날짜 타일 너비 */
     flex: 0 0 calc(14.2857% - 4px) !important;
     max-width: calc(14.2857% - 4px) !important;
 
@@ -201,7 +210,6 @@ const CalendarCard = styled.div`
     color: ${({ theme }) => theme.colors.red600};
   }
 
-  /* 오늘 날짜 타일 */
   .react-calendar__tile--now {
     background: transparent;
     color: ${({ theme }) => theme.textMain};
@@ -214,7 +222,6 @@ const CalendarCard = styled.div`
     color: white !important;
   }
 
-  /* 히트맵 색상 */
   .color-scale-1 {
     background-color: ${({ theme }) => theme.colors.orange50} !important;
     color: ${({ theme }) => theme.colors.primary} !important;
@@ -245,7 +252,67 @@ const CalendarCard = styled.div`
   }
 `;
 
-// 연속 연습 정보
+// 통계 카드 (애니메이션 적용)
+const StatCard = styled(motion.div)`
+  background: ${({ theme }) => theme.cardBg};
+  border-radius: 20px;
+  border: 1px solid ${({ theme }) => theme.border};
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+`;
+
+// 배경 글로우 효과
+const GlowEffect = styled(motion.div)`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100px;
+  height: 100px;
+  background: radial-gradient(
+    circle,
+    rgba(255, 107, 107, 0.3) 0%,
+    transparent 70%
+  );
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+`;
+
+// 아이콘 래퍼 (애니메이션 적용)
+const StatIconWrapper = styled(motion.div)<{ bgColor: string }>`
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: ${({ bgColor }) => bgColor};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+`;
+
+// 통계 라벨
+const StatLabel = styled.p`
+  font-size: 12px;
+  font-weight: 600;
+  color: ${({ theme }) => theme.textSub};
+  margin: 12px 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+`;
+
+// 통계 값
+const StatValue = styled.h2`
+  font-family: 'Lato', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  color: ${({ theme }) => theme.textMain};
+  line-height: 1;
+`;
+
+// 연속 연습 정보 영역
 const StreakInfo = styled.div`
   width: 100%;
   max-width: 360px;
@@ -257,6 +324,7 @@ const StreakInfo = styled.div`
   align-items: center;
 `;
 
+// 연속 연습 개별 항목
 const StreakItem = styled.div`
   display: flex;
   flex-direction: column;
@@ -272,7 +340,7 @@ const StreakItem = styled.div`
   }
 `;
 
-// 일일 미션
+// 섹션 제목
 const SectionTitle = styled.h3`
   font-family: 'Lato', sans-serif;
   font-size: 18px;
@@ -281,18 +349,21 @@ const SectionTitle = styled.h3`
   margin-bottom: 16px;
 `;
 
+// 날짜 표시
 const SectionDate = styled.span`
   font-size: 14px;
   color: ${({ theme }) => theme.textSub};
   font-weight: 500;
 `;
 
+// 미션 목록 컨테이너
 const TaskList = styled.div`
   display: flex;
   flex-direction: column;
   gap: 12px;
 `;
 
+// 빈 미션 표시
 const EmptyTask = styled.div`
   padding: 20px;
   text-align: center;
@@ -300,6 +371,7 @@ const EmptyTask = styled.div`
   font-size: 14px;
 `;
 
+// 미션 개별 항목
 const TaskItem = styled.div`
   display: flex;
   align-items: center;
@@ -315,6 +387,7 @@ const TaskItem = styled.div`
   }
 `;
 
+// 체크박스 버튼
 const Checkbox = styled.button<{ checked?: boolean }>`
   width: 20px;
   height: 20px;
@@ -332,6 +405,7 @@ const Checkbox = styled.button<{ checked?: boolean }>`
   cursor: pointer;
 `;
 
+// 미션 텍스트
 const TaskText = styled.span<{ checked?: boolean }>`
   font-size: 14px;
   color: ${({ theme }) => theme.textMain};
@@ -339,6 +413,7 @@ const TaskText = styled.span<{ checked?: boolean }>`
   flex: 1;
 `;
 
+// 삭제 버튼
 const DeleteButton = styled.button`
   opacity: 0;
   color: ${({ theme }) => theme.colors.error};
@@ -354,6 +429,7 @@ const DeleteButton = styled.button`
   }
 `;
 
+// 미션 입력 영역
 const TaskInputWrapper = styled.div`
   margin-top: 24px;
   display: flex;
@@ -363,6 +439,7 @@ const TaskInputWrapper = styled.div`
   border-radius: 16px;
 `;
 
+// 미션 입력 필드
 const TaskInput = styled.input`
   flex: 1;
   background: transparent;
@@ -376,6 +453,7 @@ const TaskInput = styled.input`
   }
 `;
 
+// 추가 버튼
 const AddButton = styled.button`
   background-color: ${({ theme }) => theme.colors.primary};
   color: white;
@@ -390,45 +468,20 @@ const AddButton = styled.button`
   }
 `;
 
-// 전체 통계
+// 통계 스택 컨테이너
 const StatsStack = styled.div`
   display: flex;
   flex-direction: column;
   gap: 16px;
 `;
 
+// 칼럼 컨테이너
 const Column = styled.div`
   display: flex;
   flex-direction: column;
 `;
 
-const StatCard = styled.div`
-  background: ${({ theme }) => theme.cardBg};
-  border-radius: 24px;
-  border: 1px solid ${({ theme }) => theme.border};
-  padding: 32px 24px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-`;
-
-const StatLabel = styled.p`
-  font-size: 14px;
-  font-weight: 600;
-  color: ${({ theme }) => theme.textMain};
-  margin-bottom: 12px;
-`;
-
-const StatValue = styled.h2`
-  font-family: 'Lato', sans-serif;
-  font-size: 36px;
-  font-weight: 800;
-  color: ${({ theme }) => theme.textMain};
-`;
-
-// Toast
+// 토스트 컨테이너
 const ToastContainer = styled.div`
   background: ${({ theme }) => theme.cardBg};
   border: 1px solid ${({ theme }) => theme.border};
@@ -443,18 +496,21 @@ const ToastContainer = styled.div`
   min-width: 280px;
 `;
 
+// 토스트 메시지
 const ToastMessage = styled.span`
   font-weight: 600;
   color: ${({ theme }) => theme.textMain};
   font-size: 15px;
 `;
 
+// 토스트 액션 버튼 영역
 const ToastActions = styled.div`
   display: flex;
   gap: 8px;
   width: 100%;
 `;
 
+// 토스트 버튼
 const ToastButton = styled.button<{ variant?: 'danger' | 'cancel' }>`
   flex: 1;
   border: none;
@@ -481,25 +537,99 @@ const ToastButton = styled.button<{ variant?: 'danger' | 'cancel' }>`
   `}
 `;
 
-import {
-  loadAllScripts as loadAllScriptsFromLocal,
-  loadPracticeLogs as loadPracticeLogsFromLocal,
-} from '@/utils/storageService';
-import type { PracticeLog, ScriptData } from '@/utils/types';
+// 아이콘 컨테이너
+const IconContainer = styled.div`
+  position: relative;
+  z-index: 1;
+`;
 
-// GrowthHub 페이지
+// 비로그인 시 빈 상태 카드
+const EmptyStateCard = styled.div`
+  background: ${({ theme }) => theme.cardBg};
+  border: 1px solid ${({ theme }) => theme.border};
+  border-radius: 16px;
+  padding: 40px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+`;
+
+// 빈 상태 아이콘
+const EmptyIcon = styled.div`
+  font-size: 48px;
+  margin-bottom: 8px;
+`;
+
+// 빈 상태 제목
+const EmptyTitle = styled.h4`
+  font-family: 'Lato', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.textMain};
+  margin: 0;
+`;
+
+// 빈 상태 설명
+const EmptyText = styled.p`
+  font-size: 14px;
+  color: ${({ theme }) => theme.textSub};
+  margin: 0 0 8px;
+  line-height: 1.5;
+`;
+
+// 로그인 버튼
+const LoginButton = styled.button`
+  background: ${({ theme }) => theme.colors.primary};
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 32px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+  }
+`;
+
+// 숫자 카운팅 애니메이션 컴포넌트
+function AnimatedCounter({ value }: { value: number }) {
+  const motionValue = useSpring(0, {
+    stiffness: 100,
+    damping: 30,
+  });
+
+  const display = useTransform(motionValue, (latest) =>
+    Math.round(latest).toLocaleString(),
+  );
+
+  useEffect(() => {
+    motionValue.set(value);
+  }, [value, motionValue]);
+
+  return <motion.span>{display}</motion.span>;
+}
+
+// 메인 컴포넌트
 export function GrowthHubPage() {
   const theme = useTheme();
 
-  // 데이터 소스 분기 처리
+  // 스토어에서 데이터 가져오기
   const user = useAppStore((state) => state.user);
   const storeScripts = useAppStore((state) => state.allScripts);
   const storeLogs = useAppStore((state) => state.practiceLogs);
   const language = useAppStore((state) => state.language);
 
+  // 로컬 데이터 상태
   const [localScripts, setLocalScripts] = useState<ScriptData[]>([]);
   const [localLogs, setLocalLogs] = useState<PracticeLog[]>([]);
 
+  // 비로그인 시 로컬 스토리지에서 데이터 로드
   useEffect(() => {
     if (!user) {
       setLocalScripts(loadAllScriptsFromLocal());
@@ -507,10 +637,11 @@ export function GrowthHubPage() {
     }
   }, [user]);
 
+  // 로그인 여부에 따라 데이터 소스 결정
   const allScripts = user ? storeScripts : localScripts;
   const practiceLogs = user ? storeLogs : localLogs;
 
-  // 시간에 따른 인사
+  // 사용자 이름 및 인사말
   const userName = user?.user_metadata.full_name?.split(' ')[0] || 'User';
   const greeting = useMemo(() => getTimeBasedGreeting(userName), [userName]);
 
@@ -518,26 +649,24 @@ export function GrowthHubPage() {
   const [tasks, setTasks] = useState<Mission[]>([]);
   const [newTask, setNewTask] = useState('');
 
-  // 선택된 날짜
+  // 캘린더 날짜 상태
   const [selectedDate, setSelectedDate] = useState(new Date());
-
-  // 캘린더 표시 월
   const [activeStartDate, setActiveStartDate] = useState(new Date());
 
-  // 날짜 변경시 미션 로드 (로그인 사용자만)
+  // 선택된 날짜의 미션 로드
   useEffect(() => {
     const loadMissions = async () => {
       if (user) {
         const data = await fetchMissions(selectedDate.getTime());
         setTasks(data);
       } else {
-        setTasks([]); // 비로그인 시 미션 초기화
+        setTasks([]);
       }
     };
     loadMissions();
   }, [user, selectedDate]);
 
-  // 미션 추가
+  // 미션 추가 핸들러
   const addTask = async () => {
     if (!newTask.trim()) return;
     if (!user) {
@@ -551,21 +680,21 @@ export function GrowthHubPage() {
     }
   };
 
-  // 미션 완료 토글
+  // 미션 완료/미완료 토글
   const toggleTask = async (id: string, currentStatus: boolean) => {
     setTasks((prev) =>
       prev.map((t) => (t.id === id ? { ...t, completed: !currentStatus } : t)),
     );
     await toggleMissionInDB(id, !currentStatus);
 
+    // 완료 시 축하 효과
     if (!currentStatus) {
-      // 완료 시
       confetti({
         particleCount: 100,
         spread: 70,
         origin: { y: 0.6 },
       });
-      toast.success('🎉 Mission completed!');
+      toast.success('Mission completed!');
     }
   };
 
@@ -576,6 +705,7 @@ export function GrowthHubPage() {
     toast.success('Mission deleted.');
   };
 
+  // 삭제 확인 토스트
   const confirmDelete = (id: string) => {
     toast.custom(
       (t) => (
@@ -603,7 +733,23 @@ export function GrowthHubPage() {
     );
   };
 
-  // 캘린더 히트맵 데이터
+  // 로그인 핸들러
+  const handleLogin = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin,
+        },
+      });
+      if (error) throw error;
+    } catch (error) {
+      console.error('Login error:', error);
+      toast.error('Failed to login. Please try again.');
+    }
+  };
+
+  // 날짜별 연습 횟수 계산
   const practiceFrequency = useMemo(() => {
     return practiceLogs.reduce(
       (acc, log) => {
@@ -615,7 +761,7 @@ export function GrowthHubPage() {
     );
   }, [practiceLogs]);
 
-  // 캘린더 타일 클래스
+  // 캘린더 타일 색상 클래스 결정
   const tileClassName = ({ date, view }: { date: Date; view: string }) => {
     if (view === 'month') {
       const dateKey = dayjs(date).format('YYYY-MM-DD');
@@ -628,17 +774,27 @@ export function GrowthHubPage() {
     return null;
   };
 
-  // 통계 데이터
+  // 전체 문장 수 계산
   const totalSentences = useMemo(
     () => allScripts.reduce((acc, script) => acc + script.lines.length, 0),
     [allScripts],
   );
 
+  // 연속 연습 일수 계산
   const currentStreak = useMemo(() => {
-    const today = dayjs().format('YYYY-MM-DD');
-    return practiceFrequency[today] ? 1 : 0; // 오늘 연습 여부 확인
+    let streak = 0;
+    let date = dayjs();
+
+    // 오늘부터 거슬러 올라가며 연속 일수 체크
+    while (practiceFrequency[date.format('YYYY-MM-DD')]) {
+      streak++;
+      date = date.subtract(1, 'day');
+    }
+
+    return streak;
   }, [practiceFrequency]);
 
+  // SEO 설정
   const seoProps =
     language === 'en'
       ? {
@@ -647,14 +803,16 @@ export function GrowthHubPage() {
             'Track your English learning progress, manage daily missions, and see your practice statistics all in one place.',
         }
       : {
-          title: '대시보드 - 당신의 영어 성장 허브',
+          title: 'Dashboard - Your English Growth Hub',
           description:
-            '영어 학습 진행 상황을 추적하고, 일일 미션을 관리하며, 연습 통계를 한 곳에서 확인하세요.',
+            'Track English learning progress, manage daily missions, and practice statistics.',
         };
 
   return (
     <DashboardContainer>
       <Seo {...seoProps} />
+
+      {/* 헤더 */}
       <HeaderSection>
         <GreetingTitle>{greeting.title}</GreetingTitle>
       </HeaderSection>
@@ -675,12 +833,40 @@ export function GrowthHubPage() {
               setActiveStartDate(activeStartDate!)
             }
           />
+
+          {/* 연속 연습 정보 */}
           <StreakInfo>
             <StreakItem>
               <strong>{currentStreak} Days</strong>
               <span>Current Streak</span>
             </StreakItem>
-            <MdLocalFireDepartment size={32} color={theme.colors.orange700} />
+
+            {/* 불꽃 아이콘 (연속 연습 시 애니메이션) */}
+            <motion.div
+              animate={
+                currentStreak > 0
+                  ? {
+                      scale: [1, 1.2, 1],
+                      rotate: [0, 10, -10, 0],
+                    }
+                  : {}
+              }
+              transition={{
+                duration: 0.5,
+                repeat: Infinity,
+                repeatDelay: 2,
+              }}
+            >
+              <MdLocalFireDepartment
+                size={32}
+                color={
+                  currentStreak > 0
+                    ? theme.colors.orange700
+                    : theme.colors.grey400
+                }
+              />
+            </motion.div>
+
             <StreakItem>
               <strong>{practiceLogs.length} Times</strong>
               <span>Total Practice</span>
@@ -695,44 +881,54 @@ export function GrowthHubPage() {
             <SectionDate>({dayjs(selectedDate).format('MMM D')})</SectionDate>
           </SectionTitle>
 
-          <TaskList>
-            {tasks.length === 0 && (
-              <EmptyTask>
-                {user
-                  ? 'No missions for this day. Plan ahead!'
-                  : 'Log in to use Daily Missions.'}
-              </EmptyTask>
-            )}
-            {tasks.map((task) => (
-              <TaskItem key={task.id}>
-                <Checkbox
-                  checked={task.completed}
-                  onClick={() => toggleTask(task.id, task.completed)}
-                >
-                  {task.completed && <MdCheck size={14} />}
-                </Checkbox>
-                <TaskText checked={task.completed}>{task.text}</TaskText>
-                <DeleteButton
-                  className="delete-btn"
-                  onClick={() => confirmDelete(task.id)}
-                >
-                  <MdDeleteOutline size={18} />
-                </DeleteButton>
-              </TaskItem>
-            ))}
-          </TaskList>
+          {/* 비로그인 시 로그인 유도 카드 표시 */}
+          {!user ? (
+            <EmptyStateCard>
+              <EmptyIcon>🎯</EmptyIcon>
+              <EmptyTitle>Daily Missions Available</EmptyTitle>
+              <EmptyText>
+                Track your daily goals and stay motivated with personalized
+                missions
+              </EmptyText>
+              <LoginButton onClick={handleLogin}>Login to Start</LoginButton>
+            </EmptyStateCard>
+          ) : (
+            <>
+              {/* 미션 목록 */}
+              <TaskList>
+                {tasks.length === 0 && (
+                  <EmptyTask>No missions for this day. Plan ahead!</EmptyTask>
+                )}
+                {tasks.map((task) => (
+                  <TaskItem key={task.id}>
+                    <Checkbox
+                      checked={task.completed}
+                      onClick={() => toggleTask(task.id, task.completed)}
+                    >
+                      {task.completed && <MdCheck size={14} />}
+                    </Checkbox>
+                    <TaskText checked={task.completed}>{task.text}</TaskText>
+                    <DeleteButton
+                      className="delete-btn"
+                      onClick={() => confirmDelete(task.id)}
+                    >
+                      <MdDeleteOutline size={18} />
+                    </DeleteButton>
+                  </TaskItem>
+                ))}
+              </TaskList>
 
-          {/* 새 미션 입력 (로그인 시에만 렌더링) */}
-          {user && (
-            <TaskInputWrapper>
-              <TaskInput
-                placeholder="Add a new mission..."
-                value={newTask}
-                onChange={(e) => setNewTask(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && addTask()}
-              />
-              <AddButton onClick={addTask}>Add</AddButton>
-            </TaskInputWrapper>
+              {/* 미션 추가 입력 */}
+              <TaskInputWrapper>
+                <TaskInput
+                  placeholder="Add a new mission..."
+                  value={newTask}
+                  onChange={(e) => setNewTask(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && addTask()}
+                />
+                <AddButton onClick={addTask}>Add</AddButton>
+              </TaskInputWrapper>
+            </>
           )}
         </Column>
 
@@ -740,22 +936,146 @@ export function GrowthHubPage() {
         <Column>
           <SectionTitle>Statistics</SectionTitle>
           <StatsStack>
-            <StatCard>
+            {/* 통계 카드 1: 선택된 날짜 연습 횟수 */}
+            <StatCard
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0 }}
+              whileHover={{
+                scale: 1.03,
+                y: -5,
+                transition: { duration: 0.2 },
+              }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <GlowEffect
+                animate={{
+                  scale: [1, 1.5, 1],
+                  opacity: [0.3, 0.6, 0.3],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }}
+              />
+
+              <IconContainer>
+                <StatIconWrapper
+                  bgColor="#FF6B6B"
+                  whileHover={{
+                    rotate: [0, -10, 10, 0],
+                    transition: { duration: 0.5 },
+                  }}
+                >
+                  <MdPlayArrow size={20} />
+                </StatIconWrapper>
+              </IconContainer>
+
               <StatLabel>Selected Date Practice</StatLabel>
               <StatValue>
-                {practiceFrequency[dayjs(selectedDate).format('YYYY-MM-DD')] ||
-                  0}
+                <AnimatedCounter
+                  value={
+                    practiceFrequency[
+                      dayjs(selectedDate).format('YYYY-MM-DD')
+                    ] || 0
+                  }
+                />
               </StatValue>
             </StatCard>
 
-            <StatCard>
+            {/* 통계 카드 2: 전체 문장 수 */}
+            <StatCard
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+              whileHover={{
+                scale: 1.03,
+                y: -5,
+                transition: { duration: 0.2 },
+              }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <GlowEffect
+                animate={{
+                  scale: [1, 1.5, 1],
+                  opacity: [0.3, 0.6, 0.3],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                  delay: 0.5,
+                }}
+                style={{
+                  background:
+                    'radial-gradient(circle, rgba(78, 205, 196, 0.3) 0%, transparent 100%)',
+                }}
+              />
+
+              <IconContainer>
+                <StatIconWrapper
+                  bgColor="#4ECDC4"
+                  whileHover={{
+                    rotate: [0, -10, 10, 0],
+                    transition: { duration: 0.5 },
+                  }}
+                >
+                  <MdDescription size={20} />
+                </StatIconWrapper>
+              </IconContainer>
+
               <StatLabel>Total Sentences</StatLabel>
-              <StatValue>{totalSentences}</StatValue>
+              <StatValue>
+                <AnimatedCounter value={totalSentences} />
+              </StatValue>
             </StatCard>
 
-            <StatCard>
+            {/* 통계 카드 3: 전체 스크립트 수 */}
+            <StatCard
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.2 }}
+              whileHover={{
+                scale: 1.03,
+                y: -5,
+                transition: { duration: 0.2 },
+              }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <GlowEffect
+                animate={{
+                  scale: [1, 1.5, 1],
+                  opacity: [0.3, 0.6, 0.3],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                  delay: 1,
+                }}
+                style={{
+                  background:
+                    'radial-gradient(circle, rgba(255, 230, 109, 0.3) 0%, transparent 100%)',
+                }}
+              />
+
+              <IconContainer>
+                <StatIconWrapper
+                  bgColor="#FFE66D"
+                  whileHover={{
+                    rotate: [0, -10, 10, 0],
+                    transition: { duration: 0.5 },
+                  }}
+                >
+                  <MdBarChart size={20} />
+                </StatIconWrapper>
+              </IconContainer>
+
               <StatLabel>Total Scripts</StatLabel>
-              <StatValue>{allScripts.length}</StatValue>
+              <StatValue>
+                <AnimatedCounter value={allScripts.length} />
+              </StatValue>
             </StatCard>
           </StatsStack>
         </Column>

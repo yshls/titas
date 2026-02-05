@@ -407,7 +407,11 @@ export function ScriptDetailPage() {
     return (
       <ErrorContainer>
         <Seo
-          title={language === 'en' ? 'Script Not Found' : '스크립트를 찾을 수 없습니다'}
+          title={
+            language === 'en'
+              ? 'Script Not Found'
+              : '스크립트를 찾을 수 없습니다'
+          }
         />
         <ErrorTitle>Script Not Found</ErrorTitle>
         <ErrorMessage>

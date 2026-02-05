@@ -13,6 +13,7 @@ import { migrateData } from '@/services/migrateService';
 // --- [스타일 컴포넌트] ---
 
 const LanguageSwitcher = styled.button`
+  display: none;
   background: none;
   border: 1px solid ${({ theme }) => theme.border};
   color: ${({ theme }) => theme.textSub};
@@ -424,6 +425,7 @@ const NAV_ITEMS = [
   { to: '/', text: 'Dashboard' },
   { to: '/create', text: 'Create' },
   { to: '/scripts', text: 'Scripts' },
+  { to: '/mistakes', text: 'Mistakes' },
   { to: '/review', text: 'Review' },
 ];
 
@@ -663,9 +665,7 @@ export function RootLayout() {
                   <DrawerHeader>
                     <WelcomeText>
                       {user
-                        ? `Hello, ${
-                            user.user_metadata.full_name.split(' ')[0]
-                          }`
+                        ? `Hello, ${user.user_metadata.full_name.split(' ')[0]}`
                         : 'Welcome!'}
                     </WelcomeText>
                   </DrawerHeader>

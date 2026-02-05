@@ -12,7 +12,8 @@ import { RootLayout } from '@/layouts/RootLayout';
 import { GrowthHubPage } from '@/pages/GrowthHubPage';
 import { CreatorPage } from '@/pages/CreatorPage';
 import { TalkPage } from '@/pages/TalkPage';
-import { ReviewPage } from '@/pages/ReviewPage';
+import { MistakesPage } from '@/pages/MistakesPage';
+import ReviewPage from '@/pages/ReviewPage';
 import { ScriptListPage } from '@/pages/ScriptListPage';
 import { ScriptDetailPage } from '@/pages/ScriptDetailPage';
 import { PrivacyPolicyPage } from '@/pages/PrivacyPolicyPage';
@@ -30,6 +31,7 @@ const router = createBrowserRouter([
       { path: '/', element: <GrowthHubPage /> },
       { path: '/create', element: <CreatorPage /> },
       { path: '/talk/:scriptId', element: <TalkPage /> },
+      { path: '/mistakes', element: <MistakesPage /> },
       { path: '/review', element: <ReviewPage /> },
       { path: '/scripts', element: <ScriptListPage /> },
       { path: '/script/:id', element: <ScriptDetailPage /> },

@@ -7,6 +7,7 @@ import 'react-calendar/dist/Calendar.css';
 import dayjs from 'dayjs';
 import { useAppStore } from '@/store/appStore';
 import { Seo } from '@/components/common/Seo';
+import confetti from 'canvas-confetti';
 
 import {
   fetchMissions,
@@ -486,10 +487,6 @@ import {
 } from '@/utils/storageService';
 import type { PracticeLog, ScriptData } from '@/utils/types';
 
-
-
-
-
 // GrowthHub 페이지
 export function GrowthHubPage() {
   const theme = useTheme();
@@ -560,6 +557,16 @@ export function GrowthHubPage() {
       prev.map((t) => (t.id === id ? { ...t, completed: !currentStatus } : t)),
     );
     await toggleMissionInDB(id, !currentStatus);
+
+    if (!currentStatus) {
+      // 완료 시
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 },
+      });
+      toast.success('🎉 Mission completed!');
+    }
   };
 
   // 미션 삭제
@@ -756,4 +763,3 @@ export function GrowthHubPage() {
     </DashboardContainer>
   );
 }
-

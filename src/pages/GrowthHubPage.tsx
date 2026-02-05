@@ -8,8 +8,9 @@ import dayjs from 'dayjs';
 import { useAppStore } from '@/store/appStore';
 import { Seo } from '@/components/common/Seo';
 import confetti from 'canvas-confetti';
-import { motion, useSpring, useTransform } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { supabase } from '@/supabaseClient';
+import { AnimatedCounter } from '@/components/common/AnimatedCounter';
 
 import {
   fetchMissions,
@@ -597,24 +598,6 @@ const LoginButton = styled.button`
   }
 `;
 
-// 숫자 카운팅 애니메이션 컴포넌트
-function AnimatedCounter({ value }: { value: number }) {
-  const motionValue = useSpring(0, {
-    stiffness: 100,
-    damping: 30,
-  });
-
-  const display = useTransform(motionValue, (latest) =>
-    Math.round(latest).toLocaleString(),
-  );
-
-  useEffect(() => {
-    motionValue.set(value);
-  }, [value, motionValue]);
-
-  return <motion.span>{display}</motion.span>;
-}
-
 // 메인 컴포넌트
 export function GrowthHubPage() {
   const theme = useTheme();
@@ -803,9 +786,9 @@ export function GrowthHubPage() {
             'Track your English learning progress, manage daily missions, and see your practice statistics all in one place.',
         }
       : {
-          title: 'Dashboard - Your English Growth Hub',
+          title: '대시보드 - 당신의 영어 성장 허브',
           description:
-            'Track English learning progress, manage daily missions, and practice statistics.',
+            '영어 학습 진행 상황을 추적하고, 일일 미션을 관리하며, 연습 통계를 한 곳에서 확인하세요.',
         };
 
   return (

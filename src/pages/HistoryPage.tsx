@@ -51,57 +51,95 @@ const HistoryList = styled.div`
   gap: 12px;
 `;
 
-const HistoryCard = styled.div`
-  padding: 16px;
-  background: ${({ theme }) => theme.cardBg};
-  border-radius: 12px;
-  border: 1px solid ${({ theme }) => theme.border};
+const GroupContainer = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  }
+  gap: 16px;
 `;
 
-const CardHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+const DateHeader = styled.h2`
+  font-size: 14px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.textSub};
+  margin: 12px 0 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 `;
 
-const ScriptTitle = styled.h3`
+const ScriptGroupCard = styled.div`
+  background: ${({ theme }) => theme.cardBg};
+  border-radius: 16px;
+  border: 1px solid ${({ theme }) => theme.border};
+  overflow: hidden;
+`;
+
+const ScriptGroupHeader = styled.div`
+  padding: 16px;
+  background: ${({ theme }) => theme.background};
+  border-bottom: 1px solid ${({ theme }) => theme.border};
+`;
+
+const ScriptGroupTitle = styled.h3`
   font-size: 16px;
   font-weight: 700;
   color: ${({ theme }) => theme.textMain};
-  margin-bottom: 4px;
+  line-height: 1.4;
 `;
 
-const DateText = styled.span`
-  font-size: 12px;
-  color: ${({ theme }) => theme.textSub};
-`;
-
-const CardStats = styled.div`
+const AttemptList = styled.div`
   display: flex;
-  gap: 12px;
-  font-size: 13px;
-  color: ${({ theme }) => theme.textSub};
+  flex-direction: column;
 `;
 
-const StatItem = styled.span`
+const AttemptRow = styled.div`
   display: flex;
   align-items: center;
-  gap: 4px;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid ${({ theme }) => theme.border};
+  cursor: pointer;
+  transition: background-color 0.2s;
 
-  strong {
-    color: ${({ theme }) => theme.textMain};
-    font-weight: 600;
+  &:last-child {
+    border-bottom: none;
   }
+
+  &:hover {
+    background-color: ${({ theme }) => theme.background};
+  }
+`;
+
+const AttemptInfo = styled.div`
+  display: flex;
+  gap: 12px;
+  align-items: center;
+`;
+
+const AttemptTime = styled.span`
+  font-size: 13px;
+  color: ${({ theme }) => theme.textSub};
+  font-variant-numeric: tabular-nums;
+  width: 60px;
+`;
+
+const AttemptLine = styled.span`
+  font-size: 13px;
+  font-weight: 600;
+  color: ${({ theme }) => theme.textMain};
+  background: ${({ theme }) => theme.border};
+  padding: 2px 8px;
+  border-radius: 6px;
+`;
+
+const AttemptScore = styled.span<{ score: number }>`
+  font-size: 13px;
+  font-weight: 700;
+  color: ${({ score, theme }) =>
+    score >= 90
+      ? theme.colors.success
+      : score >= 70
+        ? theme.colors.primary
+        : theme.colors.error};
 `;
 
 const EmptyState = styled.div`
@@ -155,6 +193,34 @@ export function HistoryPage() {
     [allScripts],
   );
 
+  const groupedLogs = useMemo(() => {
+    const groups: Record<string, Record<string, FSRSReviewLog[]>> = {};
+
+    logs.forEach((log) => {
+      const date = dayjs(log.last_reviewed);
+      const today = dayjs();
+      const yesterday = dayjs().subtract(1, 'day');
+
+      let dateLabel = date.format('MMMM D, YYYY');
+      if (date.isSame(today, 'day')) dateLabel = 'Today';
+      if (date.isSame(yesterday, 'day')) dateLabel = 'Yesterday';
+
+      if (!groups[dateLabel]) {
+        groups[dateLabel] = {};
+      }
+
+      
+      const scriptKey =
+        String(log.script_id) || (log as any).script_title || 'Unknown';
+      if (!groups[dateLabel][scriptKey]) {
+        groups[dateLabel][scriptKey] = [];
+      }
+      groups[dateLabel][scriptKey].push(log);
+    });
+
+    return groups;
+  }, [logs]);
+
   const getScriptTitle = (log: FSRSReviewLog) => {
     if (log.script_id) {
       return (
@@ -191,50 +257,57 @@ export function HistoryPage() {
         </EmptyState>
       ) : (
         <HistoryList>
-          {logs.map((log, index) => (
-            <HistoryCard
-              key={
-                (log as any).id ||
-                `${log.script_id}-${log.line_index}-${log.last_reviewed}-${index}`
-              }
-              onClick={() => {
-                let targetId = log.script_id;
-                if (!targetId && (log as any).script_title) {
-                  const foundScript = allScripts.find(
-                    (s) => s.title === (log as any).script_title,
-                  );
-                  if (foundScript) targetId = Number(foundScript.id);
-                }
 
-                if (targetId) {
-                  navigate(`/talk/${targetId}?line=${log.line_index}`);
-                } else {
-                  // If we really can't find the script, maybe just go to home or show toast
-                  // For now, let's just try to go to talk with what we have or alert
-                  console.warn('Cannot find script ID for log:', log);
-                }
-              }}
-            >
-              <CardHeader>
-                <ScriptTitle>{getScriptTitle(log)}</ScriptTitle>
-                <DateText>
-                  {log.last_reviewed
-                    ? dayjs(log.last_reviewed).format('MMM D, HH:mm')
-                    : '-'}
-                </DateText>
-              </CardHeader>
-              <CardStats>
-                <StatItem>
-                  Line: <strong>{log.line_index + 1}</strong>
-                </StatItem>
-                <StatItem>
-                  Accuracy: <strong>{log.accuracy}%</strong>
-                </StatItem>
-                <StatItem>
-                  Repetitions: <strong>{log.repetitions || 0}</strong>
-                </StatItem>
-              </CardStats>
-            </HistoryCard>
+          {Object.entries(groupedLogs).map(([dateLabel, scriptGroups]) => (
+            <GroupContainer key={dateLabel}>
+              <DateHeader>{dateLabel}</DateHeader>
+              {Object.entries(scriptGroups).map(([scriptKey, attempts]) => (
+                <ScriptGroupCard key={scriptKey}>
+                  <ScriptGroupHeader>
+                    <ScriptGroupTitle>
+                      {getScriptTitle(attempts[0])}
+                    </ScriptGroupTitle>
+                  </ScriptGroupHeader>
+                  <AttemptList>
+                    {attempts.map((log, index) => (
+                      <AttemptRow
+                        key={
+                          (log as any).id ||
+                          `${log.script_id}-${log.line_index}-${log.last_reviewed}-${index}`
+                        }
+                        onClick={() => {
+                          let targetId = log.script_id;
+                          if (!targetId && (log as any).script_title) {
+                            const foundScript = allScripts.find(
+                              (s) => s.title === (log as any).script_title,
+                            );
+                            if (foundScript) targetId = Number(foundScript.id);
+                          }
+
+                          if (targetId) {
+                            navigate(
+                              `/talk/${targetId}?line=${log.line_index}`,
+                            );
+                          } else {
+                            console.warn('Cannot find script ID for log:', log);
+                          }
+                        }}
+                      >
+                        <AttemptInfo>
+                          <AttemptTime>
+                            {dayjs(log.last_reviewed).format('HH:mm')}
+                          </AttemptTime>
+                          <AttemptLine>Line {log.line_index + 1}</AttemptLine>
+                        </AttemptInfo>
+                        <AttemptScore score={log.accuracy}>
+                          {log.accuracy}%
+                        </AttemptScore>
+                      </AttemptRow>
+                    ))}
+                  </AttemptList>
+                </ScriptGroupCard>
+              ))}
+            </GroupContainer>
           ))}
         </HistoryList>
       )}

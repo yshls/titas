@@ -3,6 +3,9 @@ import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 
+
+import './i18n'; 
+
 import GlobalStyle from '@/GlobalStyle';
 import { AppWrapper } from '@/AppWrapper';
 

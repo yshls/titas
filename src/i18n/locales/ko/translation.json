@@ -1,0 +1,95 @@
+{
+  "common": {
+    "button": {
+      "save": "저장",
+      "cancel": "취소",
+      "delete": "삭제",
+      "edit": "수정",
+      "confirm": "확인",
+      "close": "닫기",
+      "back": "뒤로"
+    },
+    "action": {
+      "loading": "로딩 중...",
+      "noData": "데이터가 없습니다",
+      "error": "오류가 발생했습니다"
+    }
+  },
+  "nav": {
+    "dashboard": "대시보드",
+    "create": "생성",
+    "scripts": "스크립트",
+    "mistakes": "실수 목록",
+    "review": "복습",
+    "history": "기록"
+  },
+  "auth": {
+    "signIn": "로그인",
+    "signOut": "로그아웃",
+    "signedInAs": "로그인:",
+    "deleteAccount": "계정 삭제",
+    "welcome": "환영합니다!",
+    "hello": "안녕하세요, {{name}}",
+    "loginWith": "Google 로그인"
+  },
+  "dashboard": {
+    "title": "대시보드",
+    "recentPractice": "최근 연습",
+    "allScripts": "모든 스크립트",
+    "viewAll": "전체 보기",
+    "startPractice": "연습 시작",
+    "noScripts": "아직 스크립트가 없습니다",
+    "createFirst": "첫 스크립트를 만들어보세요!"
+  },
+  "creator": {
+    "title": "스크립트 생성",
+    "scriptTitle": "스크립트 제목",
+    "titlePlaceholder": "제목을 입력하세요...",
+    "addDialogue": "대화 추가",
+    "koreanText": "한국어",
+    "englishText": "영어",
+    "koreanPlaceholder": "한국어를 입력하세요",
+    "englishPlaceholder": "영어를 입력하세요",
+    "saveDraft": "임시저장",
+    "createScript": "스크립트 생성",
+    "draftRestored": "임시저장된 내용을 불러왔습니다"
+  },
+  "mistakes": {
+    "title": "실수 목록",
+    "focusSection": "집중 연습",
+    "otherMistakes": "기타 실수",
+    "noMistakes": "아직 실수가 없습니다!",
+    "keepPracticing": "계속 연습하세요",
+    "mistakeCount": "{{count}}번 실수"
+  },
+  "review": {
+    "title": "복습",
+    "cardsToday": "오늘의 복습 카드",
+    "showAnswer": "답 보기",
+    "again": "다시",
+    "good": "좋음",
+    "easy": "쉬움",
+    "noCards": "복습할 카드가 없습니다!",
+    "wellDone": "잘하셨습니다!"
+  },
+  "practice": {
+    "listening": "듣기",
+    "speaking": "말하기",
+    "comparing": "비교 중...",
+    "excellent": "완벽해요!",
+    "good": "좋아요!",
+    "tryAgain": "다시 해보세요"
+  },
+  "toast": {
+    "welcome": "환영합니다! 데이터를 동기화 중입니다",
+    "syncComplete": "동기화 완료. 즐거운 시간 되세요!",
+    "signedOut": "로그아웃되었습니다. 다음에 또 만나요!",
+    "loginFailed": "로그인 실패. 다시 시도해주세요.",
+    "logoutFailed": "로그아웃 실패. 다시 시도해주세요.",
+    "deleteConfirm": "정말 삭제하시겠습니까?",
+    "deleteWarning": "이 작업은 되돌릴 수 없습니다.",
+    "yesDelete": "네, 삭제합니다!",
+    "accountDeleted": "계정이 영구 삭제되었습니다.",
+    "deleteFailed": "삭제 중 오류가 발생했습니다."
+  }
+}

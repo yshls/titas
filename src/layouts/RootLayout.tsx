@@ -9,8 +9,12 @@ import { supabase } from '@/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Seo } from '@/components/common/Seo';
 import { migrateData } from '@/services/migrateService';
+
+import { useTranslation } from 'react-i18next';
+
 import { AnimatedLayout } from './AnimatedLayout';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
+
 
 // --- [스타일 컴포넌트] ---
 
@@ -424,16 +428,19 @@ const CancelButton = styled.button`
 // --- [컴포넌트 로직] ---
 
 const NAV_ITEMS = [
-  { to: '/', text: 'Dashboard' },
-  { to: '/create', text: 'Create' },
-  { to: '/scripts', text: 'Scripts' },
-  { to: '/mistakes', text: 'Mistakes' },
-  { to: '/review', text: 'Review' },
+
+  { to: '/', key: 'nav.dashboard' },
+  { to: '/create', key: 'nav.create' },
+  { to: '/scripts', key: 'nav.scripts' },  
+  { to: '/mistakes', key: 'nav.mistakes' },
+  { to: '/review', key: 'nav.review' },
+
 ];
 
 export function RootLayout() {
   const { user, setUser, loadInitialData, language, setLanguage } =
     useAppStore();
+  const { t } = useTranslation();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -503,7 +510,7 @@ export function RootLayout() {
       });
       if (error) throw error;
     } catch (error) {
-      toast.error('Whoops! Login failed. Please try again.');
+      toast.error(t('toast.loginFailed'));
     }
   };
 
@@ -512,9 +519,9 @@ export function RootLayout() {
     try {
       await supabase.auth.signOut();
       setIsProfileMenuOpen(false);
-      toast.success('See you later! Signed out successfully.');
+      toast.success(t('toast.signedOut'));
     } catch (error) {
-      toast.error('Logout failed. Please try again.');
+      toast.error(t('toast.logoutFailed'));
     }
   };
 
@@ -525,10 +532,10 @@ export function RootLayout() {
       if (error) throw error;
 
       await supabase.auth.signOut();
-      toast.success("It's a sad day! Your account is gone forever.");
+      toast.success(t('toast.accountDeleted'));
       window.location.href = '/';
     } catch (error) {
-      toast.error('Oops! Something went wrong with the deletion.');
+      toast.error(t('toast.deleteFailed'));
     }
   };
 
@@ -538,23 +545,23 @@ export function RootLayout() {
     setDrawerOpen(false);
 
     toast(
-      (t) => (
+      (toastInstance) => (
         <ToastContainer>
           <ToastMessage>
-            <ToastTitle>Are you absolutely sure?</ToastTitle>
-            <ToastSub>This action cannot be undone.</ToastSub>
+            <ToastTitle>{t('toast.deleteConfirm')}</ToastTitle>
+            <ToastSub>{t('toast.deleteWarning')}</ToastSub>
           </ToastMessage>
           <ToastActions>
             <ConfirmButton
               onClick={() => {
-                toast.dismiss(t.id);
+                toast.dismiss(toastInstance.id);
                 executeDeleteAccount();
               }}
             >
-              Yes, delete it!
+              {t('toast.yesDelete')}
             </ConfirmButton>
-            <CancelButton onClick={() => toast.dismiss(t.id)}>
-              Cancel
+            <CancelButton onClick={() => toast.dismiss(toastInstance.id)}>
+              {t('common.button.cancel')}
             </CancelButton>
           </ToastActions>
         </ToastContainer>
@@ -581,8 +588,8 @@ export function RootLayout() {
 
             {/* PC 메뉴 */}
             <PcNav>
-              {NAV_ITEMS.map(({ to, text }) => (
-                <NavLink key={to} to={to} text={text} />
+              {NAV_ITEMS.map(({ to, key }) => (
+                <NavLink key={to} to={to} text={t(key)} />
               ))}
             </PcNav>
 
@@ -621,17 +628,17 @@ export function RootLayout() {
                           transition={{ duration: 0.2 }}
                         >
                           <DropdownHeader>
-                            <DropdownLabel>Signed in as</DropdownLabel>
+                            <DropdownLabel>{t('auth.signedInAs')}</DropdownLabel>
                             <DropdownEmail>{user.email}</DropdownEmail>
                           </DropdownHeader>
 
                           <DropdownItem onClick={handleLogout}>
-                            <MdLogout size={18} /> Sign out
+                            <MdLogout size={18} /> {t('auth.signOut')}
                           </DropdownItem>
 
                           <Divider>
                             <DropdownItem onClick={confirmDeleteAccount} danger>
-                              <MdDeleteForever size={18} /> Delete Account
+                              <MdDeleteForever size={18} /> {t('auth.deleteAccount')}
                             </DropdownItem>
                           </Divider>
                         </ProfileDropdown>
@@ -639,7 +646,7 @@ export function RootLayout() {
                     </AnimatePresence>
                   </AvatarWrapper>
                 ) : (
-                  <LoginButton onClick={handleLogin}>Login</LoginButton>
+                  <LoginButton onClick={handleLogin}>{t('auth.signIn')}</LoginButton>
                 )}
               </DesktopWrapper>
 
@@ -668,18 +675,20 @@ export function RootLayout() {
                   <DrawerHeader>
                     <WelcomeText>
                       {user
-                        ? `Hello, ${user.user_metadata.full_name.split(' ')[0]}`
-                        : 'Welcome!'}
+
+                        ? t('auth.hello', { name: user.user_metadata.full_name.split(' ')[0] })
+                        : t('auth.welcome')}
+
                     </WelcomeText>
                     <ThemeToggle />
                   </DrawerHeader>
 
                   <DrawerNav>
-                    {NAV_ITEMS.map(({ to, text }) => (
+                    {NAV_ITEMS.map(({ to, key }) => (
                       <NavLink
                         key={to}
                         to={to}
-                        text={text}
+                        text={t(key)}
                         onClick={() => setDrawerOpen(false)}
                         isDrawer
                       />
@@ -690,15 +699,15 @@ export function RootLayout() {
                     {user ? (
                       <>
                         <MobileLogoutButton onClick={handleLogout}>
-                          Sign out
+                          {t('auth.signOut')}
                         </MobileLogoutButton>
                         <MobileDeleteButton onClick={confirmDeleteAccount}>
-                          Delete Account
+                          {t('auth.deleteAccount')}
                         </MobileDeleteButton>
                       </>
                     ) : (
                       <MobileLoginButton onClick={handleLogin}>
-                        Login with Google
+                        {t('auth.loginWith')}
                       </MobileLoginButton>
                     )}
                   </DrawerFooter>

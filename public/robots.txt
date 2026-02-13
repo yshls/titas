@@ -1,4 +1,6 @@
+# Robots.txt
 User-agent: *
 Allow: /
 
+# Sitemaps
 Sitemap: https://www.titas.store/sitemap.xml

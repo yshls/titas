@@ -48,19 +48,24 @@ export function Seo({
 
   return (
     <Helmet htmlAttributes={{ lang }}>
-      {/* Basic Meta Tags */}
+      {/* 기본 메타 태그 */}
       <title>{pageTitle}</title>
       <meta name="description" content={pageDescription} />
       <meta name="keywords" content={metadata.keywords} />
 
-      {/* Canonical URL */}
+      {/* 표준 URL */}
       <link rel="canonical" href={pageCanonicalUrl} />
 
-      {/* Robots */}
+      {/* 다국어 hreflang 태그 */}
+      <link rel="alternate" hrefLang="ko" href={`${SITE_URL}?lang=ko`} />
+      <link rel="alternate" hrefLang="en" href={`${SITE_URL}?lang=en`} />
+      <link rel="alternate" hrefLang="x-default" href={SITE_URL} />
+
+      {/* 검색엔진 로봇 */}
       <meta name="robots" content="index, follow" />
       <meta name="googlebot" content="index, follow" />
 
-      {/* Open Graph Tags */}
+      {/* Open Graph 태그 */}
       <meta property="og:title" content={pageTitle} />
       <meta property="og:description" content={pageDescription} />
       <meta property="og:image" content={pageOgImage} />
@@ -69,22 +74,51 @@ export function Seo({
       <meta property="og:type" content="website" />
       <meta property="og:locale" content={lang === 'en' ? 'en_US' : 'ko_KR'} />
 
-      {/* Twitter Card Tags */}
+      {/* 트위터 카드 태그 */}
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={pageTitle} />
       <meta name="twitter:description" content={pageDescription} />
       <meta name="twitter:image" content={pageOgImage} />
 
-      {/* Additional Meta Tags */}
+      {/* 추가 메타 태그 */}
       <meta name="theme-color" content="#FF6B35" />
       <meta name="author" content="TiTaS" />
 
-      {/* Mobile Optimization */}
+      {/* 모바일 최적화 */}
       <meta
         name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=5.0"
       />
       <meta name="format-detection" content="telephone=no" />
+
+      {/* JSON-LD */}
+      <script type="application/ld+json">
+        {JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'WebApplication',
+          name: metadata.siteName,
+          description: pageDescription,
+          url: SITE_URL,
+          applicationCategory: 'EducationalApplication',
+          operatingSystem: 'Web Browser',
+          offers: {
+            '@type': 'Offer',
+            price: '0',
+            priceCurrency: 'KRW',
+          },
+          featureList: [
+            lang === 'ko' ? '영어 쉐도잉 연습' : 'English Shadowing Practice',
+            lang === 'ko' ? '스크립트 작성' : 'Script Writing',
+            lang === 'ko' ? '발음 비교' : 'Pronunciation Comparison',
+            lang === 'ko' ? '실시간 피드백' : 'Real-time Feedback',
+          ],
+          inLanguage: lang === 'ko' ? ['ko', 'en'] : ['en', 'ko'],
+          author: {
+            '@type': 'Organization',
+            name: 'TiTaS',
+          },
+        }).replace(/</g, '\\u003c')}
+      </script>
     </Helmet>
   );
 }

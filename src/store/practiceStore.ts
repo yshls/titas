@@ -117,7 +117,14 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
   },
 
   finishPractice: () => {
-    const { startTime, feedbackMap, sessionErrors, scriptId, title } = get();
+    const {
+      startTime,
+      feedbackMap,
+      sessionErrors,
+      scriptId,
+      title,
+      userInputMap,
+    } = get();
     const user = useAppStore.getState().user;
     const addNewPracticeLog = useAppStore.getState().addNewPracticeLog;
 
@@ -142,11 +149,37 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
       errors: sessionErrors,
     };
 
-    // FSRS에 각 오류 기록
-    for (const error of sessionErrors) {
-      // grade: 1 (failed), accuracy: 0
-      logPractice(error.scriptId, error.lineIndex, 0, 1);
-    }
+    //  FSRS 로직: 연습한 모든 라인에 대해 한 번만 기록
+    const practicedLineIndexes = Object.keys(userInputMap).map(Number);
+    const uniqueErrorLineIndexes = [
+      ...new Set(sessionErrors.map((e) => e.lineIndex)),
+    ];
+
+    practicedLineIndexes.forEach((lineIndex) => {
+      const feedback = feedbackMap[lineIndex];
+      if (!feedback) return;
+
+      let lineTotalWords = 0;
+      let lineCorrectWords = 0;
+      feedback.forEach((part) => {
+        if (part.status !== 'added') lineTotalWords++;
+        if (part.status === 'correct') lineCorrectWords++;
+      });
+
+      const lineAccuracy =
+        lineTotalWords > 0 ? lineCorrectWords / lineTotalWords : 1;
+      const isErrorLine = uniqueErrorLineIndexes.includes(lineIndex);
+
+      let grade = 1; // 실패
+      if (!isErrorLine) {
+        if (lineAccuracy >= 0.95) grade = 5; // 완벽
+        else if (lineAccuracy >= 0.8) grade = 4; // 쉬움
+        else if (lineAccuracy >= 0.6) grade = 3; // 보통
+        else grade = 2; // 어려움
+      }
+
+      logPractice(scriptId, lineIndex, Math.round(lineAccuracy * 100), grade);
+    });
 
     if (user) {
       addNewPracticeLog(newLog, title || 'Practice Session');

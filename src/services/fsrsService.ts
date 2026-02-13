@@ -2,7 +2,10 @@ import { supabase } from '@/supabaseClient';
 
 //  복습 로그 타입 정의
 export interface FSRSReviewLog {
+  id: string;
+  user_id?: string;
   script_id: number; // 스크립트 ID
+  script_title?: string; // 스크립트 제목 (Legacy & Modern)
   line_index: number; // 문장 인덱스
   accuracy: number; // 정확도 (0~100)
   stability: number; // 안정도 (기억 강도)
@@ -13,6 +16,7 @@ export interface FSRSReviewLog {
   scheduled_days: number; // 다음 복습까지 일수
   last_reviewed: string; // 마지막 복습 시간
   next_review: string; // 다음 복습 예정 시간
+  missed_words?: string[]; // 틀린 단어 목록
 }
 
 //  목표 회상률 (90% 기억 유지)
@@ -115,6 +119,8 @@ export const getTotalLearningCount = async () => {
  * 전체 학습 기록 가져오기 (History 페이지용)
  */
 export const getAllStudyLogs = async () => {
+  // legacy/dbService logs might have null next_review, but we want to show history.
+  // FSRS logs have next_review.
   const { data, error } = await supabase
     .from('study_logs')
     .select('*')
@@ -139,6 +145,55 @@ export const getNextReviewTime = async () => {
     .limit(1);
 
   return data?.[0]?.next_review || null;
+};
+
+/**
+ * 미래 복습 예정 통계 (10분, 1일, 1주, 1달)
+ */
+export const getReviewForecastStats = async () => {
+  const now = new Date();
+  const tenMinutesLater = new Date(now.getTime() + 15 * 60 * 1000); // 15분 (여유 있게)
+  const oneDayLater = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  const oneWeekLater = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const oneMonthLater = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+  // 병렬로 카운트 조회
+  const [in10m, in1d, in1w, in1mo] = await Promise.all([
+    // 10분 이내 (But future)
+    supabase
+      .from('study_logs')
+      .select('*', { count: 'exact', head: true })
+      .gt('next_review', now.toISOString())
+      .lte('next_review', tenMinutesLater.toISOString()),
+
+    // 1일 이내
+    supabase
+      .from('study_logs')
+      .select('*', { count: 'exact', head: true })
+      .gt('next_review', tenMinutesLater.toISOString())
+      .lte('next_review', oneDayLater.toISOString()),
+
+    // 1주일 이내
+    supabase
+      .from('study_logs')
+      .select('*', { count: 'exact', head: true })
+      .gt('next_review', oneDayLater.toISOString())
+      .lte('next_review', oneWeekLater.toISOString()),
+
+    // 1달 이내
+    supabase
+      .from('study_logs')
+      .select('*', { count: 'exact', head: true })
+      .gt('next_review', oneWeekLater.toISOString())
+      .lte('next_review', oneMonthLater.toISOString()),
+  ]);
+
+  return {
+    '10m': in10m.count || 0,
+    '1d': in1d.count || 0,
+    '1w': in1w.count || 0,
+    '1mo': in1mo.count || 0,
+  };
 };
 
 /**

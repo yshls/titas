@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Seo } from '@/components/common/Seo';
 import { migrateData } from '@/services/migrateService';
 import { AnimatedLayout } from './AnimatedLayout';
+import { ThemeToggle } from '@/components/common/ThemeToggle';
 
 // --- [스타일 컴포넌트] ---
 
@@ -587,6 +588,7 @@ export function RootLayout() {
 
             <RightSection>
               <DesktopWrapper>
+                <ThemeToggle />
                 <LanguageSwitcher
                   onClick={() => setLanguage(language === 'ko' ? 'en' : 'ko')}
                 >
@@ -669,6 +671,7 @@ export function RootLayout() {
                         ? `Hello, ${user.user_metadata.full_name.split(' ')[0]}`
                         : 'Welcome!'}
                     </WelcomeText>
+                    <ThemeToggle />
                   </DrawerHeader>
 
                   <DrawerNav>

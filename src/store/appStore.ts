@@ -29,6 +29,7 @@ export interface AppState {
   isLoading: boolean;
   user: User | null;
   language: Language;
+  themeMode: 'light' | 'dark';
 
   // 동기 액션
   setUser: (user: User | null) => void;
@@ -36,6 +37,7 @@ export interface AppState {
   recordDiffResult: (result: DiffResult[]) => void;
   loadScript: (script: DialogueLine[]) => void;
   setLanguage: (language: Language) => void;
+  setThemeMode: (mode: 'light' | 'dark') => void;
 
   // 비동기 액션
   initialize: () => Promise<void>;
@@ -63,6 +65,19 @@ const getInitialLanguage = (): Language => {
   return 'ko';
 };
 
+const getInitialTheme = (): 'light' | 'dark' => {
+  if (typeof window !== 'undefined') {
+    const storedTheme = localStorage.getItem('titas_theme') as 'light' | 'dark';
+    if (storedTheme && ['light', 'dark'].includes(storedTheme)) {
+      return storedTheme;
+    }
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return 'dark';
+    }
+  }
+  return 'light';
+};
+
 export const useAppStore = create<AppState>((set, get) => ({
   // 초기값
   allScripts: [],
@@ -73,6 +88,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   isLoading: false,
   user: null,
   language: getInitialLanguage(),
+  themeMode: getInitialTheme(),
 
   setUser: (user) => set({ user }),
   setSpokenText: (text) => set({ spokenText: text }),
@@ -81,6 +97,10 @@ export const useAppStore = create<AppState>((set, get) => ({
   setLanguage: (language) => {
     set({ language });
     localStorage.setItem('titas_lang', language);
+  },
+  setThemeMode: (mode) => {
+    set({ themeMode: mode });
+    localStorage.setItem('titas_theme', mode);
   },
 
   // 초기화 로직

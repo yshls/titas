@@ -1,11 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import { ThemeProvider } from '@emotion/react';
 import { HelmetProvider } from 'react-helmet-async';
 
-import { theme } from '@/styles/theme';
 import GlobalStyle from '@/GlobalStyle';
+import { AppWrapper } from '@/AppWrapper';
 
 // 레이아웃 및 페이지
 import { RootLayout } from '@/layouts/RootLayout';
@@ -48,10 +47,10 @@ const router = createBrowserRouter([
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <HelmetProvider>
-      <ThemeProvider theme={theme}>
+      <AppWrapper>
         <GlobalStyle />
         <RouterProvider router={router} />
-      </ThemeProvider>
+      </AppWrapper>
     </HelmetProvider>
   </React.StrictMode>,
 );

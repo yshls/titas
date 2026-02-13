@@ -1,4 +1,4 @@
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '@/store/appStore';
@@ -781,21 +781,8 @@ export function CreatorPage() {
   return (
     <PageContainer>
       <Seo {...seoProps} />
-      <Toaster
-        position="top-center"
-        containerStyle={{ zIndex: 99999 }}
-        toastOptions={{
-          style: {
-            fontSize: '14px',
-            borderRadius: '10px',
-            padding: '12px',
-            background: theme.cardBg,
-            color: theme.textMain,
-            border: `1px solid ${theme.border}`,
-            boxShadow: 'none',
-          },
-        }}
-      />
+
+
 
       <Sidebar>
         <Header>

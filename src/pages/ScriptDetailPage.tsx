@@ -12,7 +12,7 @@ import type { ScriptData } from '@/utils/types';
 import { useTTS } from '@/utils/useTTS';
 import { useRef, useMemo, useState, useEffect } from 'react';
 import styled from '@emotion/styled';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import { Seo } from '@/components/common/Seo';
 
 // --- 상수 정의 ---
@@ -438,7 +438,7 @@ export function ScriptDetailPage() {
   return (
     <PageContainer>
       <Seo {...seoProps} />
-      <Toaster position="top-center" />
+
       <Header>
         <HeaderLeft>
           <BackButton onClick={() => navigate(-1)} aria-label="Go back">

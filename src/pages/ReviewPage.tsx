@@ -1,9 +1,17 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled from '@emotion/styled';
-import { useFSRSRepetition } from '@/hooks/useFSRSRepetition';
 import { useAppStore } from '@/store/appStore';
 import { supabase } from '@/supabaseClient';
 import toast from 'react-hot-toast';
+import { ReviewEmptyState } from '@/utils/ReviewEmptyState';
+import {
+  getDueReviews,
+  getPriorityScore,
+  getNextReviewTime,
+  getTotalLearningCount,
+  type FSRSReviewLog,
+} from '@/services/fsrsService';
 
 const Container = styled.div`
   padding: 20px 12px;
@@ -79,47 +87,6 @@ const LoginGateButton = styled.button`
   }
 `;
 // --- 로그인 게이트 스타일 여기까지 ---
-
-const StatsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 12px;
-  margin-bottom: 24px;
-`;
-
-const StatCard = styled.div<{ urgent?: boolean }>`
-  padding: 16px;
-  background: ${({ theme }) => theme.cardBg};
-  border-radius: 12px;
-  border: 1px solid ${({ theme }) => theme.border};
-  text-align: center;
-  transition: all 0.2s;
-
-  ${({ urgent, theme }) =>
-    urgent &&
-    `
-    border-color: ${theme.colors.error};
-    background: ${theme.colors.red50};
-  `}
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  }
-`;
-
-const StatValue = styled.div`
-  font-size: 32px;
-  font-weight: 800;
-  color: ${({ theme }) => theme.textMain};
-  margin-bottom: 4px;
-`;
-
-const StatLabel = styled.div`
-  font-size: 13px;
-  font-weight: 500;
-  color: ${({ theme }) => theme.textSub};
-`;
 
 const ReviewList = styled.div`
   display: flex;
@@ -238,30 +205,47 @@ const ReviewButton = styled.button<{ urgent?: boolean }>`
   }
 `;
 
-const LoggedInEmptyState = styled.div`
-  text-align: center;
-  padding: 60px 20px;
+// --- 통계 카드 스타일 ---
+const StatsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+`;
+
+const StatCard = styled.div<{ urgent?: boolean; onClick?: any }>`
+  padding: 16px;
   background: ${({ theme }) => theme.cardBg};
   border-radius: 12px;
   border: 1px solid ${({ theme }) => theme.border};
+  text-align: center;
+  transition: all 0.2s;
+  cursor: ${({ onClick }) => (onClick ? 'pointer' : 'default')};
+
+  ${({ urgent, theme }) =>
+    urgent &&
+    `
+    border-color: ${theme.colors.error};
+    background: ${theme.colors.red50};
+  `}
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
 `;
 
-const LoggedInEmptyIcon = styled.div`
-  font-size: 48px;
-  margin-bottom: 16px;
-`;
-
-const LoggedInEmptyTitle = styled.h3`
-  font-size: 18px;
-  font-weight: 700;
+const StatValue = styled.div`
+  font-size: 32px;
+  font-weight: 800;
   color: ${({ theme }) => theme.textMain};
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 `;
 
-const LoggedInEmptyText = styled.p`
-  font-size: 14px;
+const StatLabel = styled.div`
+  font-size: 13px;
+  font-weight: 500;
   color: ${({ theme }) => theme.textSub};
-  line-height: 1.6;
 `;
 
 interface ReviewItem {
@@ -278,6 +262,7 @@ interface ReviewItem {
 }
 
 export default function ReviewPage() {
+  const navigate = useNavigate();
   const user = useAppStore((state) => state.user);
   const [reviews, setReviews] = useState<ReviewItem[]>([]);
   const [stats, setStats] = useState({
@@ -285,7 +270,7 @@ export default function ReviewPage() {
     urgent: 0,
     today: 0,
   });
-  const { getDueReviews, getPriorityScore } = useFSRSRepetition();
+  const [nextReviewTime, setNextReviewTime] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -295,9 +280,15 @@ export default function ReviewPage() {
   }, [user]);
 
   const fetchReviews = async () => {
-    const data = await getDueReviews();
-    const sorted = data
-      .map((item: any) => ({
+    // 1. 복습할 목록, 전체 개수, 다음 예정 시간을 병렬로 가져옴
+    const [dueData, totalCount, nextTime] = await Promise.all([
+      getDueReviews(),
+      getTotalLearningCount(),
+      getNextReviewTime(),
+    ]);
+
+    const sorted = dueData
+      .map((item: FSRSReviewLog & { id: string }) => ({
         ...item,
         script_id: String(item.script_id),
         priority: getPriorityScore(item),
@@ -311,12 +302,15 @@ export default function ReviewPage() {
       .sort((a: ReviewItem, b: ReviewItem) => b.priority - a.priority);
 
     setReviews(sorted.slice(0, 10));
+    setNextReviewTime(nextTime);
 
     setStats({
-      total: data.length,
-      urgent: data.filter((item: any) => getPriorityScore(item) > 3).length,
-      today: data.filter(
-        (item: any) =>
+      total: totalCount, // 전체 학습 중인 카드 수 (이제 0이 아님!)
+      urgent: dueData.filter(
+        (item: FSRSReviewLog) => getPriorityScore(item) > 3,
+      ).length,
+      today: dueData.filter(
+        (item: FSRSReviewLog) =>
           new Date(item.next_review) < new Date(Date.now() + 86400000),
       ).length,
     });
@@ -387,22 +381,14 @@ export default function ReviewPage() {
           <StatLabel>Due Today</StatLabel>
         </StatCard>
 
-        <StatCard>
+        <StatCard onClick={() => navigate('/history')}>
           <StatValue>{stats.total}</StatValue>
           <StatLabel>Total Reviews</StatLabel>
         </StatCard>
       </StatsGrid>
 
       {reviews.length === 0 ? (
-        <LoggedInEmptyState>
-          <LoggedInEmptyIcon>🎉</LoggedInEmptyIcon>
-          <LoggedInEmptyTitle>All caught up!</LoggedInEmptyTitle>
-          <LoggedInEmptyText>
-            No reviews scheduled right now.
-            <br />
-            Keep practicing to build your review queue.
-          </LoggedInEmptyText>
-        </LoggedInEmptyState>
+        <ReviewEmptyState nextReviewTime={nextReviewTime} />
       ) : (
         <ReviewList>
           {reviews.map((item) => (

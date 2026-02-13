@@ -18,7 +18,7 @@ import { ScriptListPage } from '@/pages/ScriptListPage';
 import { ScriptDetailPage } from '@/pages/ScriptDetailPage';
 import { PrivacyPolicyPage } from '@/pages/PrivacyPolicyPage';
 import { TermsOfServicePage } from '@/pages/TermsOfServicePage';
-import { HistoryPage } from './pages/HistoryPage';
+import { HistoryPage } from '@/pages/HistoryPage';
 
 if (new URLSearchParams(window.location.search).has('debug')) {
   import('eruda').then((eruda) => eruda.default.init());

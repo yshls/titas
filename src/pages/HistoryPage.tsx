@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import styled from '@emotion/styled';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '@/store/appStore';
-import { getAllStudyLogs } from '@/services/fsrsService';
+import { getAllStudyLogs, type FSRSReviewLog } from '@/services/fsrsService';
 import { MdArrowBack, MdHistory } from 'react-icons/md';
 import { Seo } from '@/components/common/Seo';
 import dayjs from 'dayjs';
@@ -119,7 +119,7 @@ const EmptyState = styled.div`
 export function HistoryPage() {
   const navigate = useNavigate();
   const { user, allScripts, language } = useAppStore();
-  const [logs, setLogs] = useState<any[]>([]);
+  const [logs, setLogs] = useState<FSRSReviewLog[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -143,10 +143,13 @@ export function HistoryPage() {
     fetchLogs();
   }, [user, navigate]);
 
+  const scriptTitleMap = useMemo(
+    () => new Map(allScripts.map((s) => [String(s.id), s.title])),
+    [allScripts],
+  );
+
   const getScriptTitle = (scriptId: number) => {
-    // script_id와 일치하는 스크립트 찾기 (타입 변환 고려)
-    const script = allScripts.find((s) => String(s.id) === String(scriptId));
-    return script?.title || `Script #${scriptId}`;
+    return scriptTitleMap.get(String(scriptId)) || `Script #${scriptId}`;
   };
 
   const seoProps =
@@ -164,7 +167,7 @@ export function HistoryPage() {
         <BackButton onClick={() => navigate(-1)}>
           <MdArrowBack size={24} />
         </BackButton>
-        <Title>Learning History</Title>
+        <Title>{seoProps.title}</Title>
       </Header>
 
       {loading ? (

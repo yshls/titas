@@ -10,6 +10,7 @@ import {
   getPriorityScore,
   getNextReviewTime,
   getTotalLearningCount,
+  type FSRSReviewLog,
 } from '@/services/fsrsService';
 
 const Container = styled.div`
@@ -212,13 +213,14 @@ const StatsGrid = styled.div`
   margin-bottom: 24px;
 `;
 
-const StatCard = styled.div<{ urgent?: boolean }>`
+const StatCard = styled.div<{ urgent?: boolean; onClick?: any }>`
   padding: 16px;
   background: ${({ theme }) => theme.cardBg};
   border-radius: 12px;
   border: 1px solid ${({ theme }) => theme.border};
   text-align: center;
   transition: all 0.2s;
+  cursor: ${({ onClick }) => (onClick ? 'pointer' : 'default')};
 
   ${({ urgent, theme }) =>
     urgent &&
@@ -286,7 +288,7 @@ export default function ReviewPage() {
     ]);
 
     const sorted = dueData
-      .map((item: any) => ({
+      .map((item: FSRSReviewLog & { id: string }) => ({
         ...item,
         script_id: String(item.script_id),
         priority: getPriorityScore(item),
@@ -304,9 +306,11 @@ export default function ReviewPage() {
 
     setStats({
       total: totalCount, // 전체 학습 중인 카드 수 (이제 0이 아님!)
-      urgent: dueData.filter((item: any) => getPriorityScore(item) > 3).length,
+      urgent: dueData.filter(
+        (item: FSRSReviewLog) => getPriorityScore(item) > 3,
+      ).length,
       today: dueData.filter(
-        (item: any) =>
+        (item: FSRSReviewLog) =>
           new Date(item.next_review) < new Date(Date.now() + 86400000),
       ).length,
     });
@@ -377,10 +381,7 @@ export default function ReviewPage() {
           <StatLabel>Due Today</StatLabel>
         </StatCard>
 
-        <StatCard
-          onClick={() => navigate('/history')}
-          style={{ cursor: 'pointer' }}
-        >
+        <StatCard onClick={() => navigate('/history')}>
           <StatValue>{stats.total}</StatValue>
           <StatLabel>Total Reviews</StatLabel>
         </StatCard>

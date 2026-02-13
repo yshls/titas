@@ -301,9 +301,11 @@ const ScriptCard = styled(motion.article)<{ isDeleting: boolean }>`
   opacity: ${({ isDeleting }) => (isDeleting ? 0 : 1)};
   transform: ${({ isDeleting }) => (isDeleting ? 'scale(0.95)' : 'scale(1)')};
 
-  &:hover {
-    transform: translateY(-2px);
-    border-color: ${({ theme }) => theme.textSub};
+  @media (hover: hover) {
+    &:hover {
+      border-color: ${({ theme }) => theme.colors.primary};
+      background-color: ${({ theme }) => theme.background};
+    }
   }
 `;
 
@@ -711,7 +713,8 @@ export function ScriptListPage() {
                 hidden: { opacity: 0, y: 20 },
                 show: { opacity: 1, y: 0 },
               }}
-              whileHover={{ y: -4 }}
+              layout
+              whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.98 }}
             >
               <CardBody>

@@ -76,10 +76,11 @@ const WordCardContainer = styled(motion.div)<{
     border-color: #059669;
   `}
 
-  &:hover {
-    border-color: ${({ theme, isSolved }) =>
-      isSolved ? '#059669' : theme.colors.primary};
-    transform: translateY(-2px);
+  @media (hover: hover) {
+    &:hover {
+      border-color: ${({ theme, isSolved }) =>
+        isSolved ? '#059669' : theme.colors.primary};
+    }
   }
 `;
 
@@ -625,6 +626,7 @@ export function MistakesPage() {
       >
         {wordStatsList.map((item, index) => (
           <motion.div
+            layout
             key={item.word}
             variants={{
               hidden: { opacity: 0, y: 20 },

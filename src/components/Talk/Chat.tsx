@@ -48,17 +48,23 @@ export function Chat({
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
   // 자동 스크롤 효과
+  
   useEffect(() => {
-    chatContainerRef.current?.scrollTo({
-      top: chatContainerRef.current.scrollHeight,
-      behavior: 'smooth',
-    });
+    if (chatContainerRef.current) {
+      const activeElement = chatContainerRef.current.children[currentLineIndex] as HTMLElement;
+      if (activeElement) {
+        
+        const container = chatContainerRef.current;
+        const offset = activeElement.offsetTop - container.offsetTop - container.clientHeight / 2 + activeElement.clientHeight / 2;
+        container.scrollTo({
+          top: Math.max(0, offset),
+          behavior: 'smooth',
+        });
+      }
+    }
   }, [currentLineIndex, feedbackMap]);
 
-  const visibleLines = lines.slice(
-    0,
-    isFinished ? undefined : currentLineIndex + 1,
-  );
+  const visibleLines = lines.slice(0, currentLineIndex + 1);
 
   return (
     <ChatContainer ref={chatContainerRef}>
@@ -67,6 +73,8 @@ export function Chat({
         const prevLine = lines[idx - 1];
         const isSameSpeakerAsPrev =
           idx > 0 && prevLine?.speakerId === line.speakerId;
+      
+        const isCurrent = idx === currentLineIndex;
 
         return (
           <ChatBubble
@@ -74,11 +82,12 @@ export function Chat({
             line={line}
             isUser={isUser}
             feedback={feedbackMap[idx]}
-            showHint={showHint && isUser && currentLineIndex === idx}
+            showHint={showHint && isUser && isCurrent}
             bubbleColor={speakerColors[line.speakerId] || '#e1e1e1'}
             isSameSpeakerAsPrev={isSameSpeakerAsPrev}
             onPlayAudio={() => onSpeak(line.originalLine)}
             userAudioUrl={userAudioMap[idx]}
+            isFocused={isFinished || isCurrent}  
           />
         );
       })}

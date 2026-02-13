@@ -4,9 +4,6 @@ import { FiMic, FiSend, FiX } from 'react-icons/fi';
 import { MdKeyboard, MdLightbulb } from 'react-icons/md';
 import { AudioVisualizer } from './AudioVisualizer';
 
-//  모바일 감지 추가
-const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
 const pulseRing = keyframes`
   0% { transform: scale(0.95); }
   70% { transform: scale(1); }

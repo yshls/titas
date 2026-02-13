@@ -24,14 +24,34 @@ const DESIRED_RETENTION = 0.9;
 export const schedule = (log: FSRSReviewLog, grade: number) => {
   const { stability, repetitions, ease_factor } = log;
 
+  // 많이 틀렸을 때(Grade 1)는 10분 뒤에 바로 복습 (단기 기억 강화)
+  if (grade === 1) {
+    const nextReview = new Date();
+    nextReview.setMinutes(nextReview.getMinutes() + 10);
+
+    return {
+      stability: 0.1,
+      retrievability: 1.0,
+      repetitions: 0,
+      last_interval: 0,
+      ease_factor: Math.max(1.3, ease_factor - 0.2),
+      scheduled_days: 0,
+      next_review: nextReview.toISOString(),
+    };
+  }
+
   // 첫 복습: 1일 후 재학습
   if (repetitions === 0) {
+    const nextReview = new Date();
+    nextReview.setDate(nextReview.getDate() + 1); // 1일 뒤
+
     return {
       stability: 1.0, // 초기 안정도
       retrievability: 0.9, // 초기 회상률
       repetitions: 1, // 첫 반복
       scheduled_days: 1, // 1일 후 복습
       ease_factor: 2.5, // 기본 난이도
+      next_review: nextReview.toISOString(), // [수정] DB 저장을 위해 날짜 명시
     };
   }
 
@@ -74,6 +94,20 @@ export const getDueReviews = async () => {
     .limit(20); // 최대 20개
 
   return data || [];
+};
+
+/**
+ * 다음 복습 예정 시간 가져오기 (빈 화면에서 '언제 다시 올지' 알려주기 위함)
+ */
+export const getNextReviewTime = async () => {
+  const { data } = await supabase
+    .from('study_logs')
+    .select('next_review')
+    .gt('next_review', new Date().toISOString()) // 미래에 있는 것만
+    .order('next_review', { ascending: true }) // 가장 가까운 순서
+    .limit(1);
+
+  return data?.[0]?.next_review || null;
 };
 
 /**

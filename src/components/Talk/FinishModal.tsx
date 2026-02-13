@@ -147,8 +147,8 @@ export function FinishModal({ show, practiceResult, onClose, onRetry }: FinishMo
                     {practiceResult.timeSpent % 60}s
                 </ModalText>
                 <ModalButtonStack>
-                    <PrimaryButton onClick={() => navigate('/review')}>
-                        Review Results
+                    <PrimaryButton onClick={() => navigate('/mistakes')}>
+                        Mistake Results
                     </PrimaryButton>
                     <SecondaryButton onClick={onRetry}>
                         <FiRefreshCw

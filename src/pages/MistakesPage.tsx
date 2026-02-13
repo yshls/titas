@@ -17,10 +17,6 @@ import {
   MdSpeed,
 } from 'react-icons/md';
 
-interface ExtendedWeakSpot extends WeakSpot {
-  lineContent?: string;
-}
-
 const PageContainer = styled.div`
   min-height: 100vh;
   background-color: ${({ theme }) => theme.background};
@@ -528,7 +524,7 @@ export function MistakesPage() {
     const stats: Record<string, WordStats> = {};
 
     practiceLogs.forEach((log: PracticeLog) => {
-      log.errors.forEach((error: ExtendedWeakSpot) => {
+      log.errors.forEach((error: WeakSpot) => {
         if (!error.original) return;
 
         const word = error.original

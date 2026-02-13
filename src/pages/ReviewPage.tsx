@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import styled from '@emotion/styled';
 import { useFSRSRepetition } from '@/hooks/useFSRSRepetition';
+import { useAppStore } from '@/store/appStore';
+import { supabase } from '@/supabaseClient';
+import toast from 'react-hot-toast';
 
 const Container = styled.div`
   padding: 20px 12px;
@@ -24,6 +27,58 @@ const Subtitle = styled.p`
   color: ${({ theme }) => theme.textSub};
   line-height: 1.5;
 `;
+
+// --- 로그인 게이트 스타일 ---
+const LoginGateWrapper = styled.div`
+  background: ${({ theme }) => theme.cardBg};
+  border: 1px solid ${({ theme }) => theme.border};
+  border-radius: 16px;
+  padding: 40px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-top: 32px;
+`;
+
+const LoginGateIcon = styled.div`
+  font-size: 48px;
+  margin-bottom: 8px;
+`;
+
+const LoginGateTitle = styled.h4`
+  font-family: 'Lato', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.textMain};
+  margin: 0;
+`;
+
+const LoginGateText = styled.p`
+  font-size: 14px;
+  color: ${({ theme }) => theme.textSub};
+  margin: 0 0 8px;
+  line-height: 1.5;
+`;
+
+const LoginGateButton = styled.button`
+  background: ${({ theme }) => theme.colors.primary};
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 32px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+  }
+`;
+// --- 로그인 게이트 스타일 여기까지 ---
 
 const StatsGrid = styled.div`
   display: grid;
@@ -183,7 +238,7 @@ const ReviewButton = styled.button<{ urgent?: boolean }>`
   }
 `;
 
-const EmptyState = styled.div`
+const LoggedInEmptyState = styled.div`
   text-align: center;
   padding: 60px 20px;
   background: ${({ theme }) => theme.cardBg};
@@ -191,19 +246,19 @@ const EmptyState = styled.div`
   border: 1px solid ${({ theme }) => theme.border};
 `;
 
-const EmptyIcon = styled.div`
+const LoggedInEmptyIcon = styled.div`
   font-size: 48px;
   margin-bottom: 16px;
 `;
 
-const EmptyTitle = styled.h3`
+const LoggedInEmptyTitle = styled.h3`
   font-size: 18px;
   font-weight: 700;
   color: ${({ theme }) => theme.textMain};
   margin-bottom: 8px;
 `;
 
-const EmptyText = styled.p`
+const LoggedInEmptyText = styled.p`
   font-size: 14px;
   color: ${({ theme }) => theme.textSub};
   line-height: 1.6;
@@ -223,6 +278,7 @@ interface ReviewItem {
 }
 
 export default function ReviewPage() {
+  const user = useAppStore((state) => state.user);
   const [reviews, setReviews] = useState<ReviewItem[]>([]);
   const [stats, setStats] = useState({
     total: 0,
@@ -232,14 +288,18 @@ export default function ReviewPage() {
   const { getDueReviews, getPriorityScore } = useFSRSRepetition();
 
   useEffect(() => {
-    fetchReviews();
-  }, []);
+    if (user) {
+      fetchReviews();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const fetchReviews = async () => {
     const data = await getDueReviews();
     const sorted = data
       .map((item: any) => ({
         ...item,
+        script_id: String(item.script_id),
         priority: getPriorityScore(item),
         overdueDays: Math.max(
           0,
@@ -265,6 +325,46 @@ export default function ReviewPage() {
   const handleQuickReview = (item: ReviewItem) => {
     window.location.href = `/talk/${item.script_id}?review=${item.id}&line=${item.line_index}`;
   };
+
+  const handleLogin = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin,
+        },
+      });
+      if (error) throw error;
+    } catch (error) {
+      console.error('Login error:', error);
+      toast.error('Failed to login. Please try again.');
+    }
+  };
+
+  if (!user) {
+    return (
+      <Container>
+        <Header>
+          <Title>Smart Review</Title>
+          <Subtitle>
+            Master your mistakes with spaced repetition. Review at the perfect
+            time.
+          </Subtitle>
+        </Header>
+        <LoginGateWrapper>
+          <LoginGateIcon>🔒</LoginGateIcon>
+          <LoginGateTitle>Unlock Your Smart Review</LoginGateTitle>
+          <LoginGateText>
+            Log in to track your learning progress and get a personalized review
+            schedule.
+          </LoginGateText>
+          <LoginGateButton onClick={handleLogin}>
+            Login to Get Started
+          </LoginGateButton>
+        </LoginGateWrapper>
+      </Container>
+    );
+  }
 
   return (
     <Container>
@@ -294,15 +394,15 @@ export default function ReviewPage() {
       </StatsGrid>
 
       {reviews.length === 0 ? (
-        <EmptyState>
-          <EmptyIcon>🎉</EmptyIcon>
-          <EmptyTitle>All caught up!</EmptyTitle>
-          <EmptyText>
+        <LoggedInEmptyState>
+          <LoggedInEmptyIcon>🎉</LoggedInEmptyIcon>
+          <LoggedInEmptyTitle>All caught up!</LoggedInEmptyTitle>
+          <LoggedInEmptyText>
             No reviews scheduled right now.
             <br />
             Keep practicing to build your review queue.
-          </EmptyText>
-        </EmptyState>
+          </LoggedInEmptyText>
+        </LoggedInEmptyState>
       ) : (
         <ReviewList>
           {reviews.map((item) => (

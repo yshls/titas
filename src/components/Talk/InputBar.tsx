@@ -4,9 +4,6 @@ import { FiMic, FiSend, FiX } from 'react-icons/fi';
 import { MdKeyboard, MdLightbulb } from 'react-icons/md';
 import { AudioVisualizer } from './AudioVisualizer';
 
-//  모바일 감지 추가
-const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
 const pulseRing = keyframes`
   0% { transform: scale(0.95); }
   70% { transform: scale(1); }
@@ -203,7 +200,7 @@ export function InputBar({
   return (
     <FloatingBarWrapper>
       {/*  모바일 안내 메시지 추가 */}
-      {isMobile && isListening && <MobileHint>📱Tap when done</MobileHint>}
+      {isListening && <MobileHint>Tap when done</MobileHint>}
 
       {inputMode === 'mic' ? (
         <FloatingIsland>

@@ -5,13 +5,9 @@ import { migrateData } from '@/services/migrateService';
 import { supabase } from '@/supabaseClient';
 import { useEffect } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
-import { ThemeProvider } from '@emotion/react';
-import { lightTheme, darkTheme } from '@/styles/theme';
 
 function App() {
   const loadInitialData = useAppStore((state) => state.loadInitialData);
-  const themeMode = useAppStore((state) => state.themeMode);
-  const currentTheme = themeMode === 'dark' ? darkTheme : lightTheme;
 
   useEffect(() => {
     const runMigration = async () => {
@@ -49,19 +45,11 @@ function App() {
   }, [loadInitialData]);
 
   return (
-    <ThemeProvider theme={currentTheme}>
+    <>
       {import.meta.env.DEV && <DebugConsole />}
       <TalkPage />
-      <Toaster 
-        toastOptions={{
-          style: {
-            background: currentTheme.cardBg,
-            color: currentTheme.textMain,
-            border: `1px solid ${currentTheme.border}`,
-          },
-        }}
-      />
-    </ThemeProvider>
+      <Toaster />
+    </>
   );
 }
 

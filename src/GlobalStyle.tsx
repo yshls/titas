@@ -25,6 +25,10 @@ const style = css`
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+    /* 다크모드 전환 시 부드러운 색상 변화 */
+    transition: background-color 0.6s ease-in-out, 
+                border-color 0.6s ease-in-out, 
+                color 0.6s ease-in-out;
   }
 
   a {

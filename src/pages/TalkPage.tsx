@@ -1,4 +1,4 @@
-import { useLocation } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import styled from '@emotion/styled';
 import { Toaster } from 'react-hot-toast';
 import { useState, useEffect, useMemo } from 'react';
@@ -26,7 +26,8 @@ const PageContainer = styled.div`
 
 export function TalkPage() {
   const location = useLocation();
-  const { language } = useAppStore();
+  const { allScripts, language } = useAppStore(); 
+  const params = useParams();
 
   const locationState = location.state as {
     lines: DialogueLine[];
@@ -34,12 +35,26 @@ export function TalkPage() {
     title: string;
   } | null;
 
-  const initialScriptLines = useMemo(
-    () => locationState?.lines || [],
-    [locationState],
+  const scriptId = locationState?.scriptId || params.scriptId || 'unknown';
+
+  const [scriptLines, setScriptLines] = useState<DialogueLine[]>(
+    locationState?.lines || [],
   );
-  const scriptId = locationState?.scriptId || 'unknown';
-  const title = locationState?.title || 'Practice Session';
+
+  const [title, setTitle] = useState(
+    locationState?.title || 'Practice Session',
+  );
+
+  useEffect(() => {
+    // If we don't have lines (direct navigation or history fallback), try to find them
+    if (scriptLines.length === 0 && scriptId !== 'unknown') {
+      const found = allScripts.find((s) => String(s.id) === String(scriptId));
+      if (found) {
+        setScriptLines(found.lines);
+        setTitle(found.title);
+      }
+    }
+  }, [scriptId, scriptLines.length, allScripts]);
 
   // --- 스토어 상태 선택
   const status = usePracticeStore((state) => state.status);
@@ -52,11 +67,11 @@ export function TalkPage() {
 
   const engineProps = useMemo(
     () => ({
-      lines: initialScriptLines,
+      lines: scriptLines,
       scriptId,
       title,
     }),
-    [initialScriptLines, scriptId, title],
+    [scriptLines, scriptId, title],
   );
 
   // --- 오케스트레이터 훅 사용

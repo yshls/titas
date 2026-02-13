@@ -10,6 +10,7 @@ import {
   getPriorityScore,
   getNextReviewTime,
   getTotalLearningCount,
+  getReviewForecastStats,
   type FSRSReviewLog,
 } from '@/services/fsrsService';
 
@@ -248,15 +249,46 @@ const StatLabel = styled.div`
   color: ${({ theme }) => theme.textSub};
 `;
 
-interface ReviewItem {
-  id: string;
-  script_id: string;
-  script_title?: string;
-  line_index: number;
-  accuracy: number;
-  retrievability: number;
-  scheduled_days: number;
-  next_review: string;
+const SectionTitle = styled.h2`
+  font-size: 18px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.textMain};
+  margin: 32px 0 16px;
+`;
+
+const ForecastGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+
+  @media (max-width: 600px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+`;
+
+const ForecastCard = styled.div`
+  padding: 12px;
+  background: ${({ theme }) => theme.background};
+  border-radius: 12px;
+  text-align: center;
+`;
+
+const ForecastTime = styled.div`
+  font-size: 12px;
+  font-weight: 600;
+  color: ${({ theme }) => theme.textSub};
+  margin-bottom: 4px;
+`;
+
+const ForecastCount = styled.div`
+  font-size: 20px;
+  font-weight: 800;
+  color: ${({ theme }) => theme.textMain};
+`;
+
+
+interface ReviewItem extends FSRSReviewLog {
   priority: number;
   overdueDays: number;
 }
@@ -270,6 +302,12 @@ export default function ReviewPage() {
     urgent: 0,
     today: 0,
   });
+  const [forecast, setForecast] = useState({
+    '10m': 0,
+    '1d': 0,
+    '1w': 0,
+    '1mo': 0,
+  });
   const [nextReviewTime, setNextReviewTime] = useState<string | null>(null);
 
   useEffect(() => {
@@ -280,17 +318,18 @@ export default function ReviewPage() {
   }, [user]);
 
   const fetchReviews = async () => {
-    // 1. 복습할 목록, 전체 개수, 다음 예정 시간을 병렬로 가져옴
-    const [dueData, totalCount, nextTime] = await Promise.all([
+    // 1. 복습할 목록, 전체 개수, 다음 예정 시간, 미래 예측 통계를 병렬로 가져옴
+    const [dueData, totalCount, nextTime, forecastStats] = await Promise.all([
       getDueReviews(),
       getTotalLearningCount(),
       getNextReviewTime(),
+      getReviewForecastStats(),
     ]);
 
     const sorted = dueData
-      .map((item: FSRSReviewLog & { id: string }) => ({
+      .map((item: FSRSReviewLog) => ({
         ...item,
-        script_id: String(item.script_id),
+        script_id: item.script_id, 
         priority: getPriorityScore(item),
         overdueDays: Math.max(
           0,
@@ -299,7 +338,7 @@ export default function ReviewPage() {
           ),
         ),
       }))
-      .sort((a: ReviewItem, b: ReviewItem) => b.priority - a.priority);
+      .sort((a, b) => b.priority - a.priority);
 
     setReviews(sorted.slice(0, 10));
     setNextReviewTime(nextTime);
@@ -314,6 +353,7 @@ export default function ReviewPage() {
           new Date(item.next_review) < new Date(Date.now() + 86400000),
       ).length,
     });
+    setForecast(forecastStats);
   };
 
   const handleQuickReview = (item: ReviewItem) => {
@@ -386,6 +426,28 @@ export default function ReviewPage() {
           <StatLabel>Total Reviews</StatLabel>
         </StatCard>
       </StatsGrid>
+
+      <SectionTitle>Upcoming Reviews</SectionTitle>
+      <ForecastGrid>
+        <ForecastCard>
+          <ForecastTime>~15 Mins</ForecastTime>
+          <ForecastCount>{forecast['10m']}</ForecastCount>
+        </ForecastCard>
+        <ForecastCard>
+          <ForecastTime>~24 Hours</ForecastTime>
+          <ForecastCount>{forecast['1d']}</ForecastCount>
+        </ForecastCard>
+        <ForecastCard>
+          <ForecastTime>~7 Days</ForecastTime>
+          <ForecastCount>{forecast['1w']}</ForecastCount>
+        </ForecastCard>
+        <ForecastCard>
+          <ForecastTime>~30 Days</ForecastTime>
+          <ForecastCount>{forecast['1mo']}</ForecastCount>
+        </ForecastCard>
+      </ForecastGrid>
+
+      <SectionTitle>Due Now</SectionTitle>
 
       {reviews.length === 0 ? (
         <ReviewEmptyState nextReviewTime={nextReviewTime} />

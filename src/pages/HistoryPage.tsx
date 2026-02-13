@@ -132,7 +132,14 @@ export function HistoryPage() {
       setLoading(true);
       try {
         const data = await getAllStudyLogs();
-        setLogs(data);
+        
+       
+        const validLogs = data.filter(
+          (log) =>
+            (log.script_id != null || (log as any).script_title) &&
+            log.last_reviewed,
+        );
+        setLogs(validLogs);
       } catch (error) {
         console.error(error);
       } finally {
@@ -148,8 +155,13 @@ export function HistoryPage() {
     [allScripts],
   );
 
-  const getScriptTitle = (scriptId: number) => {
-    return scriptTitleMap.get(String(scriptId)) || `Script #${scriptId}`;
+  const getScriptTitle = (log: FSRSReviewLog) => {
+    if (log.script_id) {
+      return (
+        scriptTitleMap.get(String(log.script_id)) || `Script #${log.script_id}`
+      );
+    }
+    return (log as any).script_title || 'Unknown Script';
   };
 
   const seoProps =
@@ -179,17 +191,36 @@ export function HistoryPage() {
         </EmptyState>
       ) : (
         <HistoryList>
-          {logs.map((log) => (
+          {logs.map((log, index) => (
             <HistoryCard
-              key={`${log.script_id}-${log.line_index}-${log.last_reviewed}`}
-              onClick={() =>
-                navigate(`/talk/${log.script_id}?line=${log.line_index}`)
+              key={
+                (log as any).id ||
+                `${log.script_id}-${log.line_index}-${log.last_reviewed}-${index}`
               }
+              onClick={() => {
+                let targetId = log.script_id;
+                if (!targetId && (log as any).script_title) {
+                  const foundScript = allScripts.find(
+                    (s) => s.title === (log as any).script_title,
+                  );
+                  if (foundScript) targetId = Number(foundScript.id);
+                }
+
+                if (targetId) {
+                  navigate(`/talk/${targetId}?line=${log.line_index}`);
+                } else {
+                  // If we really can't find the script, maybe just go to home or show toast
+                  // For now, let's just try to go to talk with what we have or alert
+                  console.warn('Cannot find script ID for log:', log);
+                }
+              }}
             >
               <CardHeader>
-                <ScriptTitle>{getScriptTitle(log.script_id)}</ScriptTitle>
+                <ScriptTitle>{getScriptTitle(log)}</ScriptTitle>
                 <DateText>
-                  {dayjs(log.last_reviewed).format('MMM D, HH:mm')}
+                  {log.last_reviewed
+                    ? dayjs(log.last_reviewed).format('MMM D, HH:mm')
+                    : '-'}
                 </DateText>
               </CardHeader>
               <CardStats>
@@ -200,7 +231,7 @@ export function HistoryPage() {
                   Accuracy: <strong>{log.accuracy}%</strong>
                 </StatItem>
                 <StatItem>
-                  Repetitions: <strong>{log.repetitions}</strong>
+                  Repetitions: <strong>{log.repetitions || 0}</strong>
                 </StatItem>
               </CardStats>
             </HistoryCard>

@@ -559,7 +559,7 @@ export function CreatorPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const toastShownRef = useRef(false);
+
 
   // 임시저장 데이터 로드
   useEffect(() => {
@@ -571,18 +571,7 @@ export function CreatorPage() {
         if (lines) setScriptLines(lines);
         if (savedSpeakers) setSpeakers(savedSpeakers);
 
-        if (!toastShownRef.current) {
-          toast('Draft restored!', {
-            icon: '📂',
-            style: {
-              borderRadius: '10px',
-              background: theme.cardBg,
-              color: theme.textMain,
-              border: `1px solid ${theme.border}`,
-            },
-          });
-          toastShownRef.current = true;
-        }
+
       } catch (e) {
         // 에러 무시
       }

@@ -97,6 +97,37 @@ export const getDueReviews = async () => {
 };
 
 /**
+ * 전체 학습 중인 카드 개수 가져오기 (Total Reviews 통계용)
+ */
+export const getTotalLearningCount = async () => {
+  const { count, error } = await supabase
+    .from('study_logs')
+    .select('*', { count: 'exact', head: true }); // 데이터는 안 가져오고 개수만 조회
+
+  if (error) {
+    console.error('Error fetching total count:', error);
+    return 0;
+  }
+  return count || 0;
+};
+
+/**
+ * 전체 학습 기록 가져오기 (History 페이지용)
+ */
+export const getAllStudyLogs = async () => {
+  const { data, error } = await supabase
+    .from('study_logs')
+    .select('*')
+    .order('last_reviewed', { ascending: false }); // 최신순 정렬
+
+  if (error) {
+    console.error('Error fetching history:', error);
+    return [];
+  }
+  return data || [];
+};
+
+/**
  * 다음 복습 예정 시간 가져오기 (빈 화면에서 '언제 다시 올지' 알려주기 위함)
  */
 export const getNextReviewTime = async () => {

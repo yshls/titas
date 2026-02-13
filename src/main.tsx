@@ -18,6 +18,7 @@ import { ScriptListPage } from '@/pages/ScriptListPage';
 import { ScriptDetailPage } from '@/pages/ScriptDetailPage';
 import { PrivacyPolicyPage } from '@/pages/PrivacyPolicyPage';
 import { TermsOfServicePage } from '@/pages/TermsOfServicePage';
+import { HistoryPage } from './pages/HistoryPage';
 
 if (new URLSearchParams(window.location.search).has('debug')) {
   import('eruda').then((eruda) => eruda.default.init());
@@ -33,6 +34,8 @@ const router = createBrowserRouter([
       { path: '/talk/:scriptId', element: <TalkPage /> },
       { path: '/mistakes', element: <MistakesPage /> },
       { path: '/review', element: <ReviewPage /> },
+      { path: '/history', element: <HistoryPage /> },
+
       { path: '/scripts', element: <ScriptListPage /> },
       { path: '/script/:id', element: <ScriptDetailPage /> },
 

@@ -5,7 +5,6 @@ import { HelmetProvider } from 'react-helmet-async';
 
 
 import './i18n'; 
-import { theme } from '@/styles/theme';
 
 import GlobalStyle from '@/GlobalStyle';
 import { AppWrapper } from '@/AppWrapper';

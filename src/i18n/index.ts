@@ -20,7 +20,7 @@ i18n
   .init({
     resources,
     fallbackLng: 'ko', // 기본 언어
-    debug: false,
+    debug: import.meta.env.DEV, // 개발 환경에서만 디버그 모드 활성화
     
     interpolation: {
       escapeValue: false, // React already escapes

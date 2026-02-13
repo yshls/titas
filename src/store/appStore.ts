@@ -36,7 +36,7 @@ export interface AppState {
   setSpokenText: (text: string) => void;
   recordDiffResult: (result: DiffResult[]) => void;
   loadScript: (script: DialogueLine[]) => void;
-  setLanguage: (language: Language) => void;
+  setLanguage: (language: Language, updateUrl?: boolean) => void;
   setThemeMode: (mode: 'light' | 'dark') => void;
 
   // 비동기 액션
@@ -53,10 +53,20 @@ export interface AppState {
 
 const getInitialLanguage = (): Language => {
   if (typeof window !== 'undefined') {
+    // 1. URL 쿼리 파라미터 우선 확인 (SEO)
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlLang = urlParams.get('lang') as Language;
+    if (urlLang && ['ko', 'en'].includes(urlLang)) {
+      return urlLang;
+    }
+    
+    // 2. localStorage 확인
     const storedLang = localStorage.getItem('titas_lang') as Language;
     if (storedLang && ['ko', 'en'].includes(storedLang)) {
       return storedLang;
     }
+    
+    // 3. 브라우저 언어 확인
     const browserLang = navigator.language.split('-')[0];
     if (browserLang === 'ko' || browserLang === 'en') {
       return browserLang as Language;
@@ -94,9 +104,16 @@ export const useAppStore = create<AppState>((set, get) => ({
   setSpokenText: (text) => set({ spokenText: text }),
   recordDiffResult: (result) => set({ lastDiffResult: result }),
   loadScript: (script) => set({ currentScript: script }),
-  setLanguage: (language) => {
+  setLanguage: (language, updateUrl = false) => {
     set({ language });
     localStorage.setItem('titas_lang', language);
+    
+    // URL 쿼리 파라미터 동기화 (SEO 및 공유용)
+    if (updateUrl && typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.set('lang', language);
+      window.history.replaceState({}, '', url.toString());
+    }
   },
   setThemeMode: (mode) => {
     set({ themeMode: mode });

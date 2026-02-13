@@ -561,7 +561,7 @@ export function RootLayout() {
               {t('toast.yesDelete')}
             </ConfirmButton>
             <CancelButton onClick={() => toast.dismiss(toastInstance.id)}>
-              Cancel
+              {t('common.button.cancel')}
             </CancelButton>
           </ToastActions>
         </ToastContainer>

@@ -117,7 +117,7 @@ export function Seo({
             '@type': 'Organization',
             name: 'TiTaS',
           },
-        })}
+        }).replace(/</g, '\\u003c')}
       </script>
     </Helmet>
   );

@@ -82,12 +82,12 @@ export const lightTheme = {
 
 export const darkTheme = {
   colors,
-  background: '#121212',  
-  cardBg: '#1E1E1E',    
-  textMain: '#EDEDED',  
-  textSub: '#A0A0A0',   
-  textDisabled: '#666666',
-  border: '#2C2C2C',    
+  background: '#1a1a1a',   
+  cardBg: '#242424',     
+  textMain: '#d4d4d4',     
+  textSub: '#9ca3af',      
+  textDisabled: '#6b7280',
+  border: '#333333',       
   mode: 'dark',
 };
 

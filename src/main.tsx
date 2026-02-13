@@ -4,6 +4,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { ThemeProvider } from '@emotion/react'; //  Emotion 불러오기
 import { HelmetProvider } from 'react-helmet-async';
 
+import './i18n'; 
 import { theme } from '@/styles/theme';
 import GlobalStyle from '@/GlobalStyle';
 

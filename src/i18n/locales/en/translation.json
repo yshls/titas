@@ -1,0 +1,96 @@
+{
+  "common": {
+    "button": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "edit": "Edit",
+      "confirm": "Confirm",
+      "close": "Close",
+      "back": "Back"
+    },
+    "action": {
+      "loading": "Loading...",
+      "noData": "No data available",
+      "error": "An error occurred"
+    }
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "create": "Create",
+    "scripts": "Scripts",
+    "mistakes": "Mistakes",
+    "review": "Review",
+    "history": "History"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signOut": "Sign Out",
+    "signedInAs": "Signed in as",
+    "deleteAccount": "Delete Account",
+    "welcome": "Welcome!",
+    "hello": "Hello, {{name}}",
+    "loginWith": "Login with Google"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "recentPractice": "Recent Practice",
+    "allScripts": "All Scripts",
+    "viewAll": "View All",
+    "startPractice": "Start Practice",
+    "noScripts": "No scripts yet",
+    "createFirst": "Create your first script!"
+  },
+  "creator": {
+    "title": "Create Script",
+    "scriptTitle": "Script Title",
+    "titlePlaceholder": "Enter title...",
+    "addDialogue": "Add Dialogue",
+    "koreanText": "Korean",
+    "englishText": "English",
+    "koreanPlaceholder": "Enter Korean text",
+    "englishPlaceholder": "Enter English text",
+    "saveDraft": "Save Draft",
+    "createScript": "Create Script",
+    "draftRestored": "Draft restored"
+  },
+  "mistakes": {
+    "title": "Mistakes",
+    "focusSection": "Focus on These",
+    "otherMistakes": "Other Mistakes",
+    "noMistakes": "No mistakes yet!",
+    "keepPracticing": "Keep practicing",
+    "mistakeCount": "{{count}} mistake",
+    "mistakeCount_plural": "{{count}} mistakes"
+  },
+  "review": {
+    "title": "Review",
+    "cardsToday": "Cards to review today",
+    "showAnswer": "Show Answer",
+    "again": "Again",
+    "good": "Good",
+    "easy": "Easy",
+    "noCards": "No cards to review!",
+    "wellDone": "Well done!"
+  },
+  "practice": {
+    "listening": "Listening",
+    "speaking": "Speaking",
+    "comparing": "Comparing...",
+    "excellent": "Excellent!",
+    "good": "Good!",
+    "tryAgain": "Try Again"
+  },
+  "toast": {
+    "welcome": "Welcome! We're syncing your data",
+    "syncComplete": "Sync complete. Enjoy!",
+    "signedOut": "See you later! Signed out successfully.",
+    "loginFailed": "Whoops! Login failed. Please try again.",
+    "logoutFailed": "Logout failed. Please try again.",
+    "deleteConfirm": "Are you absolutely sure?",
+    "deleteWarning": "This action cannot be undone.",
+    "yesDelete": "Yes, delete it!",
+    "accountDeleted": "It's a sad day! Your account is gone forever.",
+    "deleteFailed": "Oops! Something went wrong with the deletion."
+  }
+}

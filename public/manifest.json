@@ -1,0 +1,26 @@
+{
+  "name": "TiTaS - 나만의 스크립트로 완성하는 영어 쉐도잉",
+  "short_name": "TiTaS",
+  "description": "내가 공부하고 싶은 문장으로 시작하세요. 직접 입력한 스크립트를 따라 말하고, 실시간 비교로 발음을 개선하세요.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f2f1ed",
+  "theme_color": "#FF6B35",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/titas.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/titas_logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "productivity"],
+  "lang": "ko-KR",
+  "dir": "ltr"
+}

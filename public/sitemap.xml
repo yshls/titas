@@ -1,31 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- 홈페이지 -->
   <url>
-    <loc>https://www.titas.store</loc>
-    <lastmod>2026-02-04</lastmod>
+    <loc>https://www.titas.store/</loc>
+    <lastmod>2026-02-14</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
-  
-  
-  <!-- My Script -->
+  <url>
+    <loc>https://www.titas.store/create</loc>
+    <lastmod>2026-02-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
   <url>
     <loc>https://www.titas.store/scripts</loc>
-    <lastmod>2026-02-04</lastmod>
-    <priority>0.9</priority>
+    <lastmod>2026-02-14</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
   </url>
-  
-  <!-- 이용약관 -->
+  <url>
+    <loc>https://www.titas.store/review</loc>
+    <lastmod>2026-02-14</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
   <url>
     <loc>https://www.titas.store/terms</loc>
-    <lastmod>2026-02-04</lastmod>
+    <lastmod>2026-02-14</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
-  
-  <!-- 개인정보처리방침 -->
   <url>
     <loc>https://www.titas.store/privacy</loc>
-    <lastmod>2026-02-04</lastmod>
+    <lastmod>2026-02-14</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
 </urlset>

@@ -113,6 +113,7 @@ const CalendarCard = styled.div`
   border: 1px solid ${({ theme }) => theme.border};
   padding: 24px 20px 20px;
   height: fit-content;
+  box-shadow: none;
 
   display: flex;
   flex-direction: column;
@@ -493,7 +494,7 @@ const ToastContainer = styled.div`
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: none;
   min-width: 280px;
 `;
 

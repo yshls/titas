@@ -682,6 +682,7 @@ export function CreatorPage() {
           background: theme.cardBg,
           color: theme.textMain,
           border: `1px solid ${theme.border}`,
+          boxShadow: 'none',
         },
       },
     );
@@ -755,6 +756,7 @@ export function CreatorPage() {
             background: theme.cardBg,
             color: theme.textMain,
             border: `1px solid ${theme.border}`,
+            boxShadow: 'none',
           },
         },
       );
@@ -790,6 +792,7 @@ export function CreatorPage() {
             background: theme.cardBg,
             color: theme.textMain,
             border: `1px solid ${theme.border}`,
+            boxShadow: 'none',
           },
         }}
       />

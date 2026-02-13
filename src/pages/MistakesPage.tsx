@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { useAppStore } from '@/store/appStore';
 import { useNavigate } from 'react-router-dom';
 import { useTTS } from '@/utils/useTTS';
@@ -43,7 +44,7 @@ const Subtitle = styled.p`
   line-height: 1.5;
 `;
 
-const CardGrid = styled.div`
+const CardGrid = styled(motion.div)`
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -51,7 +52,7 @@ const CardGrid = styled.div`
   margin: 0 auto;
 `;
 
-const WordCardContainer = styled.div<{
+const WordCardContainer = styled(motion.div)<{
   isExpanded: boolean;
   isSolved: boolean;
 }>`
@@ -60,7 +61,7 @@ const WordCardContainer = styled.div<{
   border: 2px solid
     ${({ theme, isExpanded, isSolved }) =>
       isSolved
-        ? theme.colors.success
+        ? '#059669'
         : isExpanded
           ? theme.colors.primary
           : 'transparent'};
@@ -68,15 +69,16 @@ const WordCardContainer = styled.div<{
   transition: all 0.2s ease-in-out;
   cursor: pointer;
 
-  ${({ isSolved, theme }) =>
+  ${({ isSolved }) =>
     isSolved &&
     `
-    background-color: ${theme.colors.success}08;
+    background-color: #05966908;
+    border-color: #059669;
   `}
 
   &:hover {
     border-color: ${({ theme, isSolved }) =>
-      isSolved ? theme.colors.success : theme.colors.primary};
+      isSolved ? '#059669' : theme.colors.primary};
     transform: translateY(-2px);
   }
 `;
@@ -134,7 +136,7 @@ const WordText = styled.h3`
 
 const SolvedIcon = styled(MdCheckCircle)`
   margin-left: 4px;
-  color: ${({ theme }) => theme.colors.success};
+  color: #059669;
 `;
 
 const StatRow = styled.div`
@@ -259,7 +261,7 @@ const PracticeStatus = styled.p<{
     status === 'listening'
       ? theme.colors.primary
       : status === 'success'
-        ? theme.colors.success
+        ? '#059669'
         : status === 'fail'
           ? theme.colors.error
           : theme.textSub};
@@ -428,6 +430,7 @@ function WordCardItem({
       isExpanded={isExpanded}
       isSolved={isSolved}
       onClick={() => setIsExpanded(!isExpanded)}
+      whileTap={{ scale: 0.98 }}
     >
       <CardMain>
         <CardLeftWrapper>
@@ -607,14 +610,33 @@ export function MistakesPage() {
         </Subtitle>
       </Header>
 
-      <CardGrid>
+      <CardGrid
+        initial="hidden"
+        animate="show"
+        variants={{
+          hidden: { opacity: 0 },
+          show: {
+            opacity: 1,
+            transition: {
+              staggerChildren: 0.05,
+            },
+          },
+        }}
+      >
         {wordStatsList.map((item, index) => (
-          <WordCardItem
+          <motion.div
             key={item.word}
-            item={item}
-            index={index}
-            maxCount={maxCount}
-          />
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              show: { opacity: 1, y: 0 },
+            }}
+          >
+            <WordCardItem
+              item={item}
+              index={index}
+              maxCount={maxCount}
+            />
+          </motion.div>
         ))}
       </CardGrid>
     </PageContainer>

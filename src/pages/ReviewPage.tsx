@@ -95,105 +95,69 @@ const ReviewList = styled.div`
   gap: 12px;
 `;
 
-const ReviewCard = styled.div<{ priority: number }>`
-  padding: 16px;
+const ReviewCard = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
   background: ${({ theme }) => theme.cardBg};
   border-radius: 12px;
   border: 1px solid ${({ theme }) => theme.border};
-  border-left: 4px solid
-    ${({ priority, theme }) =>
-      priority > 5
-        ? theme.colors.error
-        : priority > 2
-          ? theme.colors.orange500
-          : theme.colors.success};
   transition: all 0.2s;
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    background-color: ${({ theme }) => theme.background};
+    border-color: ${({ theme }) => theme.textSub};
   }
 `;
 
-const CardHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 12px;
+const PriorityIndicator = styled.div<{ level: number }>`
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: ${({ level, theme }) =>
+    level > 5
+      ? theme.colors.error
+      : level > 2
+        ? theme.colors.orange500
+        : theme.colors.success};
 `;
 
-const CardInfo = styled.div`
+const CardContent = styled.div`
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 `;
 
 const CardTitle = styled.div`
   font-size: 15px;
   font-weight: 700;
   color: ${({ theme }) => theme.textMain};
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 `;
 
 const CardMeta = styled.div`
   display: flex;
   align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-`;
-
-const MetaItem = styled.span`
-  font-size: 13px;
+  gap: 10px;
+  font-size: 12px;
   color: ${({ theme }) => theme.textSub};
   font-weight: 500;
-`;
-
-const CardPriority = styled.div`
-  text-align: right;
-  flex-shrink: 0;
-`;
-
-const PriorityValue = styled.div`
-  font-size: 24px;
-  font-weight: 800;
-  color: ${({ theme }) => theme.colors.orange500};
-  line-height: 1;
-  margin-bottom: 2px;
-`;
-
-const PriorityLabel = styled.div`
-  font-size: 11px;
-  color: ${({ theme }) => theme.textSub};
-  font-weight: 500;
-`;
-
-const ProgressBar = styled.div`
-  width: 100%;
-  height: 6px;
-  background: ${({ theme }) => theme.background};
-  border-radius: 3px;
-  overflow: hidden;
-  margin-bottom: 12px;
-`;
-
-const ProgressFill = styled.div<{ progress: number }>`
-  height: 100%;
-  width: ${({ progress }) => progress}%;
-  background: ${({ theme }) => theme.colors.primary};
-  border-radius: 3px;
-  transition: width 0.3s ease;
 `;
 
 const ReviewButton = styled.button<{ urgent?: boolean }>`
-  width: 100%;
-  padding: 10px 16px;
+  padding: 8px 16px;
   background: ${({ urgent, theme }) =>
     urgent ? theme.colors.error : theme.colors.primary};
   color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 14px;
+  border-radius: 100px; /* Pill shape */
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
+  white-space: nowrap;
 
   &:hover {
     background: ${({ urgent, theme }) =>
@@ -226,27 +190,29 @@ const StatCard = styled.div<{ urgent?: boolean; onClick?: any }>`
   ${({ urgent, theme }) =>
     urgent &&
     `
-    border-color: ${theme.colors.error};
     background: ${theme.colors.red50};
+    border-color: ${theme.colors.error}40;
+    color: ${theme.colors.error};
   `}
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    ${({ onClick, theme }) => onClick && `background-color: ${theme.border};`}
   }
 `;
 
 const StatValue = styled.div`
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 800;
-  color: ${({ theme }) => theme.textMain};
+  color: inherit; /* Inherit color from parent (for urgent state) */
   margin-bottom: 4px;
 `;
 
 const StatLabel = styled.div`
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 12px;
+  font-weight: 600;
   color: ${({ theme }) => theme.textSub};
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 `;
 
 const SectionTitle = styled.h2`
@@ -295,7 +261,7 @@ interface ReviewItem extends FSRSReviewLog {
 
 export default function ReviewPage() {
   const navigate = useNavigate();
-  const user = useAppStore((state) => state.user);
+  const { user, allScripts } = useAppStore();
   const [reviews, setReviews] = useState<ReviewItem[]>([]);
   const [stats, setStats] = useState({
     total: 0,
@@ -454,37 +420,32 @@ export default function ReviewPage() {
       ) : (
         <ReviewList>
           {reviews.map((item) => (
-            <ReviewCard key={item.id} priority={item.priority}>
-              <CardHeader>
-                <CardInfo>
-                  <CardTitle>
-                    {item.script_title || `Script #${item.script_id}`}
-                  </CardTitle>
-                  <CardMeta>
-                    <MetaItem>{item.accuracy}% accuracy</MetaItem>
-                    <MetaItem>
-                      {item.overdueDays > 0
-                        ? `⏰ ${item.overdueDays}d overdue`
-                        : `📅 in ${item.scheduled_days}d`}
-                    </MetaItem>
-                  </CardMeta>
-                </CardInfo>
-
-                <CardPriority>
-                  <PriorityValue>{Math.round(item.priority)}</PriorityValue>
-                  <PriorityLabel>priority</PriorityLabel>
-                </CardPriority>
-              </CardHeader>
-
-              <ProgressBar>
-                <ProgressFill progress={item.retrievability * 100} />
-              </ProgressBar>
+            <ReviewCard key={item.id}>
+              <PriorityIndicator level={item.priority} />
+              
+              <CardContent>
+                <CardTitle>
+                  {allScripts.find((s) => s.id === item.script_id.toString())
+                    ?.title ||
+                    item.script_title ||
+                    `Script #${item.script_id}`}
+                </CardTitle>
+                <CardMeta>
+                  <span>{item.accuracy}% Acc</span>
+                  <span>•</span>
+                  <span>
+                    {item.overdueDays > 0
+                      ? `${item.overdueDays}d overdue`
+                      : `Due today`}
+                  </span>
+                </CardMeta>
+              </CardContent>
 
               <ReviewButton
                 urgent={item.priority > 5}
                 onClick={() => handleQuickReview(item)}
               >
-                {item.priority > 5 ? '🔥 Review Now' : 'Start Review'}
+                Review
               </ReviewButton>
             </ReviewCard>
           ))}

@@ -1,4 +1,4 @@
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '@/store/appStore';
@@ -8,6 +8,7 @@ import type { DialogueLine, ScriptData } from '@/utils/types';
 import styled from '@emotion/styled';
 import { useTheme } from '@emotion/react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { generateUUID } from '@/utils/uuid';
 import {
   MdAdd,
   MdSave,
@@ -558,6 +559,8 @@ export function CreatorPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
+
+
   // 임시저장 데이터 로드
   useEffect(() => {
     const draft = localStorage.getItem('titas_draft');
@@ -567,15 +570,8 @@ export function CreatorPage() {
         if (title) setScriptTitle(title);
         if (lines) setScriptLines(lines);
         if (savedSpeakers) setSpeakers(savedSpeakers);
-        toast('Draft restored!', {
-          icon: '📂',
-          style: {
-            borderRadius: '10px',
-            background: theme.cardBg,
-            color: theme.textMain,
-            border: `1px solid ${theme.border}`,
-          },
-        });
+
+
       } catch (e) {
         // 에러 무시
       }
@@ -617,7 +613,7 @@ export function CreatorPage() {
       .filter((text) => text.length > 0)
       .map((text) => {
         return {
-          id: crypto.randomUUID(),
+          id: generateUUID(),
           speakerId: activeSpeaker?.name || 'Unknown',
           originalLine: text,
           speakerColor:
@@ -681,6 +677,7 @@ export function CreatorPage() {
           background: theme.cardBg,
           color: theme.textMain,
           border: `1px solid ${theme.border}`,
+          boxShadow: 'none',
         },
       },
     );
@@ -700,7 +697,7 @@ export function CreatorPage() {
     }
 
     const newScript: ScriptData = {
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       title: scriptTitle.trim(),
       createdAt: Date.now(),
       lines: scriptLines,
@@ -754,6 +751,7 @@ export function CreatorPage() {
             background: theme.cardBg,
             color: theme.textMain,
             border: `1px solid ${theme.border}`,
+            boxShadow: 'none',
           },
         },
       );
@@ -778,20 +776,8 @@ export function CreatorPage() {
   return (
     <PageContainer>
       <Seo {...seoProps} />
-      <Toaster
-        position="top-center"
-        containerStyle={{ zIndex: 99999 }}
-        toastOptions={{
-          style: {
-            fontSize: '14px',
-            borderRadius: '10px',
-            padding: '12px',
-            background: theme.cardBg,
-            color: theme.textMain,
-            border: `1px solid ${theme.border}`,
-          },
-        }}
-      />
+
+
 
       <Sidebar>
         <Header>

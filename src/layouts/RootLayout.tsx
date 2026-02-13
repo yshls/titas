@@ -9,11 +9,17 @@ import { supabase } from '@/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Seo } from '@/components/common/Seo';
 import { migrateData } from '@/services/migrateService';
+
 import { useTranslation } from 'react-i18next';
+
+import { AnimatedLayout } from './AnimatedLayout';
+import { ThemeToggle } from '@/components/common/ThemeToggle';
+
 
 // --- [스타일 컴포넌트] ---
 
 const LanguageSwitcher = styled.button`
+  display: none;
   background: none;
   border: 1px solid ${({ theme }) => theme.border};
   color: ${({ theme }) => theme.textSub};
@@ -422,10 +428,13 @@ const CancelButton = styled.button`
 // --- [컴포넌트 로직] ---
 
 const NAV_ITEMS = [
+
   { to: '/', key: 'nav.dashboard' },
   { to: '/create', key: 'nav.create' },
-  { to: '/scripts', key: 'nav.scripts' },
+  { to: '/scripts', key: 'nav.scripts' },  
+  { to: '/mistakes', key: 'nav.mistakes' },
   { to: '/review', key: 'nav.review' },
+
 ];
 
 export function RootLayout() {
@@ -586,6 +595,7 @@ export function RootLayout() {
 
             <RightSection>
               <DesktopWrapper>
+                <ThemeToggle />
                 <LanguageSwitcher
                   onClick={() => setLanguage(language === 'ko' ? 'en' : 'ko')}
                 >
@@ -665,9 +675,12 @@ export function RootLayout() {
                   <DrawerHeader>
                     <WelcomeText>
                       {user
+
                         ? t('auth.hello', { name: user.user_metadata.full_name.split(' ')[0] })
                         : t('auth.welcome')}
+
                     </WelcomeText>
+                    <ThemeToggle />
                   </DrawerHeader>
 
                   <DrawerNav>
@@ -706,7 +719,9 @@ export function RootLayout() {
 
         {/* 메인 컨텐츠 */}
         <MainContent noPadding={isTalkPage || isScriptDetailPage}>
-          <Outlet />
+          <AnimatedLayout>
+            <Outlet />
+          </AnimatedLayout>
         </MainContent>
 
         {/* 푸터 */}

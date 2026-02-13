@@ -1,6 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
-// Web Speech API 브라우저 호환성 타입 선언
 declare global {
   interface Window {
     SpeechRecognition: any;
@@ -11,75 +10,196 @@ declare global {
 const SpeechRecognition =
   window.SpeechRecognition || window.webkitSpeechRecognition;
 
-// API 미지원 브라우저 경고
 if (!SpeechRecognition && typeof window !== 'undefined') {
-  console.warn(
-    'Your browser does not support the Web Speech API. Please use Chrome.'
-  );
+  console.warn('Web Speech API not supported');
 }
 
-export function useSpeechRecognition() {
+// 마이크 권한 요청
+const requestMicrophonePermission = async (
+  setPermissionStatus: (status: PermissionState) => void,
+): Promise<boolean> => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    setPermissionStatus('granted');
+    stream.getTracks().forEach((track) => track.stop());
+    return true;
+  } catch (error) {
+    console.error('[SpeechRecognition] Permission denied', error);
+    setPermissionStatus('denied');
+    return false;
+  }
+};
+
+export function useSpeechRecognition(options?: { isMobile: boolean }) {
+  const { isMobile } = options || { isMobile: false };
   const [transcript, setTranscript] = useState('');
   const [isListening, setIsListening] = useState(false);
+  const [permissionStatus, setPermissionStatus] =
+    useState<PermissionState>('prompt');
 
   const recognitionRef = useRef<any>(null);
+  const finalTranscriptRef = useRef('');
+  const autoRestartEnabledRef = useRef(false);
 
-  // 음성 인식 인스턴스 초기화
+  // Web Speech API 초기화
   useEffect(() => {
-    if (!SpeechRecognition) return;
+    if (!navigator.mediaDevices) {
+      console.error('[SpeechRecognition] navigator.mediaDevices not available');
+      setPermissionStatus('denied');
+      return;
+    }
+
+    requestMicrophonePermission(setPermissionStatus);
+
+    if (!SpeechRecognition) {
+      return;
+    }
 
     const recognition = new SpeechRecognition();
     recognition.lang = 'en-US';
-    recognition.interimResults = false;
-    recognition.continuous = false;
+    recognition.continuous = !isMobile; // 짧게 끊어서 인식
+    recognition.interimResults = true; // 중간 결과 받기
+    recognition.maxAlternatives = 1;
 
-    // 음성 인식 결과 처리
+    // 인식 시작
+    recognition.onstart = () => {
+      setIsListening(true);
+    };
+
+    // 음성 인식 결과
     recognition.onresult = (event: any) => {
-      const lastResult = event.results[event.results.length - 1];
-      const spokenText = lastResult[0].transcript;
-      setTranscript(spokenText);
+      let finalText = '';
+
+      for (let i = 0; i < event.results.length; i++) {
+        const text = event.results[i][0].transcript;
+        finalText += text + ' ';
+      }
+
+      const trimmed = finalText.trim();
+      if (trimmed) {
+        finalTranscriptRef.current = trimmed;
+        setTranscript(trimmed);
+      }
     };
 
     // 에러 처리
     recognition.onerror = (event: any) => {
-      console.error('Speech Recognition Error:', event.error);
+      console.error('[SpeechRecognition] Error:', event.error);
+
+      if (event.error === 'no-speech' || event.error === 'aborted') {
+        return;
+      }
+
+      if (
+        event.error === 'not-allowed' ||
+        event.error === 'service-not-allowed'
+      ) {
+        setPermissionStatus('denied');
+      }
+
       setIsListening(false);
     };
 
-    // 인식 종료 처리
+    // 인식 종료 (자동 재시작 포함)
     recognition.onend = () => {
+      const finalText = finalTranscriptRef.current.trim();
+      if (finalText) {
+        setTranscript(finalText);
+      }
+
       setIsListening(false);
+
+      // 연속 인식 효과
+      if (autoRestartEnabledRef.current && permissionStatus === 'granted') {
+        setTimeout(() => {
+          try {
+            recognitionRef.current?.start();
+          } catch (e: any) {
+            if (!e.message?.includes('already started')) {
+              autoRestartEnabledRef.current = false;
+            }
+          }
+        }, 100);
+      }
     };
 
     recognitionRef.current = recognition;
-  }, []);
+
+    // 컴포넌트 언마운트 시 정리
+    return () => {
+      autoRestartEnabledRef.current = false;
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.abort();
+        } catch (e) {}
+      }
+    };
+  }, [permissionStatus, isMobile]);
 
   // 음성 인식 시작
-  const startListening = () => {
-    if (recognitionRef.current && !isListening) {
+  const startListening = useCallback(async () => {
+    if (permissionStatus === 'prompt') {
+      const granted = await requestMicrophonePermission(setPermissionStatus);
+      if (!granted) return;
+    }
+
+    if (permissionStatus !== 'granted' || isListening) {
+      return;
+    }
+
+    if (recognitionRef.current) {
       try {
-        recognitionRef.current.start();
-        setIsListening(true);
         setTranscript('');
-      } catch (e) {
-        console.warn(
-          'Recognition start failed (already started or permission issue).'
-        );
+        finalTranscriptRef.current = '';
+        autoRestartEnabledRef.current = true;
+        recognitionRef.current.start();
+      } catch (e: any) {
+        if (!e.message?.includes('already started')) {
+          console.error('[SpeechRecognition] Start failed:', e);
+          autoRestartEnabledRef.current = false;
+        }
       }
     }
-  };
+  }, [permissionStatus, isListening]);
 
   // 음성 인식 중지
-  const stopListening = () => {
-    if (recognitionRef.current && isListening) {
-      recognitionRef.current.stop();
+  const stopListening = useCallback(() => {
+    autoRestartEnabledRef.current = false;
+
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch (e) {
+        console.error('[SpeechRecognition] Stop failed:', e);
+      }
     }
-  };
+
+    const finalText = finalTranscriptRef.current.trim();
+    if (finalText) {
+      setTranscript(finalText);
+    }
+
+    setIsListening(false);
+  }, []);
+
+  // 텍스트 초기화
+  const clearTranscript = useCallback(() => {
+    setTranscript('');
+    finalTranscriptRef.current = '';
+  }, []);
+
+  // 권한 재요청
+  const requestPermission = useCallback(async () => {
+    return await requestMicrophonePermission(setPermissionStatus);
+  }, []);
 
   return {
     transcript,
     isListening,
+    permissionStatus,
     startListening,
     stopListening,
+    clearTranscript,
+    requestPermission,
   };
 }

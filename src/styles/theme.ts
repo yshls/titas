@@ -69,7 +69,7 @@ const colors = {
   green900: '#027648',
 };
 
-export const theme = {
+export const lightTheme = {
   colors,
   background: '#FAFAFA',
   cardBg: '#FFFFFF',
@@ -77,6 +77,22 @@ export const theme = {
   textSub: '#6b7684',
   textDisabled: '#b0b8c1',
   border: '#e5e8eb',
+  mode: 'light',
 };
 
-export type ThemeType = typeof theme;
+export const darkTheme = {
+  colors,
+  background: '#1a1a1a',   
+  cardBg: '#242424',     
+  textMain: '#d4d4d4',     
+  textSub: '#9ca3af',      
+  textDisabled: '#6b7280',
+  border: '#333333',       
+  mode: 'dark',
+};
+
+// 하위 호환성을 위해 lightTheme을 기본 theme으로 export
+export const theme = lightTheme;
+
+export type Theme = typeof lightTheme;
+export type ThemeType = Theme; 

@@ -1,10 +1,11 @@
-import { useLocation } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import styled from '@emotion/styled';
-import { Toaster } from 'react-hot-toast';
+
+import { useState, useEffect, useMemo } from 'react';
 import type { DialogueLine } from '@/utils/types';
 import { useAppStore } from '@/store/appStore';
+import { usePracticeStore } from '@/store/practiceStore';
 import { Seo } from '@/components/common/Seo';
-
 import { usePracticeEngine } from '@/hooks/usePracticeEngine';
 import { RoleSelection } from '@/components/Talk/RoleSelection';
 import { PracticeHeader } from '@/components/Talk/PracticeHeader';
@@ -25,50 +26,86 @@ const PageContainer = styled.div`
 
 export function TalkPage() {
   const location = useLocation();
-  const { language } = useAppStore();
-  const {
-    lines: initialScriptLines = [],
-    scriptId = 'unknown',
-    title = 'Practice Session',
-  } = (location.state as {
+  const { allScripts, language } = useAppStore(); 
+  const params = useParams();
+
+  const locationState = location.state as {
     lines: DialogueLine[];
     scriptId: string;
     title: string;
-  }) || {};
+  } | null;
 
+  const scriptId = locationState?.scriptId || params.scriptId || 'unknown';
+
+  const [scriptLines, setScriptLines] = useState<DialogueLine[]>(
+    locationState?.lines || [],
+  );
+
+  const [title, setTitle] = useState(
+    locationState?.title || 'Practice Session',
+  );
+
+  useEffect(() => {
+    // If we don't have lines (direct navigation or history fallback), try to find them
+    if (scriptLines.length === 0 && scriptId !== 'unknown') {
+      const found = allScripts.find((s) => String(s.id) === String(scriptId));
+      if (found) {
+        setScriptLines(found.lines);
+        setTitle(found.title);
+      }
+    }
+  }, [scriptId, scriptLines.length, allScripts]);
+
+  // --- 스토어 상태 선택
+  const status = usePracticeStore((state) => state.status);
+  const lines = usePracticeStore((state) => state.lines);
+  const currentLineIndex = usePracticeStore((state) => state.currentLineIndex);
+  const userSpeakerId = usePracticeStore((state) => state.userSpeakerId);
+  const feedbackMap = usePracticeStore((state) => state.feedbackMap);
+  const userAudioMap = usePracticeStore((state) => state.userAudioMap);
+  const practiceResult = usePracticeStore((state) => state.practiceResult);
+
+  const engineProps = useMemo(
+    () => ({
+      lines: scriptLines,
+      scriptId,
+      title,
+    }),
+    [scriptLines, scriptId, title],
+  );
+
+  // --- 오케스트레이터 훅 사용
   const {
-    isPracticeStarted,
-    isFinished,
-    isMyTurn,
-    isListening,
-    mediaStream,
-    speakerIds,
-    speakerColors,
-    userSpeakerId,
-    currentLineIndex,
-    lines,
-    feedbackMap,
-    userAudioMap,
     inputMode,
-    typedInput,
-    showHint,
-    showFinishModal,
-    practiceResult,
     setInputMode,
+    typedInput,
     setTypedInput,
-    setShowHint,
-    setShowFinishModal,
+    isListening,
+    isMyTurn,
+    mediaStream,
+    handleMicClick,
+    handleKeyboardSubmit,
     handleStartPractice,
     handleRetryPractice,
     handleStopPractice,
-    handleMicClick,
-    handleSendTypedInput,
+    speakerIds,
+    speakerColors,
     speak,
-  } = usePracticeEngine({
-    lines: initialScriptLines,
-    scriptId,
-    title,
-  });
+  } = usePracticeEngine(engineProps);
+
+  // --- 로컬 UI 상태 관리
+  const [showHint, setShowHint] = useState(false);
+  const [showFinishModal, setShowFinishModal] = useState(false);
+
+  const isFinished = status === 'finished';
+
+  useEffect(() => {
+    if (isFinished) {
+      setShowFinishModal(true);
+    } else {
+      setShowFinishModal(false);
+    }
+  }, [isFinished]);
 
   const seoProps =
     language === 'en'
@@ -81,8 +118,8 @@ export function TalkPage() {
           description: `'${title}' 스크립트로 영어 쉐도잉 연습을 시작하세요. 스피킹과 발음 실력을 향상시킬 수 있습니다.`,
         };
 
-  // 역할 선택 화면 렌더링
-  if (!isPracticeStarted) {
+  // --- UI 렌더링
+  if (status === 'preparing' || status === 'idle') {
     return (
       <>
         <Seo {...seoProps} />
@@ -102,11 +139,10 @@ export function TalkPage() {
     );
   }
 
-  // 메인 연습 UI 렌더링
   return (
     <PageContainer>
       <Seo {...seoProps} />
-      <Toaster position="top-center" />
+
 
       <PracticeHeader
         onStop={handleStopPractice}
@@ -139,7 +175,7 @@ export function TalkPage() {
           setShowHint={setShowHint}
           typedInput={typedInput}
           setTypedInput={setTypedInput}
-          handleSendTypedInput={handleSendTypedInput}
+          handleSendTypedInput={handleKeyboardSubmit}
         />
       )}
 

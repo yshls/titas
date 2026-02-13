@@ -3,12 +3,13 @@ import { css } from '@emotion/react';
 import { MdVolumeUp, MdPlayArrow } from 'react-icons/md';
 import type { DialogueLine } from '@/utils/types';
 import { type DiffResult } from '@/utils/diffChecker';
+import { motion } from 'framer-motion';
 
 const DIFF_COLOR_MAP = {
-  correct: 'color: #2e7d32; font-weight: 700;',
-  removed: 'color: #d32f2f; font-weight: 700;',
-  added: 'color: #666; text-decoration: line-through;',
-  neutral: 'color: #333;',
+  correct: 'color: #059669; font-weight: 800; text-shadow: none;', 
+  removed: 'color: #ef4444; text-decoration: line-through; opacity: 0.6;', 
+  added: 'color: #3b82f6; font-weight: 700;', 
+  neutral: 'color: inherit;',
 };
 
 const MessageRow = styled.div<{ isRight: boolean }>`
@@ -24,18 +25,23 @@ const BubbleContainer = styled.div<{ isRight: boolean }>`
   align-items: ${({ isRight }) => (isRight ? 'flex-end' : 'flex-start')};
 `;
 
-const MessageBubble = styled.div<{ isRight: boolean; bgColor: string }>`
-  padding: 8px 12px;
-  border-radius: 18px;
+const MessageBubble = styled(motion.div)<{ isRight: boolean; bgColor: string; isFocused: boolean }>`
+  padding: 14px 18px;
+  border-radius: 24px;
   position: relative;
-  font-size: 16px;
-  line-height: 1.5;
+  font-size: 18px;
+  line-height: 1.6;
   word-break: break-word;
   background-color: ${({ bgColor }) => bgColor};
-  color: #333d4b;
+  color: #1a1a1a;
+  
+  /* Focus Styles */
+  opacity: ${({ isFocused }) => (isFocused ? 1 : 0.4)};
+  filter: ${({ isFocused }) => (isFocused ? 'none' : 'grayscale(80%) blur(0.5px)')};
+  transform-origin: ${({ isRight }) => (isRight ? 'center right' : 'center left')};
+  transition: opacity 0.5s ease, filter 0.5s ease;
   box-shadow: none;
-  border: 1px solid rgba(0, 0, 0, 0.03);
-  min-width: 120px;
+  min-width: 140px;
 
   ${({ isRight }) =>
     isRight
@@ -158,6 +164,7 @@ interface ChatBubbleProps {
   isSameSpeakerAsPrev: boolean;
   onPlayAudio: () => void;
   userAudioUrl?: string;
+  isFocused: boolean;
 }
 
 export function ChatBubble({
@@ -169,6 +176,7 @@ export function ChatBubble({
   isSameSpeakerAsPrev,
   onPlayAudio,
   userAudioUrl,
+  isFocused,
 }: ChatBubbleProps) {
   return (
     <MessageRow isRight={isUser}>
@@ -176,7 +184,16 @@ export function ChatBubble({
         <MessageBubble
           isRight={isUser}
           bgColor={bubbleColor}
-          style={isSameSpeakerAsPrev ? { marginTop: '2px' } : {}}
+          isFocused={isFocused}
+          layout
+          initial={{ opacity: 0, y: 20, scale: 0.9 }}
+          animate={{ 
+            opacity: isFocused ? 1 : 0.4, 
+            y: 0, 
+            scale: isFocused ? 1.05 : 1.0 
+          }}
+          transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+          style={isSameSpeakerAsPrev ? { marginTop: '4px' } : {}}
         >
           <BubbleHeader isRight={isUser}>
             <SpeakerName>{line.speakerId}</SpeakerName>

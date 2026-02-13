@@ -12,7 +12,7 @@ import type { ScriptData } from '@/utils/types';
 import { useTTS } from '@/utils/useTTS';
 import { useRef, useMemo, useState, useEffect } from 'react';
 import styled from '@emotion/styled';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import { Seo } from '@/components/common/Seo';
 
 // --- 상수 정의 ---
@@ -43,9 +43,12 @@ const Header = styled.header`
   align-items: center;
   justify-content: space-between;
   padding: 0 12px;
-  border-bottom: 1px solid ${({ theme }) => theme.border};
-  background-color: ${({ theme }) => theme.cardBg};
-  z-index: 10;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  position: sticky;
+  top: 0;
+  z-index: 20;
 `;
 
 const HeaderLeft = styled.div`
@@ -149,7 +152,8 @@ const VoiceSelect = styled.select`
 const ScrollArea = styled.div`
   flex: 1;
   overflow-y: auto;
-  padding: 12px;
+  padding: 20px;
+  padding-bottom: 100px;
   background-color: ${({ theme }) => theme.background};
   display: flex;
   flex-direction: column;
@@ -187,15 +191,18 @@ const MessageBubble = styled.button<{
   isRight: boolean;
   active: boolean;
 }>`
-  padding: 8px 12px;
-  border-radius: 18px;
+  padding: 14px 18px;
+  border-radius: 24px;
   text-align: left;
   border: 1px solid rgba(0, 0, 0, 0.05);
   background-color: ${({ bgColor }) => bgColor};
   color: #333d4b;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  box-shadow: none;
+  font-size: 18px;
+  line-height: 1.6;
+  min-width: 140px;
 
   ${({ isRight }) =>
     isRight ? `border-top-right-radius: 4px;` : `border-top-left-radius: 4px;`}
@@ -249,11 +256,16 @@ const DialogueText = styled.p`
 `;
 
 const Footer = styled.div`
-  flex-shrink: 0;
-  padding: 12px;
-  background-color: ${({ theme }) => theme.cardBg};
-  border-top: 1px solid ${({ theme }) => theme.border};
-  z-index: 10;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 24px;
+  background: linear-gradient(to top, ${({ theme }) => theme.background} 20%, transparent);
+  z-index: 30;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
 `;
 
 const StartButton = styled.button`
@@ -407,7 +419,11 @@ export function ScriptDetailPage() {
     return (
       <ErrorContainer>
         <Seo
-          title={language === 'en' ? 'Script Not Found' : '스크립트를 찾을 수 없습니다'}
+          title={
+            language === 'en'
+              ? 'Script Not Found'
+              : '스크립트를 찾을 수 없습니다'
+          }
         />
         <ErrorTitle>Script Not Found</ErrorTitle>
         <ErrorMessage>
@@ -434,7 +450,7 @@ export function ScriptDetailPage() {
   return (
     <PageContainer>
       <Seo {...seoProps} />
-      <Toaster position="top-center" />
+
       <Header>
         <HeaderLeft>
           <BackButton onClick={() => navigate(-1)} aria-label="Go back">

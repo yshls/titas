@@ -69,6 +69,10 @@ export function Seo({
       <meta property="og:title" content={pageTitle} />
       <meta property="og:description" content={pageDescription} />
       <meta property="og:image" content={pageOgImage} />
+      <meta property="og:image:secure_url" content={pageOgImage} />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="630" />
+      <meta property="og:image:type" content="image/png" />
       <meta property="og:site_name" content={metadata.siteName} />
       <meta property="og:url" content={pageCanonicalUrl} />
       <meta property="og:type" content="website" />

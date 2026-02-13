@@ -3,6 +3,7 @@ import type { DialogueLine, WeakSpot, PracticeLog } from '@/utils/types';
 import { type DiffResult } from '@/utils/diffChecker';
 import { useAppStore } from './appStore';
 import { addPracticeLog as addPracticeLogLocally } from '@/utils/storageService';
+import { logPractice } from '@/services/fsrsService';
 import toast from 'react-hot-toast';
 
 export type PracticeStatus = 'idle' | 'preparing' | 'active' | 'finished';
@@ -94,6 +95,7 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
         original: p.status === 'removed' ? p.value : '',
         spoken: p.status === 'added' ? p.value : '',
         scriptId: get().scriptId,
+        lineIndex: lineIndex,
         lineContent: get().lines[lineIndex].originalLine,
       }));
 
@@ -139,6 +141,12 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
       timeSpent,
       errors: sessionErrors,
     };
+
+    // FSRS에 각 오류 기록
+    for (const error of sessionErrors) {
+      // grade: 1 (failed), accuracy: 0
+      logPractice(error.scriptId, error.lineIndex, 0, 1);
+    }
 
     if (user) {
       addNewPracticeLog(newLog, title || 'Practice Session');

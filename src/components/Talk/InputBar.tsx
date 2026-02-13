@@ -203,7 +203,7 @@ export function InputBar({
   return (
     <FloatingBarWrapper>
       {/*  모바일 안내 메시지 추가 */}
-      {isMobile && isListening && <MobileHint>📱Tap when done</MobileHint>}
+      {isListening && <MobileHint>Tap when done</MobileHint>}
 
       {inputMode === 'mic' ? (
         <FloatingIsland>

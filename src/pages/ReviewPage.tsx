@@ -240,6 +240,7 @@ export default function ReviewPage() {
     const sorted = data
       .map((item: any) => ({
         ...item,
+        script_id: String(item.script_id),
         priority: getPriorityScore(item),
         overdueDays: Math.max(
           0,

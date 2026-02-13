@@ -42,6 +42,8 @@ export interface WeakSpot {
   original: string; // 정답 단어
   spoken: string; // 사용자 입력 단어
   scriptId: string; // 오류 발생 스크립트 ID
+  lineIndex: number; // 오류 발생 라인 인덱스
+  lineContent: string; // 오류 발생 라인 내용
 }
 
 /**

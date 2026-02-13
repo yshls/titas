@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
+import { useDevice } from '@/hooks/useDevice';
 import { usePracticeStore } from '@/store/practiceStore';
 import { useSpeechRecognition } from '@/utils/useSpeechRecognition';
 import { useTTS } from '@/utils/useTTS';
@@ -25,6 +26,8 @@ export function useUserInput() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
 
+  const { isMobile } = useDevice();
+
   const {
     transcript,
     isListening,
@@ -32,7 +35,7 @@ export function useUserInput() {
     stopListening,
     clearTranscript,
     permissionStatus,
-  } = useSpeechRecognition();
+  } = useSpeechRecognition({ isMobile });
 
   const { isSpeaking } = useTTS();
 
@@ -184,18 +187,7 @@ export function useUserInput() {
     setInputMode,
   ]);
 
-  // Web Speech API 결과 자동 처리
-  useEffect(() => {
-    if (
-      transcript &&
-      transcript.trim().length > 0 &&
-      !isListening &&
-      isMyTurn &&
-      !hasProcessedCurrentLine.current
-    ) {
-      processAndAdvance(transcript);
-    }
-  }, [transcript, isListening, isMyTurn, processAndAdvance]);
+
 
   // 녹음 시작
   const startRecording = useCallback(async () => {

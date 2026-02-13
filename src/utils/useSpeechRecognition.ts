@@ -30,7 +30,8 @@ const requestMicrophonePermission = async (
   }
 };
 
-export function useSpeechRecognition() {
+export function useSpeechRecognition(options?: { isMobile: boolean }) {
+  const { isMobile } = options || { isMobile: false };
   const [transcript, setTranscript] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [permissionStatus, setPermissionStatus] =
@@ -56,7 +57,7 @@ export function useSpeechRecognition() {
 
     const recognition = new SpeechRecognition();
     recognition.lang = 'en-US';
-    recognition.continuous = false; // 짧게 끊어서 인식
+    recognition.continuous = !isMobile; // 짧게 끊어서 인식
     recognition.interimResults = true; // 중간 결과 받기
     recognition.maxAlternatives = 1;
 
@@ -133,7 +134,7 @@ export function useSpeechRecognition() {
         } catch (e) {}
       }
     };
-  }, [permissionStatus]);
+  }, [permissionStatus, isMobile]);
 
   // 음성 인식 시작
   const startListening = useCallback(async () => {

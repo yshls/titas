@@ -41,7 +41,7 @@ const FloatingIsland = styled.div`
   max-width: 300px;
   justify-content: space-between;
   transform: translateZ(0);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: none;
 `;
 
 const SideButton = styled.button<{ active?: boolean }>`

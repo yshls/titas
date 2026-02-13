@@ -1,4 +1,4 @@
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '@/store/appStore';
@@ -559,6 +559,8 @@ export function CreatorPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
+  const toastShownRef = useRef(false);
+
   // 임시저장 데이터 로드
   useEffect(() => {
     const draft = localStorage.getItem('titas_draft');
@@ -568,15 +570,19 @@ export function CreatorPage() {
         if (title) setScriptTitle(title);
         if (lines) setScriptLines(lines);
         if (savedSpeakers) setSpeakers(savedSpeakers);
-        toast('Draft restored!', {
-          icon: '📂',
-          style: {
-            borderRadius: '10px',
-            background: theme.cardBg,
-            color: theme.textMain,
-            border: `1px solid ${theme.border}`,
-          },
-        });
+
+        if (!toastShownRef.current) {
+          toast('Draft restored!', {
+            icon: '📂',
+            style: {
+              borderRadius: '10px',
+              background: theme.cardBg,
+              color: theme.textMain,
+              border: `1px solid ${theme.border}`,
+            },
+          });
+          toastShownRef.current = true;
+        }
       } catch (e) {
         // 에러 무시
       }
@@ -682,6 +688,7 @@ export function CreatorPage() {
           background: theme.cardBg,
           color: theme.textMain,
           border: `1px solid ${theme.border}`,
+          boxShadow: 'none',
         },
       },
     );
@@ -755,6 +762,7 @@ export function CreatorPage() {
             background: theme.cardBg,
             color: theme.textMain,
             border: `1px solid ${theme.border}`,
+            boxShadow: 'none',
           },
         },
       );
@@ -779,20 +787,8 @@ export function CreatorPage() {
   return (
     <PageContainer>
       <Seo {...seoProps} />
-      <Toaster
-        position="top-center"
-        containerStyle={{ zIndex: 99999 }}
-        toastOptions={{
-          style: {
-            fontSize: '14px',
-            borderRadius: '10px',
-            padding: '12px',
-            background: theme.cardBg,
-            color: theme.textMain,
-            border: `1px solid ${theme.border}`,
-          },
-        }}
-      />
+
+
 
       <Sidebar>
         <Header>

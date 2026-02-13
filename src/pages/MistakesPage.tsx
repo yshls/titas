@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { useAppStore } from '@/store/appStore';
 import { useNavigate } from 'react-router-dom';
 import { useTTS } from '@/utils/useTTS';
@@ -43,7 +44,7 @@ const Subtitle = styled.p`
   line-height: 1.5;
 `;
 
-const CardGrid = styled.div`
+const CardGrid = styled(motion.div)`
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -51,7 +52,50 @@ const CardGrid = styled.div`
   margin: 0 auto;
 `;
 
-const WordCardContainer = styled.div<{
+const SectionTitle = styled.h2`
+  font-size: 18px;
+  font-weight: 800;
+  color: ${({ theme }) => theme.textMain};
+  margin: 32px 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  &::before {
+    content: '';
+    display: block;
+    width: 4px;
+    height: 18px;
+    background-color: ${({ theme }) => theme.colors.primary};
+    border-radius: 2px;
+  }
+`;
+
+const ShowMoreButton = styled.button`
+  width: 100%;
+  padding: 16px;
+  margin-top: 16px;
+  background-color: ${({ theme }) => theme.cardBg};
+  border: 1px dashed ${({ theme }) => theme.border};
+  border-radius: 16px;
+  color: ${({ theme }) => theme.textSub};
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.background};
+    border-color: ${({ theme }) => theme.textMain};
+    color: ${({ theme }) => theme.textMain};
+  }
+`;
+
+const WordCardContainer = styled(motion.div)<{
   isExpanded: boolean;
   isSolved: boolean;
 }>`
@@ -60,7 +104,7 @@ const WordCardContainer = styled.div<{
   border: 2px solid
     ${({ theme, isExpanded, isSolved }) =>
       isSolved
-        ? theme.colors.success
+        ? '#059669'
         : isExpanded
           ? theme.colors.primary
           : 'transparent'};
@@ -68,16 +112,18 @@ const WordCardContainer = styled.div<{
   transition: all 0.2s ease-in-out;
   cursor: pointer;
 
-  ${({ isSolved, theme }) =>
+  ${({ isSolved }) =>
     isSolved &&
     `
-    background-color: ${theme.colors.success}08;
+    background-color: #05966908;
+    border-color: #059669;
   `}
 
-  &:hover {
-    border-color: ${({ theme, isSolved }) =>
-      isSolved ? theme.colors.success : theme.colors.primary};
-    transform: translateY(-2px);
+  @media (hover: hover) {
+    &:hover {
+      border-color: ${({ theme, isSolved }) =>
+        isSolved ? '#059669' : theme.colors.primary};
+    }
   }
 `;
 
@@ -134,7 +180,7 @@ const WordText = styled.h3`
 
 const SolvedIcon = styled(MdCheckCircle)`
   margin-left: 4px;
-  color: ${({ theme }) => theme.colors.success};
+  color: #059669;
 `;
 
 const StatRow = styled.div`
@@ -259,7 +305,7 @@ const PracticeStatus = styled.p<{
     status === 'listening'
       ? theme.colors.primary
       : status === 'success'
-        ? theme.colors.success
+        ? '#059669'
         : status === 'fail'
           ? theme.colors.error
           : theme.textSub};
@@ -428,6 +474,7 @@ function WordCardItem({
       isExpanded={isExpanded}
       isSolved={isSolved}
       onClick={() => setIsExpanded(!isExpanded)}
+      whileTap={{ scale: 0.98 }}
     >
       <CardMain>
         <CardLeftWrapper>
@@ -595,28 +642,78 @@ export function MistakesPage() {
     );
   }
 
+  const topMistakes = wordStatsList.slice(0, 3);
+  const otherMistakes = wordStatsList.slice(3);
+  const [showAll, setShowAll] = useState(false);
+
   return (
     <PageContainer>
       <Seo {...seoProps} />
       <Header>
         <Title>Your Mistakes</Title>
         <Subtitle>
-          Fix pronunciation errors one word at a time.
-          <br />
-          Tap any card to practice.
+          Focus on your top 3 weak spots first.
         </Subtitle>
       </Header>
 
-      <CardGrid>
-        {wordStatsList.map((item, index) => (
-          <WordCardItem
-            key={item.word}
-            item={item}
-            index={index}
-            maxCount={maxCount}
-          />
-        ))}
-      </CardGrid>
+      {topMistakes.length > 0 && (
+        <>
+          <SectionTitle>Top Focus</SectionTitle>
+          <CardGrid
+            initial="hidden"
+            animate="show"
+            variants={{
+              hidden: { opacity: 0 },
+              show: {
+                opacity: 1,
+                transition: { staggerChildren: 0.1 },
+              },
+            }}
+          >
+            {topMistakes.map((item, index) => (
+              <motion.div
+                layout
+                key={item.word}
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  show: { opacity: 1, y: 0 },
+                }}
+              >
+                <WordCardItem
+                  item={item}
+                  index={index}
+                  maxCount={maxCount}
+                />
+              </motion.div>
+            ))}
+          </CardGrid>
+        </>
+      )}
+
+      {otherMistakes.length > 0 && (
+        <>
+          <SectionTitle>Other Misses ({otherMistakes.length})</SectionTitle>
+          <CardGrid>
+            {otherMistakes
+              .slice(0, showAll ? undefined : 7)
+              .map((item, index) => (
+                <WordCardItem
+                  key={item.word}
+                  item={item}
+                  index={index + 3}
+                  maxCount={maxCount}
+                />
+              ))}
+
+            {!showAll && otherMistakes.length > 7 && (
+              <ShowMoreButton onClick={() => setShowAll(true)}>
+                <MdExpandMore size={20} />
+                Show {otherMistakes.length - 7} More
+              </ShowMoreButton>
+            )}
+          </CardGrid>
+        </>
+      )}
     </PageContainer>
   );
 }

@@ -1,6 +1,6 @@
 import { useLocation, useParams } from 'react-router-dom';
 import styled from '@emotion/styled';
-import { Toaster } from 'react-hot-toast';
+
 import { useState, useEffect, useMemo } from 'react';
 import type { DialogueLine } from '@/utils/types';
 import { useAppStore } from '@/store/appStore';
@@ -142,7 +142,7 @@ export function TalkPage() {
   return (
     <PageContainer>
       <Seo {...seoProps} />
-      <Toaster position="top-center" />
+
 
       <PracticeHeader
         onStop={handleStopPractice}

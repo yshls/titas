@@ -17,6 +17,7 @@ import {
   MdVisibility,
 } from 'react-icons/md';
 import { useState, useMemo, useRef, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { Seo } from '@/components/common/Seo';
 import { supabase } from '../supabaseClient';
@@ -175,7 +176,7 @@ const SortMenu = styled.div`
   border: 1px solid ${({ theme }) => theme.border};
   z-index: 20;
   padding: 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 `;
 
 const SortOption = styled.button<{ isActive: boolean }>`
@@ -263,7 +264,7 @@ const CreateButton = styled.button<{ isLoggedIn: boolean }>`
   }
 `;
 
-const Grid = styled.div`
+const Grid = styled(motion.div)`
   display: grid;
   grid-template-columns: 1fr;
   gap: 16px;
@@ -290,7 +291,7 @@ const NoResultsText = styled.p`
   font-weight: 600;
 `;
 
-const ScriptCard = styled.article<{ isDeleting: boolean }>`
+const ScriptCard = styled(motion.article)<{ isDeleting: boolean }>`
   background-color: ${({ theme }) => theme.cardBg};
   border-radius: 16px;
   border: 1px solid ${({ theme }) => theme.border};
@@ -300,9 +301,11 @@ const ScriptCard = styled.article<{ isDeleting: boolean }>`
   opacity: ${({ isDeleting }) => (isDeleting ? 0 : 1)};
   transform: ${({ isDeleting }) => (isDeleting ? 'scale(0.95)' : 'scale(1)')};
 
-  &:hover {
-    transform: translateY(-2px);
-    border-color: ${({ theme }) => theme.textSub};
+  @media (hover: hover) {
+    &:hover {
+      border-color: ${({ theme }) => theme.colors.primary};
+      background-color: ${({ theme }) => theme.background};
+    }
   }
 `;
 
@@ -433,7 +436,7 @@ const ToastContainer = styled.div`
   flex-direction: column;
   gap: 12px;
   pointer-events: auto;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: none;
 `;
 
 const ToastHeader = styled.div`
@@ -687,12 +690,32 @@ export function ScriptListPage() {
           </NoResultsText>
         </NoResultsContainer>
       ) : (
-        <Grid role="list">
+        <Grid
+          role="list"
+          initial="hidden"
+          animate="show"
+          variants={{
+            hidden: { opacity: 0 },
+            show: {
+              opacity: 1,
+              transition: {
+                staggerChildren: 0.05,
+              },
+            },
+          }}
+        >
           {filteredAndSortedScripts.map((script) => (
             <ScriptCard
               key={script.id}
               isDeleting={deletingId === script.id}
               role="listitem"
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                show: { opacity: 1, y: 0 },
+              }}
+              layout
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.98 }}
             >
               <CardBody>
                 <CardHeader>

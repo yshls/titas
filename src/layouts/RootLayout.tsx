@@ -9,6 +9,7 @@ import { supabase } from '@/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Seo } from '@/components/common/Seo';
 import { migrateData } from '@/services/migrateService';
+import { AnimatedLayout } from './AnimatedLayout';
 
 // --- [스타일 컴포넌트] ---
 
@@ -706,7 +707,9 @@ export function RootLayout() {
 
         {/* 메인 컨텐츠 */}
         <MainContent noPadding={isTalkPage || isScriptDetailPage}>
-          <Outlet />
+          <AnimatedLayout>
+            <Outlet />
+          </AnimatedLayout>
         </MainContent>
 
         {/* 푸터 */}

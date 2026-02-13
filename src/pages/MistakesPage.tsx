@@ -52,6 +52,49 @@ const CardGrid = styled(motion.div)`
   margin: 0 auto;
 `;
 
+const SectionTitle = styled.h2`
+  font-size: 18px;
+  font-weight: 800;
+  color: ${({ theme }) => theme.textMain};
+  margin: 32px 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  &::before {
+    content: '';
+    display: block;
+    width: 4px;
+    height: 18px;
+    background-color: ${({ theme }) => theme.colors.primary};
+    border-radius: 2px;
+  }
+`;
+
+const ShowMoreButton = styled.button`
+  width: 100%;
+  padding: 16px;
+  margin-top: 16px;
+  background-color: ${({ theme }) => theme.cardBg};
+  border: 1px dashed ${({ theme }) => theme.border};
+  border-radius: 16px;
+  color: ${({ theme }) => theme.textSub};
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.background};
+    border-color: ${({ theme }) => theme.textMain};
+    color: ${({ theme }) => theme.textMain};
+  }
+`;
+
 const WordCardContainer = styled(motion.div)<{
   isExpanded: boolean;
   isSolved: boolean;
@@ -599,48 +642,78 @@ export function MistakesPage() {
     );
   }
 
+  const topMistakes = wordStatsList.slice(0, 3);
+  const otherMistakes = wordStatsList.slice(3);
+  const [showAll, setShowAll] = useState(false);
+
   return (
     <PageContainer>
       <Seo {...seoProps} />
       <Header>
         <Title>Your Mistakes</Title>
         <Subtitle>
-          Fix pronunciation errors one word at a time.
-          <br />
-          Tap any card to practice.
+          Focus on your top 3 weak spots first.
         </Subtitle>
       </Header>
 
-      <CardGrid
-        initial="hidden"
-        animate="show"
-        variants={{
-          hidden: { opacity: 0 },
-          show: {
-            opacity: 1,
-            transition: {
-              staggerChildren: 0.05,
-            },
-          },
-        }}
-      >
-        {wordStatsList.map((item, index) => (
-          <motion.div
-            layout
-            key={item.word}
+      {topMistakes.length > 0 && (
+        <>
+          <SectionTitle>Top Focus</SectionTitle>
+          <CardGrid
+            initial="hidden"
+            animate="show"
             variants={{
-              hidden: { opacity: 0, y: 20 },
-              show: { opacity: 1, y: 0 },
+              hidden: { opacity: 0 },
+              show: {
+                opacity: 1,
+                transition: { staggerChildren: 0.1 },
+              },
             }}
           >
-            <WordCardItem
-              item={item}
-              index={index}
-              maxCount={maxCount}
-            />
-          </motion.div>
-        ))}
-      </CardGrid>
+            {topMistakes.map((item, index) => (
+              <motion.div
+                layout
+                key={item.word}
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  show: { opacity: 1, y: 0 },
+                }}
+              >
+                <WordCardItem
+                  item={item}
+                  index={index}
+                  maxCount={maxCount}
+                />
+              </motion.div>
+            ))}
+          </CardGrid>
+        </>
+      )}
+
+      {otherMistakes.length > 0 && (
+        <>
+          <SectionTitle>Other Misses ({otherMistakes.length})</SectionTitle>
+          <CardGrid>
+            {otherMistakes
+              .slice(0, showAll ? undefined : 7)
+              .map((item, index) => (
+                <WordCardItem
+                  key={item.word}
+                  item={item}
+                  index={index + 3}
+                  maxCount={maxCount}
+                />
+              ))}
+
+            {!showAll && otherMistakes.length > 7 && (
+              <ShowMoreButton onClick={() => setShowAll(true)}>
+                <MdExpandMore size={20} />
+                Show {otherMistakes.length - 7} More
+              </ShowMoreButton>
+            )}
+          </CardGrid>
+        </>
+      )}
     </PageContainer>
   );
 }

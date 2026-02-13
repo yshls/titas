@@ -559,6 +559,8 @@ export function CreatorPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
+  const toastShownRef = useRef(false);
+
   // 임시저장 데이터 로드
   useEffect(() => {
     const draft = localStorage.getItem('titas_draft');
@@ -568,15 +570,19 @@ export function CreatorPage() {
         if (title) setScriptTitle(title);
         if (lines) setScriptLines(lines);
         if (savedSpeakers) setSpeakers(savedSpeakers);
-        toast('Draft restored!', {
-          icon: '📂',
-          style: {
-            borderRadius: '10px',
-            background: theme.cardBg,
-            color: theme.textMain,
-            border: `1px solid ${theme.border}`,
-          },
-        });
+
+        if (!toastShownRef.current) {
+          toast('Draft restored!', {
+            icon: '📂',
+            style: {
+              borderRadius: '10px',
+              background: theme.cardBg,
+              color: theme.textMain,
+              border: `1px solid ${theme.border}`,
+            },
+          });
+          toastShownRef.current = true;
+        }
       } catch (e) {
         // 에러 무시
       }

@@ -1,8 +1,11 @@
-export async function transcribeAudio(audioBlob: Blob): Promise<string> {
-  const apiKey = import.meta.env.VITE_GROQ_API_KEY;
+import { supabase } from '@/supabaseClient';
 
-  if (!apiKey) {
-    throw new Error('GROQ_API_KEY not found in environment variables');
+export async function transcribeAudio(audioBlob: Blob): Promise<string> {
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+
+  if (!token) {
+    throw new Error('User is not authenticated');
   }
 
   const formData = new FormData();
@@ -11,21 +14,18 @@ export async function transcribeAudio(audioBlob: Blob): Promise<string> {
   formData.append('language', 'en');
   formData.append('response_format', 'json');
 
-  const response = await fetch(
-    'https://api.groq.com/openai/v1/audio/transcriptions',
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: formData,
+  const response = await fetch('/api/transcribe', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
     },
-  );
+    body: formData,
+  });
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error('[Groq] API Error:', response.status, errorText);
-    throw new Error(`Groq API error: ${response.status}`);
+    console.error('[API Proxy] Error:', response.status, errorText);
+    throw new Error(`API error: ${response.status}`);
   }
 
   const data = await response.json();

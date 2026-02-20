@@ -1,4 +1,13 @@
+import { supabase } from '@/supabaseClient';
+
 export async function transcribeAudio(audioBlob: Blob): Promise<string> {
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+
+  if (!token) {
+    throw new Error('User is not authenticated');
+  }
+
   const formData = new FormData();
   formData.append('file', audioBlob, 'audio.webm');
   formData.append('model', 'whisper-large-v3-turbo');
@@ -7,6 +16,9 @@ export async function transcribeAudio(audioBlob: Blob): Promise<string> {
 
   const response = await fetch('/api/transcribe', {
     method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
     body: formData,
   });
 

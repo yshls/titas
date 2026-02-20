@@ -544,7 +544,7 @@ function WordCardItem({
               {item.examples.map((ex, i) => (
                 <ExampleItem key={i}>
                   <BulletPoint>●</BulletPoint>
-                  {ex.split(new RegExp(`\\b(${item.word})\\b`, 'gi')).map((part, index) =>
+                  {ex.split(new RegExp(`\\b(${item.word.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\$&')})\\b`, 'gi')).map((part, index) =>
                     part.toLowerCase() === item.word.toLowerCase() ? (
                       <strong key={index}>{part}</strong>
                     ) : (

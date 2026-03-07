@@ -10,10 +10,11 @@ import {
 } from 'react-icons/md';
 import type { ScriptData } from '@/utils/types';
 import { useTTS } from '@/utils/useTTS';
-import { useRef, useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import styled from '@emotion/styled';
 import toast from 'react-hot-toast';
 import { Seo } from '@/components/common/Seo';
+import { EditableText } from '@/components/common/EditableText';
 
 // --- 상수 정의 ---
 
@@ -186,7 +187,7 @@ const BubbleContainer = styled.div<{ isRight: boolean }>`
   }
 `;
 
-const MessageBubble = styled.button<{
+const MessageBubble = styled.div<{
   bgColor: string;
   isRight: boolean;
   active: boolean;
@@ -197,7 +198,7 @@ const MessageBubble = styled.button<{
   border: 1px solid rgba(0, 0, 0, 0.05);
   background-color: ${({ bgColor }) => bgColor};
   color: #333d4b;
-  cursor: pointer;
+  cursor: default;
   transition: all 0.2s ease;
   box-shadow: none;
   font-size: 18px;
@@ -217,10 +218,6 @@ const MessageBubble = styled.button<{
 
   &:hover {
     filter: brightness(0.95);
-  }
-
-  &:disabled {
-    cursor: pointer;
   }
 `;
 
@@ -335,6 +332,7 @@ export function ScriptDetailPage() {
 
   const allScripts = useAppStore((state) => state.allScripts);
   const language = useAppStore((state) => state.language);
+  const updateScriptLine = useAppStore((state) => state.updateScriptLine);
   const script = allScripts.find((s) => s.id === id);
 
   const speakerIds = useMemo(
@@ -510,14 +508,24 @@ export function ScriptDetailPage() {
                       setClickedIndex(null);
                     });
                   }}
-                  disabled={false}
                   aria-label={`Speak line by ${line.speakerId}`}
                 >
                   <BubbleHeader isRight={isRightSide}>
                     <SpeakerName>{line.speakerId}</SpeakerName>
                     <VolumeIcon isSpeaking={isActive} />
                   </BubbleHeader>
-                  <DialogueText>{line.originalLine}</DialogueText>
+                  <DialogueText as="div">
+                    <EditableText
+                      initialText={line.originalLine}
+                      onEditStart={() => {
+                        stopAutoPlay();
+                        setClickedIndex(null);
+                      }}
+                      onSave={(newText) => {
+                        updateScriptLine(script.id, line.id, newText);
+                      }}
+                    />
+                  </DialogueText>
                 </MessageBubble>
               </BubbleContainer>
             </DialogueRow>

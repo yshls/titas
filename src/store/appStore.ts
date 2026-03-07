@@ -43,6 +43,7 @@ export interface AppState {
   initialize: () => Promise<void>;
   loadInitialData: () => Promise<void>;
   saveNewScript: (script: ScriptData) => Promise<void>;
+  updateScriptLine: (scriptId: string, lineId: string, newText: string) => void;
   deleteScript: (scriptId: string) => Promise<void>;
   addNewPracticeLog: (
     logEntry: PracticeLog,
@@ -172,6 +173,31 @@ export const useAppStore = create<AppState>((set, get) => ({
     } catch (error) {
       // 에러 발생 시 처리
     }
+  },
+
+  // 스크립트 라인 수정 (낙관적 업데이트)
+  updateScriptLine: (scriptId, lineId, newText) => {
+    set((state) => {
+      const scriptIndex = state.allScripts.findIndex((s) => s.id === scriptId);
+      if (scriptIndex === -1) return state;
+
+      const targetScript = state.allScripts[scriptIndex];
+      const updatedLines = targetScript.lines.map((line) =>
+        line.id === lineId ? { ...line, originalLine: newText } : line
+      );
+
+      const updatedScript = { ...targetScript, lines: updatedLines };
+      const newAllScripts = [...state.allScripts];
+      newAllScripts[scriptIndex] = updatedScript;
+
+      import('@/services/dbService').then(({ updateScriptLinesInDB }) => {
+        updateScriptLinesInDB(scriptId, updatedLines).catch((err) => {
+          console.error('Update failed', err);
+        });
+      });
+
+      return { allScripts: newAllScripts };
+    });
   },
 
   // 스크립트 삭제

@@ -31,6 +31,16 @@ import {
   DeleteLineButton,
   ActionButton,
   ActiveBadge,
+  SidebarButtonGroup,
+  MobileButtonGroup,
+  ToastContainer,
+  ToastWarningButton,
+  ToastCancelButton,
+  EmptyIconWrapper,
+  EmptyText,
+  BottomWrapper,
+  InputHintWrapper,
+  SendButton,
 } from '@/components/Creator/CreatorLayout';
 
 import styled from '@emotion/styled';
@@ -126,16 +136,6 @@ const DialogueInput = styled.input`
   }
 `;
 
-// 간소화된 토스트 컴포넌트
-const EmptyScriptContainer = styled.div`
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  opacity: 0.6;
-`;
-
 export function CreatorPage() {
   const navigate = useNavigate();
   const theme = useTheme();
@@ -167,21 +167,15 @@ export function CreatorPage() {
 
   const handleReset = () => {
     toast((t) => (
-      <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-        <span style={{ fontSize: '14px', fontWeight: 600 }}>Wipe everything?</span>
-        <button
-          style={{ background: theme.colors.error, color: 'white', padding: '6px 12px', borderRadius: '6px', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}
-          onClick={() => { wipeDraft(); toast.dismiss(t.id); }}
-        >
+      <ToastContainer>
+        <span>Wipe everything?</span>
+        <ToastWarningButton onClick={() => { wipeDraft(); toast.dismiss(t.id); }}>
           Clear
-        </button>
-        <button
-          style={{ background: 'none', border: 'none', color: theme.textSub, cursor: 'pointer' }}
-          onClick={() => toast.dismiss(t.id)}
-        >
+        </ToastWarningButton>
+        <ToastCancelButton onClick={() => toast.dismiss(t.id)}>
           Cancel
-        </button>
-      </div>
+        </ToastCancelButton>
+      </ToastContainer>
     ), { duration: 4000 });
   };
 
@@ -232,6 +226,7 @@ export function CreatorPage() {
             placeholder="e.g. Ordering Coffee"
             value={scriptTitle}
             onChange={(e) => setScriptTitle(e.target.value)}
+            aria-label="Script Title"
           />
         </SectionCard>
 
@@ -251,7 +246,7 @@ export function CreatorPage() {
         </SectionCard>
 
         {/* 데스크탑에서만 보이는 버튼 그룹 */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '24px' }}>
+        <SidebarButtonGroup>
           <ActionButton onClick={handleReset} variant="secondary">
             <MdRefresh size={18} /> Reset
           </ActionButton>
@@ -261,18 +256,18 @@ export function CreatorPage() {
           <ActionButton onClick={() => handleSave(true)} variant="primary" disabled={scriptLines.length === 0}>
             <MdPlayArrow size={20} /> Save & Practice
           </ActionButton>
-        </div>
+        </SidebarButtonGroup>
       </Sidebar>
 
       <Main>
         <ScriptListWrapper ref={scrollContainerRef}>
           {scriptLines.length === 0 ? (
-            <EmptyScriptContainer>
-              <div style={{ background: theme.colors.grey50, padding: '8px', borderRadius: '50%', marginBottom: '16px' }}>
+            <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.6 }}>
+              <EmptyIconWrapper>
                 <MdEdit size={32} color={theme.colors.grey400} />
-              </div>
-              <p style={{ fontWeight: 600, color: theme.textSub }}>Start by typing a dialogue below</p>
-            </EmptyScriptContainer>
+              </EmptyIconWrapper>
+              <EmptyText>Start by typing a dialogue below</EmptyText>
+            </div>
           ) : (
             <AnimatePresence initial={false}>
               {scriptLines.map((line) => (
@@ -286,7 +281,9 @@ export function CreatorPage() {
                 >
                   <SpeakerIndicator color={line.speakerColor} inDialogue />
                   <div className="content">
-                    <div className="speaker-label">{line.speakerId}</div>
+                    <div className="speaker-label">
+                      {speakers.find((s) => s.id === line.speakerId)?.name || line.speakerId}
+                    </div>
                     {editingLineId === line.id ? (
                       <textarea
                         className="edit-input"
@@ -301,12 +298,16 @@ export function CreatorPage() {
                             setEditingLineId(null);
                           }
                         }}
+                        aria-label="Edit dialogue line"
                       />
                     ) : (
                       <p className="text-display">{line.originalLine}</p>
                     )}
                   </div>
-                  <DeleteLineButton onClick={(e) => { e.stopPropagation(); handleDeleteLine(line.id); }}>
+                  <DeleteLineButton
+                    onClick={(e) => { e.stopPropagation(); handleDeleteLine(line.id); }}
+                    aria-label="Delete line"
+                  >
                     <MdDelete size={18} />
                   </DeleteLineButton>
                 </DialogueItemWrapper>
@@ -316,29 +317,39 @@ export function CreatorPage() {
           <div ref={messagesEndRef} />
         </ScriptListWrapper>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <BottomWrapper>
           <InputSection>
             <ActiveBadge color={activeColor}>{activeSpeaker?.name}</ActiveBadge>
             <InputGroup>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: theme.textSub, fontWeight: 600 }}>
+              <InputHintWrapper>
                 <MdInfoOutline size={12} /> Lines split automatically by punctuation (. ? !)
-              </div>
+              </InputHintWrapper>
               <DialogueInput
                 value={lineInput}
                 onChange={(e) => setLineInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleAddLine()}
                 placeholder={`What does ${activeSpeaker?.name} say?`}
+                aria-label="Dialogue text input"
               />
             </InputGroup>
-            <button
-              onClick={handleAddLine}
-              disabled={!lineInput.trim()}
-              style={{ padding: '12px', background: theme.colors.primary, color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', opacity: !lineInput.trim() ? 0.6 : 1 }}
-            >
+            <SendButton onClick={handleAddLine} disabled={!lineInput.trim()} aria-label="Add dialogue line">
               <MdAdd size={22} />
-            </button>
+            </SendButton>
           </InputSection>
-        </div>
+
+          {/* 모바일에서만 보이는 버튼 그룹 */}
+          <MobileButtonGroup>
+            <ActionButton onClick={handleReset} variant="secondary">
+              <MdRefresh size={18} /> Reset
+            </ActionButton>
+            <ActionButton onClick={() => handleSave(false)} variant="secondary" disabled={scriptLines.length === 0}>
+              <MdSave size={18} /> Save
+            </ActionButton>
+            <ActionButton onClick={() => handleSave(true)} variant="primary" disabled={scriptLines.length === 0}>
+              <MdPlayArrow size={18} /> Practice
+            </ActionButton>
+          </MobileButtonGroup>
+        </BottomWrapper>
       </Main>
     </PageContainer>
   );

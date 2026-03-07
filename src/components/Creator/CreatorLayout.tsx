@@ -266,6 +266,106 @@ export const ActionButton = styled.button<{ variant?: 'primary' | 'secondary' | 
   }
 `;
 
+// --- 추가된 리팩토링 요소 (커스텀 토스트, 입력창, 빈 상태) ---
+export const ToastContainer = styled.div`
+  display: flex;
+  gap: 12px;
+  align-items: center;
+
+  span {
+    font-size: 14px;
+    font-weight: 600;
+  }
+`;
+
+export const ToastWarningButton = styled.button`
+  background: ${({ theme }) => theme.colors.error};
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  
+  &:hover {
+    opacity: 0.9;
+  }
+`;
+
+export const ToastCancelButton = styled.button`
+  background: none;
+  border: none;
+  color: ${({ theme }) => theme.textSub};
+  cursor: pointer;
+
+  &:hover {
+    color: ${({ theme }) => theme.textMain};
+  }
+`;
+
+export const EmptyIconWrapper = styled.div`
+  background: ${({ theme }) => theme.colors.grey50};
+  padding: 8px;
+  border-radius: 50%;
+  margin-bottom: 16px;
+`;
+
+export const EmptyText = styled.p`
+  font-weight: 600;
+  color: ${({ theme }) => theme.textSub};
+`;
+
+export const BottomWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+
+export const InputHintWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: ${({ theme }) => theme.textSub};
+  font-weight: 600;
+`;
+
+export const SendButton = styled.button<{ disabled: boolean }>`
+  padding: 12px;
+  background: ${({ theme, disabled }) => disabled ? theme.colors.grey400 : theme.colors.primary};
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: ${({ disabled }) => disabled ? 'not-allowed' : 'pointer'};
+  opacity: ${({ disabled }) => disabled ? 0.6 : 1};
+  transition: opacity 0.2s, background 0.2s;
+
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+  }
+`;
+
+export const SidebarButtonGroup = styled.div`
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 24px;
+
+  @media (min-width: 1024px) {
+    display: flex;
+  }
+`;
+
+export const MobileButtonGroup = styled.div`
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+
+  @media (min-width: 1024px) {
+    display: none;
+  }
+`;
+
 export const ActiveBadge = styled.div<{ color: string }>`
   padding: 6px 12px;
   border-radius: 6px;

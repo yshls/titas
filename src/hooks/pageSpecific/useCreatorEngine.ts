@@ -79,7 +79,7 @@ export function useCreatorEngine() {
       .map((text) => {
         return {
           id: generateUUID(),
-          speakerId: activeSpeaker?.name || 'Unknown',
+          speakerId: activeSpeaker?.id || 'A',
           originalLine: text,
           speakerColor: SPEAKER_COLORS[activeSpeaker?.colorKey || 'grey50'] || '#f3f4f6',
           isUserTurn: false,

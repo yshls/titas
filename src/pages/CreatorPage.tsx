@@ -16,7 +16,7 @@ import {
 } from 'react-icons/md';
 
 import type { ScriptData } from '@/utils/types';
-import { useCreatorEngine, INITIAL_SPEAKERS } from '@/hooks/pageSpecific/useCreatorEngine';
+import { useCreatorEngine } from '@/hooks/pageSpecific/useCreatorEngine';
 import {
   PageTitle,
   SectionCard,

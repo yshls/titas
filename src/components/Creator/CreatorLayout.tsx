@@ -1,7 +1,7 @@
 import styled from '@emotion/styled';
 import { useTheme } from '@emotion/react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { MdCheck, MdDelete, MdEdit } from 'react-icons/md';
+import { motion } from 'framer-motion';
+import { MdCheck } from 'react-icons/md';
 
 // 상수 임포트용
 export const SPEAKER_COLORS: Record<string, string> = {

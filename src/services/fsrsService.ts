@@ -90,9 +90,13 @@ export const schedule = (log: FSRSReviewLog, grade: number) => {
  * 복습 대기 목록 가져오기
  */
 export const getDueReviews = async () => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+
   const { data } = await supabase
     .from('study_logs') // 테이블 이름 변경
     .select('*')
+    .eq('user_id', user.id)
     .lt('next_review', new Date().toISOString()) // 복습 시간이 지난 것만
     .order('next_review', { ascending: true }) // 오래된 순서대로
     .limit(20); // 최대 20개
@@ -104,9 +108,13 @@ export const getDueReviews = async () => {
  * 전체 학습 중인 카드 개수 가져오기 (Total Reviews 통계용)
  */
 export const getTotalLearningCount = async () => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return 0;
+
   const { count, error } = await supabase
     .from('study_logs')
-    .select('*', { count: 'exact', head: true }); // 데이터는 안 가져오고 개수만 조회
+    .select('*', { count: 'exact', head: true }) // 데이터는 안 가져오고 개수만 조회
+    .eq('user_id', user.id);
 
   if (error) {
     console.error('Error fetching total count:', error);
@@ -119,11 +127,15 @@ export const getTotalLearningCount = async () => {
  * 전체 학습 기록 가져오기 (History 페이지용)
  */
 export const getAllStudyLogs = async () => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+
   // legacy/dbService logs might have null next_review, but we want to show history.
   // FSRS logs have next_review.
   const { data, error } = await supabase
     .from('study_logs')
     .select('*')
+    .eq('user_id', user.id)
     .order('last_reviewed', { ascending: false }); // 최신순 정렬
 
   if (error) {
@@ -137,9 +149,13 @@ export const getAllStudyLogs = async () => {
  * 다음 복습 예정 시간 가져오기 (빈 화면에서 '언제 다시 올지' 알려주기 위함)
  */
 export const getNextReviewTime = async () => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
   const { data } = await supabase
     .from('study_logs')
     .select('next_review')
+    .eq('user_id', user.id)
     .gt('next_review', new Date().toISOString()) // 미래에 있는 것만
     .order('next_review', { ascending: true }) // 가장 가까운 순서
     .limit(1);
@@ -151,6 +167,9 @@ export const getNextReviewTime = async () => {
  * 미래 복습 예정 통계 (10분, 1일, 1주, 1달)
  */
 export const getReviewForecastStats = async () => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { '10m': 0, '1d': 0, '1w': 0, '1mo': 0 };
+
   const now = new Date();
   const tenMinutesLater = new Date(now.getTime() + 15 * 60 * 1000); // 15분 (여유 있게)
   const oneDayLater = new Date(now.getTime() + 24 * 60 * 60 * 1000);
@@ -163,6 +182,7 @@ export const getReviewForecastStats = async () => {
     supabase
       .from('study_logs')
       .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
       .gt('next_review', now.toISOString())
       .lte('next_review', tenMinutesLater.toISOString()),
 
@@ -170,6 +190,7 @@ export const getReviewForecastStats = async () => {
     supabase
       .from('study_logs')
       .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
       .gt('next_review', tenMinutesLater.toISOString())
       .lte('next_review', oneDayLater.toISOString()),
 
@@ -177,6 +198,7 @@ export const getReviewForecastStats = async () => {
     supabase
       .from('study_logs')
       .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
       .gt('next_review', oneDayLater.toISOString())
       .lte('next_review', oneWeekLater.toISOString()),
 
@@ -184,6 +206,7 @@ export const getReviewForecastStats = async () => {
     supabase
       .from('study_logs')
       .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
       .gt('next_review', oneWeekLater.toISOString())
       .lte('next_review', oneMonthLater.toISOString()),
   ]);

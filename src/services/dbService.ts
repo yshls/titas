@@ -1,5 +1,5 @@
 import { supabase } from '@/supabaseClient';
-import type { ScriptData, PracticeLog, Mission } from '@/utils/types';
+import type { ScriptData, PracticeLog, Mission, DialogueLine } from '@/utils/types';
 import dayjs from 'dayjs';
 
 const SCRIPTS_KEY = 'titas_scripts';
@@ -88,6 +88,33 @@ export const deleteScriptFromDB = async (scriptId: string) => {
   }
 
   await supabase.from('scripts').delete().eq('id', scriptId);
+};
+
+export const updateScriptLinesInDB = async (scriptId: string, updatedLines: DialogueLine[]) => {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    const localData = localStorage.getItem(SCRIPTS_KEY);
+    if (localData) {
+      const scripts = JSON.parse(localData);
+      const newScripts = scripts.map((s: ScriptData) =>
+        s.id === scriptId ? { ...s, lines: updatedLines } : s
+      );
+      localStorage.setItem(SCRIPTS_KEY, JSON.stringify(newScripts));
+    }
+    return;
+  }
+
+  const { error } = await supabase
+    .from('scripts')
+    .update({ lines: updatedLines })
+    .eq('id', scriptId);
+
+  if (error) {
+    console.error('Error updating script lines:', error);
+  }
 };
 
 // --- 연습 기록 관리 ---

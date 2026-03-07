@@ -3,6 +3,7 @@ import type { User } from '@supabase/supabase-js';
 import { supabase } from '@/supabaseClient';
 import type { DialogueLine, ScriptData, PracticeLog } from '@/utils/types';
 import type { DiffResult } from '@/utils/diffChecker';
+import toast from 'react-hot-toast';
 
 // 마이그레이션 서비스
 import { migrateData } from '@/services/migrateService';
@@ -177,27 +178,34 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   // 스크립트 라인 수정 (낙관적 업데이트)
   updateScriptLine: (scriptId, lineId, newText) => {
-    set((state) => {
-      const scriptIndex = state.allScripts.findIndex((s) => s.id === scriptId);
-      if (scriptIndex === -1) return state;
+    const originalScripts = get().allScripts;
 
-      const targetScript = state.allScripts[scriptIndex];
-      const updatedLines = targetScript.lines.map((line) =>
-        line.id === lineId ? { ...line, originalLine: newText } : line
-      );
+    const newAllScripts = originalScripts.map((script) => {
+      if (script.id === scriptId) {
+        const updatedLines = script.lines.map((line) =>
+          line.id === lineId ? { ...line, originalLine: newText } : line
+        );
+        return { ...script, lines: updatedLines };
+      }
+      return script;
+    });
 
-      const updatedScript = { ...targetScript, lines: updatedLines };
-      const newAllScripts = [...state.allScripts];
-      newAllScripts[scriptIndex] = updatedScript;
+    const targetScript = newAllScripts.find((s) => s.id === scriptId);
+    if (!targetScript) return;
 
-      import('@/services/dbService').then(({ updateScriptLinesInDB }) => {
-        updateScriptLinesInDB(scriptId, updatedLines).catch((err) => {
-          console.error('Update failed', err);
+    // 1. 낙관적 UI 업데이트
+    set({ allScripts: newAllScripts });
+
+    // 2. 백그라운드 DB 업데이트 및 실패 시 롤백
+    import('@/services/dbService')
+      .then(({ updateScriptLinesInDB }) => {
+        updateScriptLinesInDB(scriptId, targetScript.lines).catch((err) => {
+          console.error('Update failed, reverting state.', err);
+          // 3. 실패 시 원본 상태로 되돌리기
+          set({ allScripts: originalScripts });
+          toast.error('저장에 실패했습니다. 다시 시도해주세요.');
         });
       });
-
-      return { allScripts: newAllScripts };
-    });
   },
 
   // 스크립트 삭제

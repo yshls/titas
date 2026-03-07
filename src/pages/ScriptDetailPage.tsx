@@ -154,7 +154,6 @@ const ScrollArea = styled.div`
   flex: 1;
   overflow-y: auto;
   padding: 20px;
-  padding-bottom: 100px;
   background-color: ${({ theme }) => theme.background};
   display: flex;
   flex-direction: column;
@@ -253,16 +252,12 @@ const DialogueText = styled.p`
 `;
 
 const Footer = styled.div`
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  flex-shrink: 0;
   padding: 24px;
-  background: linear-gradient(to top, ${({ theme }) => theme.background} 20%, transparent);
-  z-index: 30;
   display: flex;
   justify-content: center;
-  pointer-events: none;
+  background-color: ${({ theme }) => theme.background};
+  border-top: 1px solid ${({ theme }) => theme.border};
 `;
 
 const StartButton = styled.button`

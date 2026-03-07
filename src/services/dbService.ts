@@ -110,7 +110,8 @@ export const updateScriptLinesInDB = async (scriptId: string, updatedLines: Dial
   const { error } = await supabase
     .from('scripts')
     .update({ lines: updatedLines })
-    .eq('id', scriptId);
+    .eq('id', scriptId)
+    .eq('user_id', user.id);
 
   if (error) {
     console.error('Error updating script lines:', error);

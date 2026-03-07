@@ -43,14 +43,14 @@ const TextArea = styled.textarea`
   font-size: inherit;
   line-height: inherit;
   color: inherit;
-  background-color: rgba(255, 255, 255, 0.9);
-  border: 1px solid ${({ theme }) => theme.colors?.primary || '#3b82f6'};
-  border-radius: 8px;
-  padding: 8px;
-  margin: -8px;
+  background-color: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
   resize: none;
   outline: none;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  box-shadow: none;
 `;
 
 interface EditableTextProps {

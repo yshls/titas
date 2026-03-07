@@ -1,40 +1,34 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
+import { useQuery } from '@tanstack/react-query';
 import { useAppStore } from '@/store/appStore';
 import { getAllStudyLogs, type FSRSReviewLog } from '@/services/fsrsService';
 
 export function useHistoryLogs() {
   const navigate = useNavigate();
   const { user, allScripts } = useAppStore();
-  const [logs, setLogs] = useState<FSRSReviewLog[]>([]);
-  const [loading, setLoading] = useState(true);
 
+  // 비로그인 시 리다이렉트
   useEffect(() => {
     if (!user) {
       navigate('/review');
-      return;
     }
-
-    const fetchLogs = async () => {
-      setLoading(true);
-      try {
-        const data = await getAllStudyLogs();
-        const validLogs = data.filter(
-          (log) =>
-            (log.script_id != null || (log as any).script_title) &&
-            log.last_reviewed,
-        );
-        setLogs(validLogs);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchLogs();
   }, [user, navigate]);
+
+  // React Query를 활용한 히스토리 패칭 및 캐싱
+  const { data: logs = [], isLoading: loading } = useQuery({
+    queryKey: ['historyLogs', user?.id],
+    queryFn: async () => {
+      const data = await getAllStudyLogs();
+      return data.filter(
+        (log) =>
+          (log.script_id != null || (log as any).script_title) &&
+          log.last_reviewed,
+      );
+    },
+    enabled: !!user,
+  });
 
   const scriptTitleMap = useMemo(
     () => new Map(allScripts.map((s) => [String(s.id), s.title])),

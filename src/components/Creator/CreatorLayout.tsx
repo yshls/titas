@@ -20,6 +20,18 @@ export const PageTitle = styled.h1`
   letter-spacing: -0.5px;
 `;
 
+export const VisuallyHiddenLabel = styled.label`
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+`;
+
 export const SectionCard = styled.section`
   background-color: ${({ theme }) => theme.cardBg};
   border-radius: 12px;
@@ -71,7 +83,8 @@ export const TitleInput = styled.input`
     border-bottom-color: ${({ theme }) => theme.colors.primary};
   }
   &::placeholder {
-    color: ${({ theme }) => theme.textDisabled};
+    color: ${({ theme }) => theme.textSub};
+    opacity: 0.8;
   }
 `;
 
@@ -259,10 +272,13 @@ export const ActionButton = styled.button<{ variant?: 'primary' | 'secondary' | 
     &:hover { background-color: ${theme.border}; color: ${theme.textMain}; }
   `}
 
-  &:disabled {
+  &:disabled, &[aria-disabled="true"] {
     opacity: 0.6;
     cursor: not-allowed;
     transform: none;
+    background-color: ${({ theme }) => theme.colors.grey100};
+    color: ${({ theme }) => theme.colors.grey500};
+    border-color: transparent;
   }
 `;
 

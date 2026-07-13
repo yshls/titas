@@ -2,6 +2,7 @@ import styled from '@emotion/styled';
 import { useAppStore } from '@/store/appStore';
 import { MdDarkMode, MdLightMode } from 'react-icons/md';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 const ToggleButton = styled(motion.button)`
   background: none;
@@ -23,6 +24,7 @@ const ToggleButton = styled(motion.button)`
 
 export function ThemeToggle() {
   const { themeMode, setThemeMode } = useAppStore();
+  const { t } = useTranslation();
 
   const toggleTheme = () => {
     setThemeMode(themeMode === 'light' ? 'dark' : 'light');
@@ -32,7 +34,7 @@ export function ThemeToggle() {
     <ToggleButton
       onClick={toggleTheme}
       whileTap={{ scale: 0.9 }}
-      aria-label="Toggle Dark Mode"
+      aria-label={t('aria.toggleDarkMode', '다크모드 전환')}
     >
       {themeMode === 'light' ? (
         <MdDarkMode size={22} />

@@ -602,7 +602,17 @@ export function RootLayout() {
                   {language === 'ko' ? 'EN' : 'KO'}
                 </LanguageSwitcher>
                 {user ? (
-                  <AvatarWrapper ref={dropdownRef}>
+                  <AvatarWrapper
+                    ref={dropdownRef}
+                    aria-label={t('aria.profileMenu', '프로필 메뉴')}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        setIsProfileMenuOpen(!isProfileMenuOpen);
+                      }
+                    }}
+                  >
                     <div
                       onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
                     >

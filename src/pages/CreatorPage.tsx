@@ -24,6 +24,7 @@ import {
   LabelSubText,
   SpeakerListContainer,
   TitleInput,
+  VisuallyHiddenLabel,
   SpeakerItem,
   SpeakerIndicator,
   ScriptListWrapper,
@@ -132,7 +133,8 @@ const DialogueInput = styled.input`
   }
 
   &::placeholder {
-    color: ${({ theme }) => theme.textDisabled};
+    color: ${({ theme }) => theme.textSub};
+    opacity: 0.8;
   }
 `;
 
@@ -221,8 +223,10 @@ export function CreatorPage() {
         <header><PageTitle>New Script</PageTitle></header>
 
         <SectionCard>
+          <VisuallyHiddenLabel htmlFor="script-title-input">Script Title</VisuallyHiddenLabel>
           <Label>Title</Label>
           <TitleInput
+            id="script-title-input"
             placeholder="e.g. Ordering Coffee"
             value={scriptTitle}
             onChange={(e) => setScriptTitle(e.target.value)}
@@ -245,22 +249,21 @@ export function CreatorPage() {
           </SpeakerListContainer>
         </SectionCard>
 
-        {/* 데스크탑에서만 보이는 버튼 그룹 */}
         <SidebarButtonGroup>
           <ActionButton onClick={handleReset} variant="secondary">
             <MdRefresh size={18} /> Reset
           </ActionButton>
-          <ActionButton onClick={() => handleSave(false)} variant="secondary" disabled={scriptLines.length === 0}>
+          <ActionButton onClick={() => handleSave(false)} variant="secondary" disabled={scriptLines.length === 0} aria-disabled={scriptLines.length === 0}>
             <MdSave size={20} /> Save Script
           </ActionButton>
-          <ActionButton onClick={() => handleSave(true)} variant="primary" disabled={scriptLines.length === 0}>
+          <ActionButton onClick={() => handleSave(true)} variant="primary" disabled={scriptLines.length === 0} aria-disabled={scriptLines.length === 0}>
             <MdPlayArrow size={20} /> Save & Practice
           </ActionButton>
         </SidebarButtonGroup>
       </Sidebar>
 
       <Main>
-        <ScriptListWrapper ref={scrollContainerRef}>
+        <ScriptListWrapper ref={scrollContainerRef} aria-live="polite">
           {scriptLines.length === 0 ? (
             <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.6 }}>
               <EmptyIconWrapper>
@@ -321,10 +324,12 @@ export function CreatorPage() {
           <InputSection>
             <ActiveBadge color={activeColor}>{activeSpeaker?.name}</ActiveBadge>
             <InputGroup>
-              <InputHintWrapper>
-                <MdInfoOutline size={12} /> Lines split automatically by punctuation (. ? !)
+              <InputHintWrapper tabIndex={0} role="note" aria-label="Information: Lines split automatically by punctuation">
+                <MdInfoOutline size={12} aria-hidden="true" /> Lines split automatically by punctuation (. ? !)
               </InputHintWrapper>
+              <VisuallyHiddenLabel htmlFor="dialogue-text-input">Dialogue text input</VisuallyHiddenLabel>
               <DialogueInput
+                id="dialogue-text-input"
                 value={lineInput}
                 onChange={(e) => setLineInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleAddLine()}
@@ -342,10 +347,10 @@ export function CreatorPage() {
             <ActionButton onClick={handleReset} variant="secondary">
               <MdRefresh size={18} /> Reset
             </ActionButton>
-            <ActionButton onClick={() => handleSave(false)} variant="secondary" disabled={scriptLines.length === 0}>
+            <ActionButton onClick={() => handleSave(false)} variant="secondary" disabled={scriptLines.length === 0} aria-disabled={scriptLines.length === 0}>
               <MdSave size={18} /> Save
             </ActionButton>
-            <ActionButton onClick={() => handleSave(true)} variant="primary" disabled={scriptLines.length === 0}>
+            <ActionButton onClick={() => handleSave(true)} variant="primary" disabled={scriptLines.length === 0} aria-disabled={scriptLines.length === 0}>
               <MdPlayArrow size={18} /> Practice
             </ActionButton>
           </MobileButtonGroup>

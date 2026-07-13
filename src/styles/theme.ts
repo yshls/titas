@@ -74,7 +74,7 @@ export const lightTheme = {
   background: '#FAFAFA',
   cardBg: '#FFFFFF',
   textMain: '#333d4b',
-  textSub: '#6b7684',
+  textSub: '#4e5968', // grey700 for WCAG AA (4.5:1+)
   textDisabled: '#b0b8c1',
   border: '#e5e8eb',
   mode: 'light',

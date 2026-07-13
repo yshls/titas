@@ -124,56 +124,57 @@ const StatCard = styled(motion.div)`
   background: ${({ theme }) => theme.cardBg};
   border-radius: 20px;
   border: 1px solid ${({ theme }) => theme.border};
-  padding: 20px;
+  padding: 24px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
+  gap: 16px;
   position: relative;
   overflow: hidden;
   cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+  }
 `;
 
-const GlowEffect = styled(motion.div)`
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 100px;
-  height: 100px;
-  background: radial-gradient(circle, rgba(255, 107, 107, 0.3) 0%, transparent 70%);
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-`;
-
-const StatIconWrapper = styled(motion.div)<{ bgColor: string }>`
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  background: ${({ bgColor }) => bgColor};
+const StatIconWrapper = styled(motion.div)<{ primaryColor: string }>`
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  background-color: ${({ primaryColor }) => primaryColor}20; /* ~12% opacity hex */
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: ${({ primaryColor }) => primaryColor};
+`;
+
+const StatTextContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 `;
 
 const StatLabel = styled.p`
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
   color: ${({ theme }) => theme.textSub};
-  margin: 12px 0 8px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  margin: 0;
+  margin-bottom: 2px;
 `;
 
 const StatValue = styled.h2`
   font-family: 'Lato', sans-serif;
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 800;
   color: ${({ theme }) => theme.textMain};
   line-height: 1;
-`;
-
-const IconContainer = styled.div`
-  position: relative;
-  z-index: 1;
+  margin: 0;
 `;
 
 const Column = styled.div`
@@ -247,52 +248,41 @@ export function StatisticsColumn({ selectedDateFreq, totalSentences, totalScript
       <StatsStack>
         <StatCard
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-          whileHover={{ scale: 1.03, y: -5 }} whileTap={{ scale: 0.98 }}
+          whileHover={{ scale: 1.02, y: -4 }} whileTap={{ scale: 0.98 }}
         >
-          <GlowEffect animate={{ scale: [1, 1.5, 1], opacity: [0.3, 0.6, 0.3] }} transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }} />
-          <IconContainer>
-            <StatIconWrapper bgColor="#FF6B6B" whileHover={{ rotate: [0, -10, 10, 0] }}>
-              <MdPlayArrow size={20} />
-            </StatIconWrapper>
-          </IconContainer>
-          <StatLabel>Selected Date Practice</StatLabel>
-          <StatValue><AnimatedCounter value={selectedDateFreq} /></StatValue>
+          <StatIconWrapper primaryColor="#FF6B6B" whileHover={{ rotate: [0, -10, 10, 0] }}>
+            <MdPlayArrow size={26} />
+          </StatIconWrapper>
+          <StatTextContainer>
+            <StatLabel>Selected Date Practice</StatLabel>
+            <StatValue><AnimatedCounter value={selectedDateFreq} /></StatValue>
+          </StatTextContainer>
         </StatCard>
 
         <StatCard
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}
-          whileHover={{ scale: 1.03, y: -5 }} whileTap={{ scale: 0.98 }}
+          whileHover={{ scale: 1.02, y: -4 }} whileTap={{ scale: 0.98 }}
         >
-          <GlowEffect
-            animate={{ scale: [1, 1.5, 1], opacity: [0.3, 0.6, 0.3] }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
-            style={{ background: 'radial-gradient(circle, rgba(78, 205, 196, 0.3) 0%, transparent 100%)' }}
-          />
-          <IconContainer>
-            <StatIconWrapper bgColor="#4ECDC4" whileHover={{ rotate: [0, -10, 10, 0] }}>
-              <MdDescription size={20} />
-            </StatIconWrapper>
-          </IconContainer>
-          <StatLabel>Total Sentences</StatLabel>
-          <StatValue><AnimatedCounter value={totalSentences} /></StatValue>
+          <StatIconWrapper primaryColor="#4ECDC4" whileHover={{ rotate: [0, -10, 10, 0] }}>
+            <MdDescription size={22} />
+          </StatIconWrapper>
+          <StatTextContainer>
+            <StatLabel>Total Sentences</StatLabel>
+            <StatValue><AnimatedCounter value={totalSentences} /></StatValue>
+          </StatTextContainer>
         </StatCard>
 
         <StatCard
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}
-          whileHover={{ scale: 1.03, y: -5 }} whileTap={{ scale: 0.98 }}
+          whileHover={{ scale: 1.02, y: -4 }} whileTap={{ scale: 0.98 }}
         >
-          <GlowEffect
-            animate={{ scale: [1, 1.5, 1], opacity: [0.3, 0.6, 0.3] }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-            style={{ background: 'radial-gradient(circle, rgba(255, 230, 109, 0.3) 0%, transparent 100%)' }}
-          />
-          <IconContainer>
-            <StatIconWrapper bgColor="#FFE66D" whileHover={{ rotate: [0, -10, 10, 0] }}>
-              <MdBarChart size={20} />
-            </StatIconWrapper>
-          </IconContainer>
-          <StatLabel>Total Scripts</StatLabel>
-          <StatValue><AnimatedCounter value={totalScripts} /></StatValue>
+          <StatIconWrapper primaryColor="#FFE66D" whileHover={{ rotate: [0, -10, 10, 0] }}>
+            <MdBarChart size={24} />
+          </StatIconWrapper>
+          <StatTextContainer>
+            <StatLabel>Total Scripts</StatLabel>
+            <StatValue><AnimatedCounter value={totalScripts} /></StatValue>
+          </StatTextContainer>
         </StatCard>
       </StatsStack>
     </Column>

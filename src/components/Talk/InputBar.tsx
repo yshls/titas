@@ -1,3 +1,4 @@
+import React from 'react';
 import styled from '@emotion/styled';
 import { keyframes, css } from '@emotion/react';
 import { FiMic, FiSend, FiX } from 'react-icons/fi';
@@ -51,7 +52,7 @@ const SideButton = styled.button<{ active?: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  color: ${({ active, theme }) => (active ? theme.textMain : '#9DAAB8')};
+  color: ${({ active, theme }) => (active ? theme.textMain : '#4E5968')};
   background: ${({ active }) => (active ? '#F2F4F6' : 'transparent')};
   border: none;
   cursor: pointer;
@@ -183,7 +184,7 @@ interface InputBarProps {
   handleSendTypedInput: () => void;
 }
 
-export function InputBar({
+export const InputBar = React.memo(function InputBar({
   inputMode,
   setInputMode,
   isListening,
@@ -265,4 +266,4 @@ export function InputBar({
       )}
     </FloatingBarWrapper>
   );
-}
+});

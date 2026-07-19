@@ -1,4 +1,4 @@
-
+import React from 'react';
 import styled from '@emotion/styled';
 import { MdArrowBack } from 'react-icons/md';
 
@@ -21,10 +21,11 @@ const HeaderLeft = styled.div`
   gap: 8px;
 `;
 
-const HeaderTitle = styled.span`
+const HeaderTitle = styled.h1`
   font-weight: 700;
   font-size: 16px;
   color: #333;
+  margin: 0;
 `;
 
 const BackButton = styled.button`
@@ -47,7 +48,7 @@ const ProgressPill = styled.div`
   border-radius: 20px;
   font-size: 13px;
   font-weight: 700;
-  color: ${({ theme }) => theme.textSub};
+  color: ${({ theme }) => theme.textMain};
   font-feature-settings: 'tnum';
 `;
 
@@ -57,7 +58,7 @@ interface PracticeHeaderProps {
     total: number;
 }
 
-export function PracticeHeader({ onStop, currentIndex, total }: PracticeHeaderProps) {
+export const PracticeHeader = React.memo(function PracticeHeader({ onStop, currentIndex, total }: PracticeHeaderProps) {
     return (
         <Header>
             <HeaderLeft>
@@ -71,4 +72,4 @@ export function PracticeHeader({ onStop, currentIndex, total }: PracticeHeaderPr
             </ProgressPill>
         </Header>
     );
-}
+});

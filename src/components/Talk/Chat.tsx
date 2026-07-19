@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import styled from '@emotion/styled';
 import { keyframes } from '@emotion/react';
 import type { DialogueLine } from '@/utils/types';
@@ -34,7 +34,7 @@ interface ChatProps {
   onSpeak: (text: string) => void;
 }
 
-export function Chat({
+export const Chat = React.memo(function Chat({
   lines,
   userSpeakerId,
   currentLineIndex,
@@ -93,4 +93,4 @@ export function Chat({
       })}
     </ChatContainer>
   );
-}
+});

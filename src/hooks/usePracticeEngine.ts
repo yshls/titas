@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePracticeStore } from '@/store/practiceStore';
 import { useUserInput } from './useUserInput';
@@ -79,18 +79,18 @@ export function usePracticeEngine({
   }, [speakerIds]);
 
   // --- UI 이벤트 핸들러
-  const handleStartPractice = (speakerId: string) => {
+  const handleStartPractice = useCallback((speakerId: string) => {
     startPractice(speakerId);
-  };
+  }, [startPractice]);
 
-  const handleRetryPractice = () => {
+  const handleRetryPractice = useCallback(() => {
     retryPractice();
-  };
+  }, [retryPractice]);
 
-  const handleStopPractice = () => {
+  const handleStopPractice = useCallback(() => {
     userInput.stopRecordingAndListening();
     navigate(-1);
-  };
+  }, [userInput.stopRecordingAndListening, navigate]);
 
   // UI 컴포넌트에 필요한 API 노출
   return {

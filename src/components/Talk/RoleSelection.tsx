@@ -1,4 +1,4 @@
-
+import React from 'react';
 import styled from '@emotion/styled';
 import { MdPerson } from 'react-icons/md';
 
@@ -76,7 +76,7 @@ interface RoleSelectionProps {
     onSelectRole: (speakerId: string) => void;
 }
 
-export function RoleSelection({ speakerIds, speakerColors, onSelectRole }: RoleSelectionProps) {
+export const RoleSelection = React.memo(function RoleSelection({ speakerIds, speakerColors, onSelectRole }: RoleSelectionProps) {
     return (
         <RoleSelectionContainer>
             <RoleTitle>Who are you?</RoleTitle>
@@ -93,4 +93,4 @@ export function RoleSelection({ speakerIds, speakerColors, onSelectRole }: RoleS
             </RoleGrid>
         </RoleSelectionContainer>
     );
-}
+});

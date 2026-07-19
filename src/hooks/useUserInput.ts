@@ -244,7 +244,7 @@ export function useUserInput() {
   }, [permissionStatus, isPermissionRequestPending, startRecognition]);
 
   // 마이크 버튼 클릭
-  const handleMicClick = async () => {
+  const handleMicClick = useCallback(async () => {
     if (isSpeaking) return;
 
     if (isListening) {
@@ -266,15 +266,22 @@ export function useUserInput() {
     if (permissionStatus === 'granted') {
       startRecognition();
     }
-  };
+  }, [
+    isSpeaking,
+    isListening,
+    stopRecordingAndListening,
+    permissionStatus,
+    requestPermission,
+    startRecognition,
+  ]);
 
   // 키보드 입력 제출
-  const handleKeyboardSubmit = () => {
+  const handleKeyboardSubmit = useCallback(() => {
     if (typedInput.trim()) {
       processAndAdvance(typedInput);
       setTypedInput('');
     }
-  };
+  }, [typedInput, processAndAdvance]);
 
   return {
     inputMode,

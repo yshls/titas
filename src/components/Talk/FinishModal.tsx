@@ -1,4 +1,4 @@
-
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from '@emotion/styled';
 import { keyframes } from '@emotion/react';
@@ -124,7 +124,7 @@ interface FinishModalProps {
     onRetry: () => void;
 }
 
-export function FinishModal({ show, practiceResult, onClose, onRetry }: FinishModalProps) {
+export const FinishModal = React.memo(function FinishModal({ show, practiceResult, onClose, onRetry }: FinishModalProps) {
     const navigate = useNavigate();
 
     if (!show || !practiceResult) {
@@ -160,4 +160,4 @@ export function FinishModal({ show, practiceResult, onClose, onRetry }: FinishMo
             </ModalContent>
         </ModalOverlay>
     );
-}
+});

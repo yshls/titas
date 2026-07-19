@@ -663,7 +663,7 @@ export function RootLayout() {
                 )}
               </DesktopWrapper>
 
-              <MobileMenuButton onClick={() => setDrawerOpen(true)}>
+              <MobileMenuButton aria-label="Toggle mobile menu" onClick={() => setDrawerOpen(true)}>
                 <MdMenu />
               </MobileMenuButton>
             </RightSection>
@@ -711,10 +711,10 @@ export function RootLayout() {
                   <DrawerFooter>
                     {user ? (
                       <>
-                        <MobileLogoutButton onClick={handleLogout}>
+                        <MobileLogoutButton aria-label="Sign out" onClick={handleLogout}>
                           {t('auth.signOut')}
                         </MobileLogoutButton>
-                        <MobileDeleteButton onClick={confirmDeleteAccount}>
+                        <MobileDeleteButton aria-label="Delete account" onClick={confirmDeleteAccount}>
                           {t('auth.deleteAccount')}
                         </MobileDeleteButton>
                       </>

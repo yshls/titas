@@ -207,14 +207,17 @@ export function InputBar({
           <SideButton
             onClick={() => setInputMode('keyboard')}
             disabled={!isMyTurn}
+            aria-label="Switch to keyboard input"
           >
-            <MdKeyboard size={24} />
+            <MdKeyboard size={24} aria-hidden="true" />
           </SideButton>
 
           <HeroMicButton
             isListening={isListening}
             onClick={handleMicClick}
             disabled={!isMyTurn || hasFeedback}
+            aria-label={isListening ? "Stop recording" : "Start recording"}
+            aria-pressed={isListening}
           >
             {isListening && mediaStream ? (
               <AudioVisualizer stream={mediaStream} />
@@ -227,14 +230,16 @@ export function InputBar({
             active={showHint}
             onClick={() => setShowHint(!showHint)}
             disabled={!isMyTurn}
+            aria-label="Toggle translation hint"
+            aria-pressed={showHint}
           >
-            <MdLightbulb size={24} />
+            <MdLightbulb size={24} aria-hidden="true" />
           </SideButton>
         </FloatingIsland>
       ) : (
         <KeyboardInputWrapper>
-          <SideButton onClick={() => setInputMode('mic')}>
-            <FiX size={20} />
+          <SideButton onClick={() => setInputMode('mic')} aria-label="Switch to mic input">
+            <FiX size={20} aria-hidden="true" />
           </SideButton>
           <StyledInput
             placeholder="Type your sentence..."
@@ -247,12 +252,14 @@ export function InputBar({
             }}
             autoFocus
             disabled={!isMyTurn || hasFeedback}
+            aria-label="Type your sentence input"
           />
           <SendBtn
             onClick={handleSendTypedInput}
             disabled={!typedInput.trim() || !isMyTurn || hasFeedback}
+            aria-label="Send sentence"
           >
-            <FiSend size={18} />
+            <FiSend size={18} aria-hidden="true" />
           </SendBtn>
         </KeyboardInputWrapper>
       )}

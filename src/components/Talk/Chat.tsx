@@ -85,7 +85,7 @@ export function Chat({
             showHint={showHint && isUser && isCurrent}
             bubbleColor={speakerColors[line.speakerId] || '#e1e1e1'}
             isSameSpeakerAsPrev={isSameSpeakerAsPrev}
-            onPlayAudio={() => onSpeak(line.originalLine)}
+            onPlayAudio={onSpeak}
             userAudioUrl={userAudioMap[idx]}
             isFocused={isFinished || isCurrent}  
           />

@@ -162,12 +162,14 @@ interface ChatBubbleProps {
   showHint: boolean;
   bubbleColor: string;
   isSameSpeakerAsPrev: boolean;
-  onPlayAudio: () => void;
+  onPlayAudio: (text: string) => void;
   userAudioUrl?: string;
   isFocused: boolean;
 }
 
-export function ChatBubble({
+import React from 'react';
+
+export const ChatBubble = React.memo(function ChatBubble({
   line,
   isUser,
   feedback,
@@ -197,7 +199,7 @@ export function ChatBubble({
         >
           <BubbleHeader isRight={isUser}>
             <SpeakerName>{line.speakerId}</SpeakerName>
-            <SpeakerIconBtn onClick={onPlayAudio} aria-label="Listen">
+            <SpeakerIconBtn onClick={() => onPlayAudio(line.originalLine)} aria-label="Listen">
               <MdVolumeUp size={14} />
             </SpeakerIconBtn>
           </BubbleHeader>
@@ -245,4 +247,4 @@ export function ChatBubble({
       </BubbleContainer>
     </MessageRow>
   );
-}
+});

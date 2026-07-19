@@ -134,8 +134,8 @@ export function FinishModal({ show, practiceResult, onClose, onRetry }: FinishMo
     return (
         <ModalOverlay onClick={onClose}>
             <ModalContent onClick={(e) => e.stopPropagation()}>
-                <CloseButton onClick={onClose}>
-                    <MdClose size={20} />
+                <CloseButton onClick={onClose} aria-label="Close">
+                    <MdClose size={20} aria-hidden="true" />
                 </CloseButton>
                 <ModalIcon>
                     <FiCheckCircle />

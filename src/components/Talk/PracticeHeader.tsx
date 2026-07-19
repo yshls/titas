@@ -61,8 +61,8 @@ export function PracticeHeader({ onStop, currentIndex, total }: PracticeHeaderPr
     return (
         <Header>
             <HeaderLeft>
-                <BackButton onClick={onStop}>
-                    <MdArrowBack size={24} />
+                <BackButton onClick={onStop} aria-label="Stop Practice">
+                    <MdArrowBack size={24} aria-hidden="true" />
                 </BackButton>
                 <HeaderTitle>Talking Practice</HeaderTitle>
             </HeaderLeft>

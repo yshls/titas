@@ -40,6 +40,7 @@ export default defineConfig({
   },
   build: {
     target: 'esnext',
+    sourcemap: true,
     rollupOptions: {
       external: ['sharp', 'onnxruntime-node'],
     },

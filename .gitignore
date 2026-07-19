@@ -102,3 +102,10 @@ build
 #  Supabase Local Dev (로컬 개발용 임시 파일)
 # ----------------------------------------
 supabase/.temp
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/

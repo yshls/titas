@@ -191,7 +191,8 @@ export function CreatorPage() {
       setAiTopic('');
       toast.success('AI script generated! ✨');
     } catch (error) {
-      toast.error('Failed to generate script. Please try again.');
+      const message = error instanceof Error ? error.message : 'Failed to generate script. Please try again.';
+      toast.error(message);
     }
   };
 

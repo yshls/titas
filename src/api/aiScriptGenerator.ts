@@ -29,7 +29,16 @@ export async function generateScript(
   if (!response.ok) {
     const errorText = await response.text();
     console.error('[API Proxy] Error:', response.status, errorText);
-    throw new Error(`API error: ${response.status}`);
+
+    let message = `API error: ${response.status}`;
+    try {
+      const parsed = JSON.parse(errorText);
+      if (parsed?.error) message = parsed.error;
+    } catch {
+      // 응답이 JSON이 아니면 기본 메시지 사용
+    }
+
+    throw new Error(message);
   }
 
   return response.json();

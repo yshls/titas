@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { generateUUID } from '@/utils/uuid';
 import { SPEAKER_COLORS } from '@/components/Creator/CreatorLayout';
+import { generateScript } from '@/api/aiScriptGenerator';
 
 export interface Speaker {
   id: string;
@@ -29,6 +30,7 @@ export function useCreatorEngine() {
   const [scriptTitle, setScriptTitle] = useState('');
   const [lineInput, setLineInput] = useState('');
   const [editingLineId, setEditingLineId] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -112,6 +114,42 @@ export function useCreatorEngine() {
     localStorage.removeItem('titas_draft');
   };
 
+  // AI로 대본 자동 생성 (주제 -> 화자/대사 채우기)
+  const handleGenerateScript = async (topic: string) => {
+    if (!topic.trim() || isGenerating) return;
+
+    setIsGenerating(true);
+    try {
+      const generated = await generateScript(topic.trim());
+
+      const newSpeakers: Speaker[] = generated.speakers.map((speaker, index) => ({
+        id: speaker.id,
+        name: speaker.name,
+        colorKey: INITIAL_SPEAKERS[index]?.colorKey || 'grey50',
+      }));
+
+      const fallbackSpeaker = newSpeakers[0];
+      const newLines: CreatorDialogueLine[] = generated.lines.map((line) => {
+        const speaker =
+          newSpeakers.find((s) => s.id === line.speakerId) || fallbackSpeaker;
+        return {
+          id: generateUUID(),
+          speakerId: speaker.id,
+          originalLine: line.text,
+          speakerColor: SPEAKER_COLORS[speaker.colorKey] || '#f3f4f6',
+          isUserTurn: false,
+        };
+      });
+
+      setSpeakers(newSpeakers.length > 0 ? newSpeakers : INITIAL_SPEAKERS);
+      setScriptTitle(generated.title);
+      setScriptLines(newLines);
+      setActiveSpeakerId(fallbackSpeaker?.id || 'A');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   return {
     speakers,
     setSpeakers,
@@ -127,10 +165,12 @@ export function useCreatorEngine() {
     messagesEndRef,
     activeSpeaker,
     activeColor,
+    isGenerating,
     handleSpeakerNameChange,
     handleAddLine,
     handleDeleteLine,
     handleUpdateLine,
     wipeDraft,
+    handleGenerateScript,
   };
 }

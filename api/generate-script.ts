@@ -43,7 +43,7 @@ export default async function handler(req: Request) {
     });
   }
 
-  const apiKey = process.env.GROQ_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
     return new Response(
@@ -93,35 +93,70 @@ Rules:
 - Every "text" value must be natural, conversational English suitable for shadowing practice (no stage directions, no translations, no emojis).
 - "title" is a short English title for the scene.`;
 
-  try {
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
+  const responseSchema = {
+    type: 'OBJECT',
+    properties: {
+      title: { type: 'STRING' },
+      speakers: {
+        type: 'ARRAY',
+        items: {
+          type: 'OBJECT',
+          properties: {
+            id: { type: 'STRING' },
+            name: { type: 'STRING' },
+          },
+          required: ['id', 'name'],
+        },
       },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Scene/topic: ${topic}` },
-        ],
-        temperature: 0.8,
-        response_format: { type: 'json_object' },
-      }),
-    });
+      lines: {
+        type: 'ARRAY',
+        items: {
+          type: 'OBJECT',
+          properties: {
+            speakerId: { type: 'STRING' },
+            text: { type: 'STRING' },
+          },
+          required: ['speakerId', 'text'],
+        },
+      },
+    },
+    required: ['title', 'speakers', 'lines'],
+  };
+
+  try {
+    const response = await fetch(
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+      {
+        method: 'POST',
+        headers: {
+          'x-goog-api-key': apiKey,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [
+            { role: 'user', parts: [{ text: `Scene/topic: ${topic}` }] },
+          ],
+          systemInstruction: { parts: [{ text: systemPrompt }] },
+          generationConfig: {
+            temperature: 0.8,
+            responseMimeType: 'application/json',
+            responseSchema,
+          },
+        }),
+      },
+    );
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('[Groq Server] Script generation error:', response.status, errorText);
-      return new Response(JSON.stringify({ error: `Groq API error: ${response.status}` }), {
+      console.error('[Gemini Server] Script generation error:', response.status, errorText);
+      return new Response(JSON.stringify({ error: `Gemini API error: ${response.status}` }), {
         status: response.status,
         headers: { 'Content-Type': 'application/json' },
       });
     }
 
     const data = await response.json();
-    const content = data?.choices?.[0]?.message?.content;
+    const content = data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!content) {
       return new Response(JSON.stringify({ error: 'Empty response from AI' }), {

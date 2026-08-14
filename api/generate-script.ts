@@ -149,10 +149,19 @@ Rules:
     if (!response.ok) {
       const errorText = await response.text();
       console.error('[Gemini Server] Script generation error:', response.status, errorText);
-      return new Response(JSON.stringify({ error: `Gemini API error: ${response.status}` }), {
-        status: response.status,
-        headers: { 'Content-Type': 'application/json' },
-      });
+
+      let reason = errorText;
+      try {
+        const parsed = JSON.parse(errorText);
+        if (parsed?.error?.message) reason = parsed.error.message;
+      } catch {
+        // 응답이 JSON이 아니면 원문 그대로 사용
+      }
+
+      return new Response(
+        JSON.stringify({ error: `Gemini API error ${response.status}: ${reason}` }),
+        { status: response.status, headers: { 'Content-Type': 'application/json' } },
+      );
     }
 
     const data = await response.json();

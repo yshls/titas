@@ -8,8 +8,6 @@
 <div align="left">
 
 [**🌐 TiTaS 웹사이트 방문하기**](https://tikitaka-script.vercel.app/)
-<br/>
-[**📝 개발 노트(Dev Notes) 보러가기**](https://recordoftheday.tistory.com/category/%F0%9F%8F%8D%EF%B8%8F%20%EC%9A%B0%ED%85%8C%EC%BD%94-%ED%94%84%EB%A6%AC%EC%BD%94%EC%8A%A4/%ED%94%84%EB%A6%AC%EC%BD%94%EC%8A%A4%204%7E5%EC%A3%BC%EC%B0%A8)
 
 </div>
 

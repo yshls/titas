@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 
 // 마이그레이션 서비스
 import { migrateData } from '@/services/migrateService';
+import i18n from '@/i18n';
 
 // DB 서비스
 import {
@@ -109,6 +110,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   setLanguage: (language, updateUrl = false) => {
     set({ language });
     localStorage.setItem('titas_lang', language);
+    i18n.changeLanguage(language);
     
     // URL 쿼리 파라미터 동기화 (SEO 및 공유용)
     if (updateUrl && typeof window !== 'undefined') {

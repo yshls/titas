@@ -4,8 +4,10 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import dayjs from 'dayjs';
 import { useTheme } from '@emotion/react';
+import { useTranslation } from 'react-i18next';
 import { MdLocalFireDepartment, MdPlayArrow, MdDescription, MdBarChart } from 'react-icons/md';
 import { AnimatedCounter } from '@/components/common/AnimatedCounter';
+import { useAppStore } from '@/store/appStore';
 
 const CalendarCard = styled.div`
   background: ${({ theme }) => theme.cardBg};
@@ -206,11 +208,13 @@ export function CalendarSection({
   totalPractice,
 }: any) {
   const theme = useTheme();
+  const { t } = useTranslation();
+  const language = useAppStore((state) => state.language);
 
   return (
     <CalendarCard>
       <Calendar
-        locale="en-US"
+        locale={language === 'ko' ? 'ko-KR' : 'en-US'}
         formatDay={(_, date) => dayjs(date).format('D')}
         tileClassName={tileClassName}
         next2Label={null}
@@ -223,8 +227,8 @@ export function CalendarSection({
 
       <StreakInfo>
         <StreakItem>
-          <strong>{currentStreak} Days</strong>
-          <span>Current Streak</span>
+          <strong>{t('dashboard.streakDays', { count: currentStreak })}</strong>
+          <span>{t('dashboard.currentStreak')}</span>
         </StreakItem>
         <motion.div
           animate={currentStreak > 0 ? { scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] } : {}}
@@ -233,8 +237,8 @@ export function CalendarSection({
           <MdLocalFireDepartment size={32} color={currentStreak > 0 ? theme.colors.orange700 : theme.colors.grey400} />
         </motion.div>
         <StreakItem>
-          <strong>{totalPractice} Times</strong>
-          <span>Total Practice</span>
+          <strong>{t('dashboard.practiceTimes', { count: totalPractice })}</strong>
+          <span>{t('dashboard.totalPractice')}</span>
         </StreakItem>
       </StreakInfo>
     </CalendarCard>
@@ -242,9 +246,11 @@ export function CalendarSection({
 }
 
 export function StatisticsColumn({ selectedDateFreq, totalSentences, totalScripts }: any) {
+  const { t } = useTranslation();
+
   return (
     <Column>
-      <SectionTitle>Statistics</SectionTitle>
+      <SectionTitle>{t('dashboard.statisticsTitle')}</SectionTitle>
       <StatsStack>
         <StatCard
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
@@ -254,7 +260,7 @@ export function StatisticsColumn({ selectedDateFreq, totalSentences, totalScript
             <MdPlayArrow size={26} />
           </StatIconWrapper>
           <StatTextContainer>
-            <StatLabel>Selected Date Practice</StatLabel>
+            <StatLabel>{t('dashboard.selectedDatePractice')}</StatLabel>
             <StatValue><AnimatedCounter value={selectedDateFreq} /></StatValue>
           </StatTextContainer>
         </StatCard>
@@ -267,7 +273,7 @@ export function StatisticsColumn({ selectedDateFreq, totalSentences, totalScript
             <MdDescription size={22} />
           </StatIconWrapper>
           <StatTextContainer>
-            <StatLabel>Total Sentences</StatLabel>
+            <StatLabel>{t('dashboard.totalSentences')}</StatLabel>
             <StatValue><AnimatedCounter value={totalSentences} /></StatValue>
           </StatTextContainer>
         </StatCard>
@@ -280,7 +286,7 @@ export function StatisticsColumn({ selectedDateFreq, totalSentences, totalScript
             <MdBarChart size={24} />
           </StatIconWrapper>
           <StatTextContainer>
-            <StatLabel>Total Scripts</StatLabel>
+            <StatLabel>{t('dashboard.totalScripts')}</StatLabel>
             <StatValue><AnimatedCounter value={totalScripts} /></StatValue>
           </StatTextContainer>
         </StatCard>

@@ -1,6 +1,7 @@
 import styled from '@emotion/styled';
 import { MdCheck, MdDeleteOutline } from 'react-icons/md';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 import type { Mission } from '@/utils/types';
 import { useAuth } from '@/hooks/common/useAuth';
 
@@ -215,18 +216,19 @@ export function MissionManager({
   deleteTask,
 }: MissionManagerProps) {
   const { loginWithGoogle } = useAuth();
+  const { t } = useTranslation();
 
   const confirmDelete = (id: string) => {
     toast.custom(
-      (t) => (
+      (toastInstance) => (
         <div style={{ background: 'white', padding: '12px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '12px', minWidth: '280px' }}>
-          <span style={{ fontWeight: 600, fontSize: '15px' }}>Are you sure you want to delete?</span>
+          <span style={{ fontWeight: 600, fontSize: '15px' }}>{t('missions.deleteConfirm')}</span>
           <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
-            <ToastButton variant="danger" onClick={() => { deleteTask(id); toast.dismiss(t.id); }}>
-              Delete
+            <ToastButton variant="danger" onClick={() => { deleteTask(id); toast.dismiss(toastInstance.id); }}>
+              {t('common.button.delete')}
             </ToastButton>
-            <ToastButton variant="cancel" onClick={() => toast.dismiss(t.id)}>
-              Cancel
+            <ToastButton variant="cancel" onClick={() => toast.dismiss(toastInstance.id)}>
+              {t('common.button.cancel')}
             </ToastButton>
           </div>
         </div>
@@ -238,20 +240,20 @@ export function MissionManager({
   return (
     <Column>
       <SectionTitle>
-        Daily Missions <SectionDate>({dateStr})</SectionDate>
+        {t('missions.title')} <SectionDate>({dateStr})</SectionDate>
       </SectionTitle>
 
       {!user ? (
         <EmptyStateCard>
           <EmptyIcon>🎯</EmptyIcon>
-          <EmptyTitle>Daily Missions Available</EmptyTitle>
-          <EmptyText>Track your daily goals and stay motivated with personalized missions</EmptyText>
-          <LoginButton onClick={loginWithGoogle}>Login to Start</LoginButton>
+          <EmptyTitle>{t('missions.emptyLoginTitle')}</EmptyTitle>
+          <EmptyText>{t('missions.emptyLoginText')}</EmptyText>
+          <LoginButton onClick={loginWithGoogle}>{t('missions.loginToStart')}</LoginButton>
         </EmptyStateCard>
       ) : (
         <>
           <TaskList>
-            {tasks.length === 0 && <EmptyTask>No missions for this day. Plan ahead!</EmptyTask>}
+            {tasks.length === 0 && <EmptyTask>{t('missions.emptyDay')}</EmptyTask>}
             {tasks.map((task) => (
               <TaskItemWrapper key={task.id}>
                 <Checkbox checked={task.completed} onClick={() => toggleTask(task.id, task.completed)}>
@@ -267,12 +269,12 @@ export function MissionManager({
 
           <TaskInputWrapper>
             <TaskInput
-              placeholder="Add a new mission..."
+              placeholder={t('missions.addPlaceholder')}
               value={newTask}
               onChange={(e) => setNewTask(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && addTask()}
             />
-            <AddButton onClick={addTask}>Add</AddButton>
+            <AddButton onClick={addTask}>{t('missions.add')}</AddButton>
           </TaskInputWrapper>
         </>
       )}

@@ -1,5 +1,6 @@
 import toast from 'react-hot-toast';
 import { useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '@/store/appStore';
 import { Seo } from '@/components/common/Seo';
@@ -141,6 +142,7 @@ const DialogueInput = styled.input`
 export function CreatorPage() {
   const navigate = useNavigate();
   const theme = useTheme();
+  const { t } = useTranslation();
   const { saveNewScript, language } = useAppStore();
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -168,14 +170,14 @@ export function CreatorPage() {
   } = useCreatorEngine();
 
   const handleReset = () => {
-    toast((t) => (
+    toast((toastInstance) => (
       <ToastContainer>
-        <span>Wipe everything?</span>
-        <ToastWarningButton onClick={() => { wipeDraft(); toast.dismiss(t.id); }}>
-          Clear
+        <span>{t('creator.wipeConfirmTitle')}</span>
+        <ToastWarningButton onClick={() => { wipeDraft(); toast.dismiss(toastInstance.id); }}>
+          {t('creator.wipeConfirmButton')}
         </ToastWarningButton>
-        <ToastCancelButton onClick={() => toast.dismiss(t.id)}>
-          Cancel
+        <ToastCancelButton onClick={() => toast.dismiss(toastInstance.id)}>
+          {t('common.button.cancel')}
         </ToastCancelButton>
       </ToastContainer>
     ), { duration: 4000 });
@@ -183,7 +185,7 @@ export function CreatorPage() {
 
   const handleSave = async (shouldPractice = false) => {
     if (scriptLines.length === 0 || !scriptTitle.trim()) {
-      toast.error('Missing title or lines!');
+      toast.error(t('creator.missingFields'));
       return;
     }
 
@@ -205,9 +207,9 @@ export function CreatorPage() {
         });
         return;
       }
-      toast.success('Script saved successfully! 🎉');
+      toast.success(t('creator.saveSuccess'));
     } catch (error) {
-      toast.error('Failed to save script.');
+      toast.error(t('creator.saveFailed'));
     }
   };
 
@@ -220,22 +222,22 @@ export function CreatorPage() {
       <Seo {...seoProps} />
 
       <Sidebar>
-        <header><PageTitle>New Script</PageTitle></header>
+        <header><PageTitle>{t('creator.pageTitle')}</PageTitle></header>
 
         <SectionCard>
-          <VisuallyHiddenLabel htmlFor="script-title-input">Script Title</VisuallyHiddenLabel>
-          <Label>Title</Label>
+          <VisuallyHiddenLabel htmlFor="script-title-input">{t('creator.scriptTitle')}</VisuallyHiddenLabel>
+          <Label>{t('creator.titleLabel')}</Label>
           <TitleInput
             id="script-title-input"
-            placeholder="e.g. Ordering Coffee"
+            placeholder={t('creator.newTitlePlaceholder')}
             value={scriptTitle}
             onChange={(e) => setScriptTitle(e.target.value)}
-            aria-label="Script Title"
+            aria-label={t('creator.scriptTitle')}
           />
         </SectionCard>
 
         <SectionCard>
-          <Label>Characters <LabelSubText>Tap names to customize</LabelSubText></Label>
+          <Label>{t('creator.charactersLabel')} <LabelSubText>{t('creator.charactersHint')}</LabelSubText></Label>
           <SpeakerListContainer>
             {speakers.map((speaker) => (
               <SpeakerItem
@@ -251,13 +253,13 @@ export function CreatorPage() {
 
         <SidebarButtonGroup>
           <ActionButton onClick={handleReset} variant="secondary">
-            <MdRefresh size={18} /> Reset
+            <MdRefresh size={18} /> {t('creator.reset')}
           </ActionButton>
           <ActionButton onClick={() => handleSave(false)} variant="secondary" disabled={scriptLines.length === 0} aria-disabled={scriptLines.length === 0}>
-            <MdSave size={20} /> Save Script
+            <MdSave size={20} /> {t('creator.saveScript')}
           </ActionButton>
           <ActionButton onClick={() => handleSave(true)} variant="primary" disabled={scriptLines.length === 0} aria-disabled={scriptLines.length === 0}>
-            <MdPlayArrow size={20} /> Save & Practice
+            <MdPlayArrow size={20} /> {t('creator.saveAndPractice')}
           </ActionButton>
         </SidebarButtonGroup>
       </Sidebar>
@@ -269,7 +271,7 @@ export function CreatorPage() {
               <EmptyIconWrapper>
                 <MdEdit size={32} color={theme.colors.grey400} />
               </EmptyIconWrapper>
-              <EmptyText>Start by typing a dialogue below</EmptyText>
+              <EmptyText>{t('creator.emptyState')}</EmptyText>
             </div>
           ) : (
             <AnimatePresence initial={false}>
@@ -301,7 +303,7 @@ export function CreatorPage() {
                             setEditingLineId(null);
                           }
                         }}
-                        aria-label="Edit dialogue line"
+                        aria-label={t('creator.dialogueEditAria')}
                       />
                     ) : (
                       <p className="text-display">{line.originalLine}</p>
@@ -309,7 +311,7 @@ export function CreatorPage() {
                   </div>
                   <DeleteLineButton
                     onClick={(e) => { e.stopPropagation(); handleDeleteLine(line.id); }}
-                    aria-label="Delete line"
+                    aria-label={t('creator.deleteLineAria')}
                   >
                     <MdDelete size={18} />
                   </DeleteLineButton>
@@ -324,20 +326,20 @@ export function CreatorPage() {
           <InputSection>
             <ActiveBadge color={activeColor}>{activeSpeaker?.name}</ActiveBadge>
             <InputGroup>
-              <InputHintWrapper tabIndex={0} role="note" aria-label="Information: Lines split automatically by punctuation">
-                <MdInfoOutline size={12} aria-hidden="true" /> Lines split automatically by punctuation (. ? !)
+              <InputHintWrapper tabIndex={0} role="note" aria-label={t('creator.lineHint')}>
+                <MdInfoOutline size={12} aria-hidden="true" /> {t('creator.lineHint')}
               </InputHintWrapper>
-              <VisuallyHiddenLabel htmlFor="dialogue-text-input">Dialogue text input</VisuallyHiddenLabel>
+              <VisuallyHiddenLabel htmlFor="dialogue-text-input">{t('creator.dialogueInputAria')}</VisuallyHiddenLabel>
               <DialogueInput
                 id="dialogue-text-input"
                 value={lineInput}
                 onChange={(e) => setLineInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleAddLine()}
-                placeholder={`What does ${activeSpeaker?.name} say?`}
-                aria-label="Dialogue text input"
+                placeholder={t('creator.dialoguePlaceholder', { name: activeSpeaker?.name })}
+                aria-label={t('creator.dialogueInputAria')}
               />
             </InputGroup>
-            <SendButton onClick={handleAddLine} disabled={!lineInput.trim()} aria-label="Add dialogue line">
+            <SendButton onClick={handleAddLine} disabled={!lineInput.trim()} aria-label={t('creator.addLineAria')}>
               <MdAdd size={22} />
             </SendButton>
           </InputSection>
@@ -345,13 +347,13 @@ export function CreatorPage() {
           {/* 모바일에서만 보이는 버튼 그룹 */}
           <MobileButtonGroup>
             <ActionButton onClick={handleReset} variant="secondary">
-              <MdRefresh size={18} /> Reset
+              <MdRefresh size={18} /> {t('creator.reset')}
             </ActionButton>
             <ActionButton onClick={() => handleSave(false)} variant="secondary" disabled={scriptLines.length === 0} aria-disabled={scriptLines.length === 0}>
-              <MdSave size={18} /> Save
+              <MdSave size={18} /> {t('common.button.save')}
             </ActionButton>
             <ActionButton onClick={() => handleSave(true)} variant="primary" disabled={scriptLines.length === 0} aria-disabled={scriptLines.length === 0}>
-              <MdPlayArrow size={18} /> Practice
+              <MdPlayArrow size={18} /> {t('creator.practice')}
             </ActionButton>
           </MobileButtonGroup>
         </BottomWrapper>

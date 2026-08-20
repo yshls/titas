@@ -1,5 +1,6 @@
 import styled from '@emotion/styled';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { getRelativeTime, getNaturalTime } from '@/utils/timeUtils';
 
 const Container = styled.div`
@@ -59,6 +60,8 @@ interface ReviewEmptyStateProps {
 }
 
 export const ReviewEmptyState = ({ nextReviewTime }: ReviewEmptyStateProps) => {
+  const { t } = useTranslation();
+
   return (
     <Container>
       <IconWrapper
@@ -69,16 +72,15 @@ export const ReviewEmptyState = ({ nextReviewTime }: ReviewEmptyStateProps) => {
         🎉
       </IconWrapper>
 
-      <Title>All Caught Up!</Title>
+      <Title>{t('review.allCaughtUpTitle')}</Title>
 
       <Description>
-        You have no reviews due right now. Great job keeping up with your daily
-        goals!
+        {t('review.allCaughtUpDesc')}
       </Description>
 
       {nextReviewTime && (
         <TimeInfo>
-          <span>⏳ Next review {getRelativeTime(nextReviewTime)}</span>
+          <span>{t('review.nextReviewPrefix', { time: getRelativeTime(nextReviewTime) })}</span>
           <SubTime>({getNaturalTime(nextReviewTime)})</SubTime>
         </TimeInfo>
       )}

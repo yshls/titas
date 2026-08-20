@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import styled from '@emotion/styled';
 import dayjs from 'dayjs';
+import { Trans, useTranslation } from 'react-i18next';
 import { useAppStore } from '@/store/appStore';
 import { Seo } from '@/components/common/Seo';
 import { useMissions } from '@/hooks/pageSpecific/useMissions';
@@ -14,13 +15,13 @@ import {
 } from '@/utils/storageService';
 import type { PracticeLog, ScriptData } from '@/utils/types';
 
-// 시간대별 인사말 생성 함수
-const getTimeBasedGreeting = (userName: string) => {
+// 시간대별 인사말 번역 키 결정 함수
+const getGreetingKey = () => {
   const hour = new Date().getHours();
-  if (hour >= 6 && hour < 12) return { title: <>☀️ Start your day with a <b>clear voice</b>, {userName}.</> };
-  if (hour >= 12 && hour < 18) return { title: <>⚡ Perfect time for a <b>quick session</b>, {userName}.</> };
-  if (hour >= 18 && hour < 22) return { title: <>✨ Shall we <b>review your progress</b>, {userName}?</> };
-  return { title: <>🌙 End your day on a <b>high note</b>, {userName}.</> };
+  if (hour >= 6 && hour < 12) return 'dashboard.greeting.morning';
+  if (hour >= 12 && hour < 18) return 'dashboard.greeting.afternoon';
+  if (hour >= 18 && hour < 22) return 'dashboard.greeting.evening';
+  return 'dashboard.greeting.night';
 };
 
 const DashboardContainer = styled.div`
@@ -52,6 +53,7 @@ const GridContainer = styled.div`
 `;
 
 export function GrowthHubPage() {
+  const { t } = useTranslation();
   const user = useAppStore((state) => state.user);
   const storeScripts = useAppStore((state) => state.allScripts);
   const storeLogs = useAppStore((state) => state.practiceLogs);
@@ -70,8 +72,8 @@ export function GrowthHubPage() {
   const allScripts = user ? storeScripts : localScripts;
   const practiceLogs = user ? storeLogs : localLogs;
 
-  const userName = user?.user_metadata.full_name?.split(' ')[0] || 'User';
-  const greeting = useMemo(() => getTimeBasedGreeting(userName), [userName]);
+  const userName = user?.user_metadata.full_name?.split(' ')[0] || t('dashboard.defaultUserName');
+  const greetingKey = useMemo(() => getGreetingKey(), []);
 
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [activeStartDate, setActiveStartDate] = useState(new Date());
@@ -123,7 +125,9 @@ export function GrowthHubPage() {
     <DashboardContainer>
       <Seo {...seoProps} />
       <HeaderSection>
-        <GreetingTitle>{greeting.title}</GreetingTitle>
+        <GreetingTitle>
+          <Trans i18nKey={greetingKey} values={{ name: userName }} components={{ bold: <b /> }} />
+        </GreetingTitle>
       </HeaderSection>
 
       <GridContainer>

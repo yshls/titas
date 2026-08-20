@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from '@emotion/styled';
+import { useTranslation } from 'react-i18next';
 import { MdPerson } from 'react-icons/md';
 
 const RoleSelectionContainer = styled.div`
@@ -77,10 +78,11 @@ interface RoleSelectionProps {
 }
 
 export const RoleSelection = React.memo(function RoleSelection({ speakerIds, speakerColors, onSelectRole }: RoleSelectionProps) {
+    const { t } = useTranslation();
     return (
         <RoleSelectionContainer>
-            <RoleTitle>Who are you?</RoleTitle>
-            <RoleSubtitle>Select your role to start speaking.</RoleSubtitle>
+            <RoleTitle>{t('talk.whoAreYou')}</RoleTitle>
+            <RoleSubtitle>{t('talk.selectRolePrompt')}</RoleSubtitle>
             <RoleGrid>
                 {speakerIds.map((id) => (
                     <RoleButton key={id} onClick={() => onSelectRole(id)}>

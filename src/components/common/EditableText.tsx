@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styled from '@emotion/styled';
+import { useTranslation } from 'react-i18next';
 import { MdEdit } from 'react-icons/md';
 
 const Container = styled.div`
@@ -60,6 +61,7 @@ interface EditableTextProps {
 }
 
 export function EditableText({ initialText, onSave, onEditStart }: EditableTextProps) {
+  const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const [text, setText] = useState(initialText);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
@@ -122,7 +124,7 @@ export function EditableText({ initialText, onSave, onEditStart }: EditableTextP
       <TextContent onDoubleClick={handleEditStart}>
         {initialText}
       </TextContent>
-      <EditIconWrapper onClick={handleEditStart} className="edit-icon" title="Edit">
+      <EditIconWrapper onClick={handleEditStart} className="edit-icon" title={t('common.button.edit')}>
         <MdEdit size={16} />
       </EditIconWrapper>
     </Container>

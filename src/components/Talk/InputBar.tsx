@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { keyframes, css } from '@emotion/react';
+import { useTranslation } from 'react-i18next';
 import { FiMic, FiSend, FiX } from 'react-icons/fi';
 import { MdKeyboard, MdLightbulb } from 'react-icons/md';
 import { AudioVisualizer } from './AudioVisualizer';
@@ -198,17 +199,18 @@ export const InputBar = React.memo(function InputBar({
   setTypedInput,
   handleSendTypedInput,
 }: InputBarProps) {
+  const { t } = useTranslation();
   return (
     <FloatingBarWrapper>
       {/*  모바일 안내 메시지 추가 */}
-      {isListening && <MobileHint>Tap when done</MobileHint>}
+      {isListening && <MobileHint>{t('talk.tapWhenDone')}</MobileHint>}
 
       {inputMode === 'mic' ? (
         <FloatingIsland>
           <SideButton
             onClick={() => setInputMode('keyboard')}
             disabled={!isMyTurn}
-            aria-label="Switch to keyboard input"
+            aria-label={t('talk.switchToKeyboardAria')}
           >
             <MdKeyboard size={24} aria-hidden="true" />
           </SideButton>
@@ -217,7 +219,7 @@ export const InputBar = React.memo(function InputBar({
             isListening={isListening}
             onClick={handleMicClick}
             disabled={!isMyTurn || hasFeedback}
-            aria-label={isListening ? "Stop recording" : "Start recording"}
+            aria-label={isListening ? t('talk.stopRecordingAria') : t('talk.startRecordingAria')}
             aria-pressed={isListening}
           >
             {isListening && mediaStream ? (
@@ -231,7 +233,7 @@ export const InputBar = React.memo(function InputBar({
             active={showHint}
             onClick={() => setShowHint(!showHint)}
             disabled={!isMyTurn}
-            aria-label="Toggle translation hint"
+            aria-label={t('talk.toggleHintAria')}
             aria-pressed={showHint}
           >
             <MdLightbulb size={24} aria-hidden="true" />
@@ -239,11 +241,11 @@ export const InputBar = React.memo(function InputBar({
         </FloatingIsland>
       ) : (
         <KeyboardInputWrapper>
-          <SideButton onClick={() => setInputMode('mic')} aria-label="Switch to mic input">
+          <SideButton onClick={() => setInputMode('mic')} aria-label={t('talk.switchToMicAria')}>
             <FiX size={20} aria-hidden="true" />
           </SideButton>
           <StyledInput
-            placeholder="Type your sentence..."
+            placeholder={t('talk.typePlaceholder')}
             value={typedInput}
             onChange={(e) => setTypedInput(e.target.value)}
             onKeyDown={(e) => {
@@ -253,12 +255,12 @@ export const InputBar = React.memo(function InputBar({
             }}
             autoFocus
             disabled={!isMyTurn || hasFeedback}
-            aria-label="Type your sentence input"
+            aria-label={t('talk.typeInputAria')}
           />
           <SendBtn
             onClick={handleSendTypedInput}
             disabled={!typedInput.trim() || !isMyTurn || hasFeedback}
-            aria-label="Send sentence"
+            aria-label={t('talk.sendAria')}
           >
             <FiSend size={18} aria-hidden="true" />
           </SendBtn>

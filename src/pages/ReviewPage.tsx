@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from '@emotion/styled';
+import { useTranslation } from 'react-i18next';
 import { useAppStore } from '@/store/appStore';
 import { supabase } from '@/supabaseClient';
 import toast from 'react-hot-toast';
@@ -260,6 +261,7 @@ interface ReviewItem extends FSRSReviewLog {
 }
 
 export default function ReviewPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, allScripts } = useAppStore();
   const [reviews, setReviews] = useState<ReviewItem[]>([]);
@@ -337,7 +339,7 @@ export default function ReviewPage() {
       if (error) throw error;
     } catch (error) {
       console.error('Login error:', error);
-      toast.error('Failed to login. Please try again.');
+      toast.error(t('review.loginFailed'));
     }
   };
 
@@ -345,21 +347,19 @@ export default function ReviewPage() {
     return (
       <Container>
         <Header>
-          <Title>Smart Review</Title>
+          <Title>{t('review.smartReviewTitle')}</Title>
           <Subtitle>
-            Master your mistakes with spaced repetition. Review at the perfect
-            time.
+            {t('review.smartReviewSubtitle')}
           </Subtitle>
         </Header>
         <LoginGateWrapper>
           <LoginGateIcon>🔒</LoginGateIcon>
-          <LoginGateTitle>Unlock Your Smart Review</LoginGateTitle>
+          <LoginGateTitle>{t('review.loginGateTitle')}</LoginGateTitle>
           <LoginGateText>
-            Log in to track your learning progress and get a personalized review
-            schedule.
+            {t('review.loginGateText')}
           </LoginGateText>
           <LoginGateButton onClick={handleLogin}>
-            Login to Get Started
+            {t('review.loginToStart')}
           </LoginGateButton>
         </LoginGateWrapper>
       </Container>
@@ -369,51 +369,50 @@ export default function ReviewPage() {
   return (
     <Container>
       <Header>
-        <Title>Smart Review</Title>
+        <Title>{t('review.smartReviewTitle')}</Title>
         <Subtitle>
-          Master your mistakes with spaced repetition. Review at the perfect
-          time.
+          {t('review.smartReviewSubtitle')}
         </Subtitle>
       </Header>
 
       <StatsGrid>
         <StatCard urgent={stats.urgent > 0}>
           <StatValue>{stats.urgent}</StatValue>
-          <StatLabel>Urgent</StatLabel>
+          <StatLabel>{t('review.urgent')}</StatLabel>
         </StatCard>
 
         <StatCard>
           <StatValue>{stats.today}</StatValue>
-          <StatLabel>Due Today</StatLabel>
+          <StatLabel>{t('review.dueToday')}</StatLabel>
         </StatCard>
 
         <StatCard onClick={() => navigate('/history')}>
           <StatValue>{stats.total}</StatValue>
-          <StatLabel>Total Reviews</StatLabel>
+          <StatLabel>{t('review.totalReviews')}</StatLabel>
         </StatCard>
       </StatsGrid>
 
-      <SectionTitle>Upcoming Reviews</SectionTitle>
+      <SectionTitle>{t('review.upcomingReviews')}</SectionTitle>
       <ForecastGrid>
         <ForecastCard>
-          <ForecastTime>~15 Mins</ForecastTime>
+          <ForecastTime>{t('review.in15Min')}</ForecastTime>
           <ForecastCount>{forecast['10m']}</ForecastCount>
         </ForecastCard>
         <ForecastCard>
-          <ForecastTime>~24 Hours</ForecastTime>
+          <ForecastTime>{t('review.in24Hours')}</ForecastTime>
           <ForecastCount>{forecast['1d']}</ForecastCount>
         </ForecastCard>
         <ForecastCard>
-          <ForecastTime>~7 Days</ForecastTime>
+          <ForecastTime>{t('review.in7Days')}</ForecastTime>
           <ForecastCount>{forecast['1w']}</ForecastCount>
         </ForecastCard>
         <ForecastCard>
-          <ForecastTime>~30 Days</ForecastTime>
+          <ForecastTime>{t('review.in30Days')}</ForecastTime>
           <ForecastCount>{forecast['1mo']}</ForecastCount>
         </ForecastCard>
       </ForecastGrid>
 
-      <SectionTitle>Due Now</SectionTitle>
+      <SectionTitle>{t('review.dueNow')}</SectionTitle>
 
       {reviews.length === 0 ? (
         <ReviewEmptyState nextReviewTime={nextReviewTime} />
@@ -428,15 +427,15 @@ export default function ReviewPage() {
                   {allScripts.find((s) => s.id === item.script_id.toString())
                     ?.title ||
                     item.script_title ||
-                    `Script #${item.script_id}`}
+                    t('review.scriptFallback', { id: item.script_id })}
                 </CardTitle>
                 <CardMeta>
-                  <span>{item.accuracy}% Acc</span>
+                  <span>{t('review.accuracyLabel', { percent: item.accuracy })}</span>
                   <span>•</span>
                   <span>
                     {item.overdueDays > 0
-                      ? `${item.overdueDays}d overdue`
-                      : `Due today`}
+                      ? t('review.overdueDays', { count: item.overdueDays })
+                      : t('review.dueTodayShort')}
                   </span>
                 </CardMeta>
               </CardContent>
@@ -445,7 +444,7 @@ export default function ReviewPage() {
                 urgent={item.priority > 5}
                 onClick={() => handleQuickReview(item)}
               >
-                Review
+                {t('review.reviewButton')}
               </ReviewButton>
             </ReviewCard>
           ))}

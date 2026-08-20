@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 import { useDevice } from '@/hooks/useDevice';
 import { usePracticeStore } from '@/store/practiceStore';
 import { useSpeechRecognition } from '@/utils/useSpeechRecognition';
@@ -8,6 +9,7 @@ import { checkWordDiff } from '@/utils/diffChecker';
 import { transcribeAudio } from '@/api/groqWhisper';
 
 export function useUserInput() {
+  const { t } = useTranslation();
   const status = usePracticeStore((state) => state.status);
   const currentLineIndex = usePracticeStore((state) => state.currentLineIndex);
   const currentLine = usePracticeStore(
@@ -138,13 +140,13 @@ export function useUserInput() {
           // Web Speech API 실패 시 Groq Whisper 사용
           if (!finalTranscript || finalTranscript.trim().length === 0) {
             try {
-              toast.loading('Transcribing...', { id: 'stt' });
+              toast.loading(t('talk.transcribing'), { id: 'stt' });
               finalTranscript = await transcribeAudio(blob);
               toast.dismiss('stt');
             } catch (error) {
               console.error('[Groq] Transcription failed:', error);
               toast.dismiss('stt');
-              toast.error('Speech recognition failed - Please type instead');
+              toast.error(t('talk.sttFailedTypeInstead'));
               setInputMode('keyboard');
               cleanup();
               return;
@@ -155,7 +157,7 @@ export function useUserInput() {
           if (finalTranscript && finalTranscript.trim().length > 0) {
             processAndAdvance(finalTranscript);
           } else {
-            toast('Speech recognition failed - Please type instead', {
+            toast(t('talk.sttFailedTypeInstead'), {
               icon: '⌨️',
               duration: 2000,
             });
@@ -221,7 +223,7 @@ export function useUserInput() {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       stream.getTracks().forEach((track) => track.stop());
     } catch (error) {
-      toast.error('Microphone permission required');
+      toast.error(t('talk.micPermissionRequired'));
     }
   }, []);
 
@@ -253,7 +255,7 @@ export function useUserInput() {
     }
 
     if (permissionStatus === 'denied') {
-      toast.error('Microphone permission denied');
+      toast.error(t('talk.micPermissionDenied'));
       return;
     }
 

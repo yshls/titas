@@ -2,6 +2,7 @@ import styled from '@emotion/styled';
 import { useTheme } from '@emotion/react';
 import { motion } from 'framer-motion';
 import { MdCheck } from 'react-icons/md';
+import { useTranslation } from 'react-i18next';
 
 // 상수 임포트용
 export const SPEAKER_COLORS: Record<string, string> = {
@@ -141,6 +142,7 @@ export function SpeakerItem({
   onClick: () => void;
 }) {
   const theme = useTheme();
+  const { t } = useTranslation();
   const bgColor = SPEAKER_COLORS[speaker.colorKey];
 
   return (
@@ -150,7 +152,7 @@ export function SpeakerItem({
         value={speaker.name}
         onChange={(e) => onNameChange(speaker.id, e.target.value)}
         onClick={(e) => e.stopPropagation()}
-        placeholder="Name"
+        placeholder={t('creator.speakerNamePlaceholder')}
       />
       {isActive && <MdCheck size={18} color={theme.colors.primary} />}
     </SpeakerRow>

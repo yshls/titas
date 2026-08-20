@@ -102,7 +102,7 @@ export function PrivacyPolicyPage() {
         <BackButton onClick={() => navigate(-1)}>
           <MdArrowBack size={24} />
         </BackButton>
-        <HeaderTitle>Privacy Policy</HeaderTitle>
+        <HeaderTitle>{seoProps.title}</HeaderTitle>
       </Header>
 
       <ContentContainer>

@@ -1,6 +1,8 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
+import dayjs from 'dayjs';
+import 'dayjs/locale/ko';
 
 import koTranslation from './locales/ko/translation.json';
 import enTranslation from './locales/en/translation.json';
@@ -32,5 +34,11 @@ i18n
       lookupLocalStorage: 'titas_lang', // appStore와 동일한 키
     },
   });
+
+// dayjs(날짜 포맷)도 i18next 언어와 함께 전환되도록 동기화
+dayjs.locale(i18n.language === 'ko' ? 'ko' : 'en');
+i18n.on('languageChanged', (lng) => {
+  dayjs.locale(lng === 'ko' ? 'ko' : 'en');
+});
 
 export default i18n;

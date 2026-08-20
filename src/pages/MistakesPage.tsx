@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { useAppStore } from '@/store/appStore';
 import { useNavigate } from 'react-router-dom';
 import { useTTS } from '@/utils/useTTS';
@@ -421,6 +422,7 @@ function WordCardItem({
   index: number;
   maxCount: number;
 }) {
+  const { t } = useTranslation();
   const { speak } = useTTS();
   const { transcript, isListening, startListening, stopListening } =
     useSpeechRecognition();
@@ -490,7 +492,7 @@ function WordCardItem({
               <FrequencyBarContainer>
                 <FrequencyBar percent={percent} />
               </FrequencyBarContainer>
-              <MissCount>{item.count} misses</MissCount>
+              <MissCount>{t('mistakes.misses', { count: item.count })}</MissCount>
             </StatRow>
           </WordInfo>
         </CardLeftWrapper>
@@ -503,7 +505,7 @@ function WordCardItem({
       {isExpanded && (
         <ExpandedContent onClick={(e) => e.stopPropagation()}>
           <SectionHeader>
-            <MdMic size={16} /> Pronunciation Clinic
+            <MdMic size={16} /> {t('mistakes.pronunciationClinic')}
           </SectionHeader>
           <PracticeArea>
             <TTSButtonGroup>
@@ -513,10 +515,10 @@ function WordCardItem({
                   speak(item.word);
                 }}
               >
-                <MdVolumeUp size={16} /> Normal
+                <MdVolumeUp size={16} /> {t('mistakes.normal')}
               </TTSButton>
               <TTSButton onClick={handleSlowTTS}>
-                <MdSpeed size={16} /> Slow (0.5x)
+                <MdSpeed size={16} /> {t('mistakes.slow')}
               </TTSButton>
             </TTSButtonGroup>
 
@@ -525,21 +527,21 @@ function WordCardItem({
             </MicButton>
 
             <PracticeStatus status={practiceStatus}>
-              {practiceStatus === 'idle' && 'Tap mic & say the word!'}
-              {practiceStatus === 'listening' && 'Listening... Say it!'}
-              {practiceStatus === 'success' && 'Perfect! Solved 🎉'}
-              {practiceStatus === 'fail' && 'Try again.'}
+              {practiceStatus === 'idle' && t('mistakes.tapMicPrompt')}
+              {practiceStatus === 'listening' && t('mistakes.listeningPrompt')}
+              {practiceStatus === 'success' && t('mistakes.successPrompt')}
+              {practiceStatus === 'fail' && t('mistakes.failPrompt')}
             </PracticeStatus>
 
             {transcript && isListening && (
-              <TranscriptText>You said: "{transcript}"</TranscriptText>
+              <TranscriptText>{t('mistakes.youSaid', { text: transcript })}</TranscriptText>
             )}
           </PracticeArea>
 
           {item.examples.length > 0 && (
             <>
               <SectionHeader>
-                <MdErrorOutline size={16} /> Context Examples
+                <MdErrorOutline size={16} /> {t('mistakes.contextExamples')}
               </SectionHeader>
               {item.examples.map((ex, i) => (
                 <ExampleItem key={i}>
@@ -562,6 +564,7 @@ function WordCardItem({
 }
 
 export function MistakesPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const practiceLogs = useAppStore((state) => state.practiceLogs);
   const language = useAppStore((state) => state.language);
@@ -620,21 +623,21 @@ export function MistakesPage() {
       <PageContainer>
         <Seo {...seoProps} />
         <Header>
-          <Title>Your Mistakes</Title>
+          <Title>{t('mistakes.pageTitle')}</Title>
           <Subtitle>
-            Track and fix pronunciation errors as you practice.
+            {t('mistakes.pageSubtitleEmpty')}
           </Subtitle>
         </Header>
         <EmptyStateContainer>
           <EmptyIconBox>
             <MdBarChart size={40} />
           </EmptyIconBox>
-          <EmptyTitleText>No mistakes yet!</EmptyTitleText>
+          <EmptyTitleText>{t('mistakes.noMistakesYet')}</EmptyTitleText>
           <EmptySubText>
-            Complete a practice session to see what needs work.
+            {t('mistakes.noMistakesDesc')}
           </EmptySubText>
           <ActionButton onClick={() => navigate('/scripts')}>
-            Start Practicing
+            {t('mistakes.startPracticing')}
           </ActionButton>
         </EmptyStateContainer>
       </PageContainer>
@@ -649,15 +652,15 @@ export function MistakesPage() {
     <PageContainer>
       <Seo {...seoProps} />
       <Header>
-        <Title>Your Mistakes</Title>
+        <Title>{t('mistakes.pageTitle')}</Title>
         <Subtitle>
-          Focus on your top 3 weak spots first.
+          {t('mistakes.pageSubtitle')}
         </Subtitle>
       </Header>
 
       {topMistakes.length > 0 && (
         <>
-          <SectionTitle>Top Focus</SectionTitle>
+          <SectionTitle>{t('mistakes.topFocus')}</SectionTitle>
           <CardGrid
             initial="hidden"
             animate="show"
@@ -691,7 +694,7 @@ export function MistakesPage() {
 
       {otherMistakes.length > 0 && (
         <>
-          <SectionTitle>Other Misses ({otherMistakes.length})</SectionTitle>
+          <SectionTitle>{t('mistakes.otherMisses', { count: otherMistakes.length })}</SectionTitle>
           <CardGrid>
             {otherMistakes
               .slice(0, showAll ? undefined : 7)
@@ -707,7 +710,7 @@ export function MistakesPage() {
             {!showAll && otherMistakes.length > 7 && (
               <ShowMoreButton onClick={() => setShowAll(true)}>
                 <MdExpandMore size={20} />
-                Show {otherMistakes.length - 7} More
+                {t('mistakes.showMore', { count: otherMistakes.length - 7 })}
               </ShowMoreButton>
             )}
           </CardGrid>

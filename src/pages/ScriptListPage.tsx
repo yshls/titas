@@ -15,12 +15,15 @@ import {
   MdSearch,
   MdClose,
   MdVisibility,
+  MdUploadFile,
 } from 'react-icons/md';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { Seo } from '@/components/common/Seo';
 import { supabase } from '../supabaseClient';
+import { generateUUID } from '@/utils/uuid';
+import { parseScriptFile } from '@/utils/scriptFileParser';
 
 const SORT_OPTIONS = [
   { value: 'date-desc', label: 'Newest' },
@@ -134,6 +137,35 @@ const ClearButton = styled.button`
 `;
 
 // 정렬 메뉴 래퍼
+const UploadButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  color: white;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 14px;
+  border: none;
+  background-color: ${({ theme }) => theme.colors.primary};
+  transition: all 0.2s;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.primaryHover};
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+`;
+
+const HiddenFileInput = styled.input`
+  display: none;
+`;
+
 const SortWrapper = styled.div`
   position: relative;
 `;
@@ -489,6 +521,7 @@ const ToastButton = styled.button<{ variant?: 'danger' | 'cancel' }>`
 export function ScriptListPage() {
   const allScripts = useAppStore((state) => state.allScripts);
   const deleteScript = useAppStore((state) => state.deleteScript);
+  const saveNewScript = useAppStore((state) => state.saveNewScript);
   const language = useAppStore((state) => state.language);
   const navigate = useNavigate();
   const theme = useTheme();
@@ -496,10 +529,48 @@ export function ScriptListPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState('date-desc');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isImporting, setIsImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const sortMenuRef = useRef<HTMLDivElement>(null);
+
+  const handleUploadClick = () => {
+    if (isImporting) return;
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+
+    setIsImporting(true);
+    toast.loading('Importing script...', { id: 'import-script' });
+
+    try {
+      const parsed = await parseScriptFile(file);
+      const newScript: ScriptData = {
+        id: generateUUID(),
+        title: parsed.title,
+        createdAt: Date.now(),
+        lines: parsed.lines,
+        characters: parsed.characters,
+      };
+
+      await saveNewScript(newScript);
+      toast.success(`Imported "${parsed.title}" (${parsed.lines.length} lines)`, {
+        id: 'import-script',
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Failed to import file.';
+      toast.error(message, { id: 'import-script' });
+    } finally {
+      setIsImporting(false);
+    }
+  };
 
   useEffect(() => {
     supabase.auth
@@ -609,6 +680,19 @@ export function ScriptListPage() {
         <PageTitle>My Scripts</PageTitle>
 
         <Controls>
+          <UploadButton onClick={handleUploadClick} disabled={isImporting} aria-label="Upload script file">
+            <MdUploadFile size={18} />
+            {isImporting ? 'Importing...' : '+ Upload File'}
+          </UploadButton>
+          <HiddenFileInput
+            ref={fileInputRef}
+            type="file"
+            accept=".xlsx,.xls,.csv,.pdf"
+            onChange={handleFileChange}
+            aria-hidden="true"
+            tabIndex={-1}
+          />
+
           <SearchWrapper>
             <SearchInput
               placeholder="Search..."

@@ -15,6 +15,14 @@
       "error": "An error occurred"
     }
   },
+  "error": {
+    "title": "Something went wrong",
+    "message": "We hit an error loading this screen. Refreshing usually fixes it.",
+    "reload": "Refresh",
+    "notFoundTitle": "Page not found",
+    "notFoundMessage": "That address is wrong, or the page no longer exists.",
+    "goHome": "Go home"
+  },
   "history": {
     "emptyText": "No history yet. Start practicing!",
     "lineLabel": "Line {{number}}",

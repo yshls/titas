@@ -110,6 +110,38 @@
   </head>
   <body>
     <div id="root"></div>
+
+    <!--
+      React 트리 밖(모듈 평가 단계)에서 터지는 오류는 ErrorBoundary가 잡을 수 없어
+      그대로 흰 화면이 된다. 앱이 끝내 마운트되지 않았을 때만 안내 문구를 보여준다.
+    -->
+    <script>
+      (function () {
+        var bootFailed = false;
+
+        window.addEventListener('error', function (event) {
+          if (bootFailed) return;
+          var root = document.getElementById('root');
+          if (!root || root.childElementCount > 0) return; // 이미 렌더링됨 = 부팅 성공
+
+          bootFailed = true;
+          console.error('App failed to start:', event.error || event.message);
+          root.innerHTML =
+            '<div role="alert" style="min-height:100vh;display:flex;flex-direction:column;' +
+            'align-items:center;justify-content:center;gap:12px;padding:24px;text-align:center;' +
+            "font-family:'Lato','Noto Sans KR',sans-serif;color:#333d4b\">" +
+            '<div style="font-size:44px">😵</div>' +
+            '<h1 style="font-size:20px;font-weight:800;margin:0">앱을 시작하지 못했어요</h1>' +
+            '<p style="font-size:15px;color:#6b7684;margin:0;max-width:420px;line-height:1.6">' +
+            'Failed to start the app. 잠시 후 새로고침해주세요.</p>' +
+            '<button onclick="window.location.reload()" style="margin-top:12px;padding:12px 28px;' +
+            'border-radius:12px;border:none;background:#f97316;color:#fff;font-size:15px;' +
+            'font-weight:700;cursor:pointer">새로고침 / Refresh</button>' +
+            '</div>';
+        });
+      })();
+    </script>
+
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -40,7 +40,9 @@ export default defineConfig({
   },
   build: {
     target: 'esnext',
-    sourcemap: true,
+    // 소스맵에는 원본 코드 전문이 담겨 배포 시 전체 소스가 공개된다.
+    // 로컬 디버깅이 필요하면 일시적으로 true로 두고 빌드할 것.
+    sourcemap: false,
     rollupOptions: {
       external: ['sharp', 'onnxruntime-node'],
     },

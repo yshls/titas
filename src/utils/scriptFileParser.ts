@@ -2,6 +2,7 @@ import { generateUUID } from '@/utils/uuid';
 import { SPEAKER_COLORS } from '@/components/Creator/CreatorLayout';
 import { INITIAL_SPEAKERS } from '@/hooks/pageSpecific/useCreatorEngine';
 import type { DialogueLine, Character } from '@/utils/types';
+import i18n from '@/i18n';
 
 export interface ParsedScript {
   title: string;
@@ -43,7 +44,7 @@ export async function parseExcelFile(file: File): Promise<ParsedScript> {
 
   const firstSheetName = workbook.SheetNames[0];
   if (!firstSheetName) {
-    throw new Error('No sheet found in the uploaded file.');
+    throw new Error(i18n.t('scripts.noSheetFound'));
   }
 
   const sheet = workbook.Sheets[firstSheetName];
@@ -57,7 +58,7 @@ export async function parseExcelFile(file: File): Promise<ParsedScript> {
     .filter((text) => text.length > 0);
 
   if (rawLines.length === 0) {
-    throw new Error('No dialogue lines found in the first column.');
+    throw new Error(i18n.t('scripts.noDialogueLines'));
   }
 
   return buildScriptFromLines(stripExtension(file.name), rawLines);
@@ -100,7 +101,7 @@ export async function parsePdfFile(file: File): Promise<ParsedScript> {
   const cleanedLines = rawLines.map((line) => line.trim()).filter((line) => line.length > 0);
 
   if (cleanedLines.length === 0) {
-    throw new Error('No text could be extracted from the PDF.');
+    throw new Error(i18n.t('scripts.noPdfText'));
   }
 
   return buildScriptFromLines(stripExtension(file.name), cleanedLines);
@@ -117,5 +118,5 @@ export async function parseScriptFile(file: File): Promise<ParsedScript> {
     return parseExcelFile(file);
   }
 
-  throw new Error('Unsupported file type. Please upload an Excel (.xlsx/.xls/.csv) or PDF file.');
+  throw new Error(i18n.t('scripts.unsupportedFileType'));
 }

@@ -13,6 +13,7 @@ import { useTTS } from '@/utils/useTTS';
 import { useMemo, useState, useEffect, useRef } from 'react';
 import styled from '@emotion/styled';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 import { Seo } from '@/components/common/Seo';
 import { EditableText } from '@/components/common/EditableText';
 
@@ -314,6 +315,7 @@ const ErrorButton = styled(StartButton)`
 // --- [로직 컴포넌트] ---
 
 export function ScriptDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { speak, isSpeaking, voices } = useTTS();
@@ -367,7 +369,7 @@ export function ScriptDetailPage() {
       setIsAutoPlaying(true);
       setClickedIndex(null);
       setPlayingIndex(0);
-      toast.success('Auto play started');
+      toast.success(t('scriptDetail.autoPlayStarted'));
     }
   };
 
@@ -418,12 +420,12 @@ export function ScriptDetailPage() {
               : '스크립트를 찾을 수 없습니다'
           }
         />
-        <ErrorTitle>Script Not Found</ErrorTitle>
+        <ErrorTitle>{t('scriptDetail.notFoundTitle')}</ErrorTitle>
         <ErrorMessage>
-          The script you are looking for does not exist.
+          {t('scriptDetail.notFoundDesc')}
         </ErrorMessage>
         <ErrorButton onClick={() => navigate('/')}>
-          <MdArrowBack size={20} /> Back to My Scripts
+          <MdArrowBack size={20} /> {t('scriptDetail.backToScripts')}
         </ErrorButton>
       </ErrorContainer>
     );
@@ -446,7 +448,7 @@ export function ScriptDetailPage() {
 
       <Header>
         <HeaderLeft>
-          <BackButton onClick={() => navigate(-1)} aria-label="Go back">
+          <BackButton onClick={() => navigate(-1)} aria-label={t('scriptDetail.goBackAria')}>
             <MdArrowBack size={24} />
           </BackButton>
           <Title>{script.title}</Title>
@@ -456,10 +458,10 @@ export function ScriptDetailPage() {
           <AutoPlayButton
             onClick={toggleAutoPlay}
             isPlaying={isAutoPlaying}
-            aria-label={isAutoPlaying ? 'Stop Auto Play' : 'Start Auto Play'}
+            aria-label={isAutoPlaying ? t('scriptDetail.stopAutoPlayAria') : t('scriptDetail.startAutoPlayAria')}
           >
             {isAutoPlaying ? <MdStop size={18} /> : <MdPlayCircle size={18} />}
-            {isAutoPlaying ? 'Stop' : 'Auto Play'}
+            {isAutoPlaying ? t('scriptDetail.stop') : t('scriptDetail.autoPlay')}
           </AutoPlayButton>
 
           <VoiceSelectWrapper>
@@ -467,10 +469,10 @@ export function ScriptDetailPage() {
             <VoiceSelect
               value={selectedVoiceURI || ''}
               onChange={(e) => setSelectedVoiceURI(e.target.value)}
-              aria-label="Select TTS voice"
-              title="Select TTS voice"
+              aria-label={t('scriptDetail.selectVoiceAria')}
+              title={t('scriptDetail.selectVoiceAria')}
             >
-              <option value="">Default Voice</option>
+              <option value="">{t('scriptDetail.defaultVoice')}</option>
               {englishVoices.map((voice: SpeechSynthesisVoice) => (
                 <option key={voice.voiceURI} value={voice.voiceURI}>
                   {voice.name}
@@ -503,7 +505,7 @@ export function ScriptDetailPage() {
                       setClickedIndex(null);
                     });
                   }}
-                  aria-label={`Speak line by ${line.speakerId}`}
+                  aria-label={t('scriptDetail.speakLineAria', { speaker: line.speakerId })}
                 >
                   <BubbleHeader isRight={isRightSide}>
                     <SpeakerName>{line.speakerId}</SpeakerName>
@@ -530,7 +532,7 @@ export function ScriptDetailPage() {
 
       <Footer>
         <StartButton onClick={() => handlePracticeClick(script)}>
-          <MdPlayArrow size={24} /> Start Practice
+          <MdPlayArrow size={24} /> {t('scriptDetail.startPractice')}
         </StartButton>
       </Footer>
     </PageContainer>

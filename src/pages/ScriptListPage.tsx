@@ -20,16 +20,17 @@ import {
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 import { Seo } from '@/components/common/Seo';
 import { supabase } from '../supabaseClient';
 import { generateUUID } from '@/utils/uuid';
 import { parseScriptFile } from '@/utils/scriptFileParser';
 
 const SORT_OPTIONS = [
-  { value: 'date-desc', label: 'Newest' },
-  { value: 'date-asc', label: 'Oldest' },
-  { value: 'title-asc', label: 'Title (A-Z)' },
-  { value: 'title-desc', label: 'Title (Z-A)' },
+  { value: 'date-desc', labelKey: 'scripts.sortNewest' },
+  { value: 'date-asc', labelKey: 'scripts.sortOldest' },
+  { value: 'title-asc', labelKey: 'scripts.sortTitleAsc' },
+  { value: 'title-desc', labelKey: 'scripts.sortTitleDesc' },
 ];
 
 // --- 스타일 컴포넌트 ---
@@ -519,6 +520,7 @@ const ToastButton = styled.button<{ variant?: 'danger' | 'cancel' }>`
 // --- 메인 컴포넌트 ---
 
 export function ScriptListPage() {
+  const { t } = useTranslation();
   const allScripts = useAppStore((state) => state.allScripts);
   const deleteScript = useAppStore((state) => state.deleteScript);
   const saveNewScript = useAppStore((state) => state.saveNewScript);
@@ -547,7 +549,7 @@ export function ScriptListPage() {
     if (!file) return;
 
     setIsImporting(true);
-    toast.loading('Importing script...', { id: 'import-script' });
+    toast.loading(t('scripts.importing'), { id: 'import-script' });
 
     try {
       const parsed = await parseScriptFile(file);
@@ -560,12 +562,13 @@ export function ScriptListPage() {
       };
 
       await saveNewScript(newScript);
-      toast.success(`Imported "${parsed.title}" (${parsed.lines.length} lines)`, {
-        id: 'import-script',
-      });
+      toast.success(
+        t('scripts.importSuccess', { title: parsed.title, count: parsed.lines.length }),
+        { id: 'import-script' },
+      );
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : 'Failed to import file.';
+        error instanceof Error ? error.message : t('scripts.importFailed');
       toast.error(message, { id: 'import-script' });
     } finally {
       setIsImporting(false);
@@ -596,11 +599,11 @@ export function ScriptListPage() {
 
   const handleDeleteClick = (scriptId: string, scriptTitle: string) => {
     toast.custom(
-      (t) => (
+      (toastInstance) => (
         <ToastContainer>
           <ToastHeader>
-            <ToastTitle>Delete "{scriptTitle}"?</ToastTitle>
-            <ToastSubtitle>This action cannot be undone.</ToastSubtitle>
+            <ToastTitle>{t('scripts.deleteConfirmTitle', { title: scriptTitle })}</ToastTitle>
+            <ToastSubtitle>{t('scripts.deleteConfirmSubtitle')}</ToastSubtitle>
           </ToastHeader>
           <ToastButtonContainer>
             <ToastButton
@@ -608,14 +611,14 @@ export function ScriptListPage() {
               onClick={() => {
                 deleteScript(scriptId);
                 setDeletingId(scriptId);
-                toast.dismiss(t.id);
+                toast.dismiss(toastInstance.id);
                 setTimeout(() => setDeletingId(null), 300);
               }}
             >
-              Delete
+              {t('common.button.delete')}
             </ToastButton>
-            <ToastButton variant="cancel" onClick={() => toast.dismiss(t.id)}>
-              Cancel
+            <ToastButton variant="cancel" onClick={() => toast.dismiss(toastInstance.id)}>
+              {t('common.button.cancel')}
             </ToastButton>
           </ToastButtonContainer>
         </ToastContainer>
@@ -674,15 +677,15 @@ export function ScriptListPage() {
         };
 
   return (
-    <PageContainer role="main" aria-label="Scripts library">
+    <PageContainer role="main" aria-label={t('scripts.pageTitle')}>
       <Seo {...seoProps} />
       <Header>
-        <PageTitle>My Scripts</PageTitle>
+        <PageTitle>{t('scripts.pageTitle')}</PageTitle>
 
         <Controls>
-          <UploadButton onClick={handleUploadClick} disabled={isImporting} aria-label="Upload script file">
+          <UploadButton onClick={handleUploadClick} disabled={isImporting} aria-label={t('scripts.uploadAria')}>
             <MdUploadFile size={18} />
-            {isImporting ? 'Importing...' : '+ Upload File'}
+            {isImporting ? t('scripts.uploading') : t('scripts.uploadButton')}
           </UploadButton>
           <HiddenFileInput
             ref={fileInputRef}
@@ -695,10 +698,10 @@ export function ScriptListPage() {
 
           <SearchWrapper>
             <SearchInput
-              placeholder="Search..."
+              placeholder={t('scripts.searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              aria-label="Search scripts"
+              aria-label={t('scripts.searchAria')}
             />
             {searchQuery ? (
               <ClearButton onClick={() => setSearchQuery('')}>
@@ -712,11 +715,11 @@ export function ScriptListPage() {
           <SortWrapper ref={sortMenuRef}>
             <SortButton
               onClick={() => setIsSortMenuOpen(!isSortMenuOpen)}
-              aria-label="Sort scripts"
+              aria-label={t('scripts.sortAria')}
             >
               <MdSort size={18} />
               <span>
-                {SORT_OPTIONS.find((opt) => opt.value === sortBy)?.label}
+                {t(SORT_OPTIONS.find((opt) => opt.value === sortBy)?.labelKey || SORT_OPTIONS[0].labelKey)}
               </span>
               <AnimatedExpandIcon size={18} isOpen={isSortMenuOpen} />
             </SortButton>
@@ -732,7 +735,7 @@ export function ScriptListPage() {
                       setIsSortMenuOpen(false);
                     }}
                   >
-                    <span>{option.label}</span>
+                    <span>{t(option.labelKey)}</span>
                     {sortBy === option.value && <MdCheck size={16} />}
                   </SortOption>
                 ))}
@@ -752,25 +755,25 @@ export function ScriptListPage() {
             )}
           </IconWrapper>
           <EmptyTitle>
-            {isLoggedIn ? 'No Scripts Yet' : 'Welcome Back!'}
+            {isLoggedIn ? t('scripts.emptyTitleLoggedIn') : t('scripts.emptyTitleGuest')}
           </EmptyTitle>
           <EmptyDesc>
             {isLoggedIn
-              ? 'Create your first practice script to get started!'
-              : 'Log in to securely access your learning history and scripts.'}
+              ? t('scripts.emptyDescLoggedIn')
+              : t('scripts.emptyDescGuest')}
           </EmptyDesc>
           <CreateButton
             onClick={() => navigate('/create')}
             isLoggedIn={isLoggedIn}
-            aria-label="Create new script"
+            aria-label={t('scripts.createNewAria')}
           >
-            + Create Script
+            {t('scripts.createNew')}
           </CreateButton>
         </EmptyStateContainer>
       ) : filteredAndSortedScripts.length === 0 ? (
         <NoResultsContainer>
           <NoResultsText>
-            No scripts found matching "{searchQuery}"
+            {t('scripts.noResults', { query: searchQuery })}
           </NoResultsText>
         </NoResultsContainer>
       ) : (
@@ -804,7 +807,7 @@ export function ScriptListPage() {
               <CardBody>
                 <CardHeader>
                   <DateText>
-                    {new Date(script.createdAt).toLocaleDateString()}
+                    {new Date(script.createdAt).toLocaleDateString(language === 'ko' ? 'ko-KR' : 'en-US')}
                   </DateText>
                   <LineBadge>
                     <MdNotes size={12} /> {script.lines.length}
@@ -826,23 +829,23 @@ export function ScriptListPage() {
                   <ActionButton
                     onClick={() => handleViewClick(script.id)}
                     variant="neutral"
-                    aria-label={`View ${script.title}`}
+                    aria-label={t('scripts.viewAria', { title: script.title })}
                   >
-                    <MdVisibility size={16} /> View
+                    <MdVisibility size={16} /> {t('scripts.viewAction')}
                   </ActionButton>
 
                   <ActionButton
                     onClick={() => handlePracticeClick(script)}
                     variant="primary"
-                    aria-label={`Practice ${script.title}`}
+                    aria-label={t('scripts.practiceAria', { title: script.title })}
                   >
-                    <MdPlayArrow size={16} /> Practice
+                    <MdPlayArrow size={16} /> {t('scripts.practiceAction')}
                   </ActionButton>
                 </CardActionGroup>
 
                 <DeleteButton
                   onClick={() => handleDeleteClick(script.id, script.title)}
-                  aria-label={`Delete ${script.title}`}
+                  aria-label={t('scripts.deleteAria', { title: script.title })}
                 >
                   <MdDelete size={20} />
                 </DeleteButton>

@@ -45,6 +45,20 @@ export default defineConfig({
     sourcemap: false,
     rollupOptions: {
       external: ['sharp', 'onnxruntime-node'],
+      output: {
+        // 배포마다 바뀌는 앱 코드와, 거의 바뀌지 않는 라이브러리를 분리해
+        // 재방문 시 라이브러리 청크가 캐시에서 재사용되도록 한다.
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-supabase': ['@supabase/supabase-js'],
+          'vendor-motion': ['framer-motion'],
+          'vendor-i18n': [
+            'i18next',
+            'react-i18next',
+            'i18next-browser-languagedetector',
+          ],
+        },
+      },
     },
   },
   worker: {

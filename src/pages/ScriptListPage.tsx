@@ -609,7 +609,8 @@ export function ScriptListPage() {
             <ToastButton
               variant="danger"
               onClick={() => {
-                deleteScript(scriptId);
+                // 실패 알림은 스토어에서 처리하므로 여기서는 rejection만 흡수한다.
+                deleteScript(scriptId).catch(() => {});
                 setDeletingId(scriptId);
                 toast.dismiss(toastInstance.id);
                 setTimeout(() => setDeletingId(null), 300);

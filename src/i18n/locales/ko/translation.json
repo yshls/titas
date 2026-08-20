@@ -264,6 +264,11 @@
     "deleteWarning": "이 작업은 되돌릴 수 없습니다.",
     "yesDelete": "네, 삭제합니다!",
     "accountDeleted": "계정이 영구 삭제되었습니다.",
-    "deleteFailed": "삭제 중 오류가 발생했습니다."
+    "deleteFailed": "삭제 중 오류가 발생했습니다.",
+    "loadDataFailed": "데이터를 불러오지 못했어요. 연결을 확인한 뒤 새로고침해주세요.",
+    "deleteScriptFailed": "대본 삭제에 실패했어요. 다시 시도해주세요.",
+    "saveLogFailed": "연습 기록 저장에 실패했어요. 이 기록은 저장되지 않았습니다.",
+    "migrationFailed": "기존 데이터 동기화에 실패했어요. 로컬 데이터는 그대로 남아있습니다.",
+    "updateLineFailed": "저장에 실패했습니다. 다시 시도해주세요."
   }
 }

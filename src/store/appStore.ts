@@ -161,7 +161,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       set({ allScripts: scripts });
       await get().fetchPracticeLogs();
     } catch (error) {
-      // 에러 발생 시 처리
+      // 조회 실패를 조용히 넘기면 사용자에게는 데이터가 사라진 것처럼 보인다.
+      console.error('Failed to load initial data:', error);
+      toast.error(i18n.t('toast.loadDataFailed'));
     } finally {
       set({ isLoading: false });
     }
@@ -174,7 +176,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       const updatedScripts = await fetchScripts(); // 상태 동기화
       set({ allScripts: updatedScripts });
     } catch (error) {
-      // 에러 발생 시 처리
+      // 호출부가 성공으로 오인하고 임시저장본을 지우지 않도록 전파한다.
+      console.error('Failed to save script:', error);
+      throw error;
     }
   },
 
@@ -205,7 +209,7 @@ export const useAppStore = create<AppState>((set, get) => ({
           console.error('Update failed, reverting state.', err);
           // 3. 실패 시 원본 상태로 되돌리기
           set({ allScripts: originalScripts });
-          toast.error('저장에 실패했습니다. 다시 시도해주세요.');
+          toast.error(i18n.t('toast.updateLineFailed'));
         });
       });
   },
@@ -218,7 +222,10 @@ export const useAppStore = create<AppState>((set, get) => ({
         allScripts: state.allScripts.filter((s) => s.id !== scriptId),
       }));
     } catch (error) {
-      // 에러 발생 시 처리
+      // 실패 시 목록이 그대로 남으므로, 아무 일도 없었던 것처럼 보이지 않게 알린다.
+      console.error('Failed to delete script:', error);
+      toast.error(i18n.t('toast.deleteScriptFailed'));
+      throw error;
     }
   },
 
@@ -231,17 +238,19 @@ export const useAppStore = create<AppState>((set, get) => ({
     try {
       await saveLogToDB(log, title);
     } catch (err) {
-      // 에러 발생 시 처리
+      // 저장 실패 시 선반영한 기록을 되돌린다 (새로고침하면 어차피 사라진다).
+      console.error('Failed to save practice log:', err);
+      set((state) => ({
+        practiceLogs: state.practiceLogs.filter((l) => l.id !== log.id),
+      }));
+      toast.error(i18n.t('toast.saveLogFailed'));
     }
   },
 
   // 학습 기록 조회
   fetchPracticeLogs: async () => {
-    try {
-      const logs = await fetchLogs();
-      set({ practiceLogs: logs });
-    } catch (err) {
-      // 에러 발생 시 처리
-    }
+    // 실패는 호출부(loadInitialData)에서 한 번만 알리도록 그대로 전파한다.
+    const logs = await fetchLogs();
+    set({ practiceLogs: logs });
   },
 }));

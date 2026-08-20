@@ -265,6 +265,11 @@
     "deleteWarning": "This action cannot be undone.",
     "yesDelete": "Yes, delete it!",
     "accountDeleted": "It's a sad day! Your account is gone forever.",
-    "deleteFailed": "Oops! Something went wrong with the deletion."
+    "deleteFailed": "Oops! Something went wrong with the deletion.",
+    "loadDataFailed": "Couldn't load your data. Check your connection and refresh.",
+    "deleteScriptFailed": "Failed to delete the script. Please try again.",
+    "saveLogFailed": "Failed to save your practice log. This session wasn't recorded.",
+    "migrationFailed": "Couldn't sync your existing data. Your local data is still safe.",
+    "updateLineFailed": "Failed to save. Please try again."
   }
 }

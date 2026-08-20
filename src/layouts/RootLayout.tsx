@@ -11,6 +11,7 @@ import { Seo } from '@/components/common/Seo';
 import { migrateData } from '@/services/migrateService';
 
 import { useTranslation } from 'react-i18next';
+import i18n from '@/i18n';
 
 import { AnimatedLayout } from './AnimatedLayout';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
@@ -475,14 +476,22 @@ export function RootLayout() {
       setUser(session?.user ?? null);
 
       if (session) {
-        await migrateData(session.user.id);
-        await loadInitialData();
-      } else {
-        loadInitialData();
+        // 마이그레이션이 실패해도 기존 데이터 로드는 계속돼야 한다.
+        try {
+          await migrateData(session.user.id);
+        } catch (error) {
+          console.error('Data migration failed:', error);
+          // 이 effect는 언어 변경 시 재실행되지 않으므로 항상 현재 언어를 읽는 i18n.t를 쓴다.
+          toast.error(i18n.t('toast.migrationFailed'));
+        }
       }
+
+      await loadInitialData();
     };
 
-    runMigration();
+    runMigration().catch((error) => {
+      console.error('App initialization failed:', error);
+    });
 
     const {
       data: { subscription },
@@ -490,7 +499,11 @@ export function RootLayout() {
       setUser(session?.user ?? null);
 
       if (event === 'SIGNED_IN' && session) {
-        setTimeout(() => runMigration(), 500);
+        setTimeout(() => {
+          runMigration().catch((error) => {
+            console.error('Post-login initialization failed:', error);
+          });
+        }, 500);
       }
 
       if (session?.user) {

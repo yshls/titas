@@ -34,6 +34,16 @@ if (new URLSearchParams(window.location.search).has('debug')) {
   import('eruda').then((eruda) => eruda.default.init());
 }
 
+// 새 배포 직후 예전 페이지가 남아있으면 지연 로드 청크가 404 -> index.html로 대체되어
+// "text/html is not a valid JavaScript MIME type" 에러가 발생한다. 한 번만 자동 새로고침해서 복구한다.
+window.addEventListener('vite:preloadError', () => {
+  const RELOAD_FLAG = 'titas_chunk_reload_once';
+  if (!sessionStorage.getItem(RELOAD_FLAG)) {
+    sessionStorage.setItem(RELOAD_FLAG, '1');
+    window.location.reload();
+  }
+});
+
 const router = createBrowserRouter([
   {
     path: '/',

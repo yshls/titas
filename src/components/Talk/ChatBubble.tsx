@@ -1,5 +1,6 @@
 import styled from '@emotion/styled';
 import { css } from '@emotion/react';
+import { useTranslation } from 'react-i18next';
 import { MdVolumeUp, MdPlayArrow } from 'react-icons/md';
 import type { DialogueLine } from '@/utils/types';
 import { type DiffResult } from '@/utils/diffChecker';
@@ -180,6 +181,7 @@ export const ChatBubble = React.memo(function ChatBubble({
   userAudioUrl,
   isFocused,
 }: ChatBubbleProps) {
+  const { t } = useTranslation();
   return (
     <MessageRow isRight={isUser}>
       <BubbleContainer isRight={isUser}>
@@ -199,7 +201,7 @@ export const ChatBubble = React.memo(function ChatBubble({
         >
           <BubbleHeader isRight={isUser}>
             <SpeakerName>{line.speakerId}</SpeakerName>
-            <SpeakerIconBtn onClick={() => onPlayAudio(line.originalLine)} aria-label="Listen">
+            <SpeakerIconBtn onClick={() => onPlayAudio(line.originalLine)} aria-label={t('talk.listenAria')}>
               <MdVolumeUp size={14} />
             </SpeakerIconBtn>
           </BubbleHeader>
@@ -240,7 +242,7 @@ export const ChatBubble = React.memo(function ChatBubble({
                 audio.play();
               }}
             >
-              <MdPlayArrow size={14} /> My Voice
+              <MdPlayArrow size={14} /> {t('talk.myVoice')}
             </ActionBtn>
           </ActionButtons>
         )}

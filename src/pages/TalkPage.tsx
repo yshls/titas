@@ -1,5 +1,6 @@
 import { useLocation, useParams } from 'react-router-dom';
 import styled from '@emotion/styled';
+import { useTranslation } from 'react-i18next';
 
 import { useState, useEffect, useMemo } from 'react';
 import type { DialogueLine } from '@/utils/types';
@@ -25,8 +26,9 @@ const PageContainer = styled.div`
 `;
 
 export function TalkPage() {
+  const { t } = useTranslation();
   const location = useLocation();
-  const { allScripts, language } = useAppStore(); 
+  const { allScripts, language } = useAppStore();
   const params = useParams();
 
   const locationState = location.state as {
@@ -42,7 +44,7 @@ export function TalkPage() {
   );
 
   const [title, setTitle] = useState(
-    locationState?.title || 'Practice Session',
+    locationState?.title || t('talk.defaultSessionTitle'),
   );
 
   useEffect(() => {

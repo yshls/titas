@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from '@emotion/styled';
 import { keyframes } from '@emotion/react';
+import { useTranslation } from 'react-i18next';
 import { FiCheckCircle, FiRefreshCw } from 'react-icons/fi';
 import { MdClose } from 'react-icons/md';
 
@@ -126,6 +127,7 @@ interface FinishModalProps {
 
 export const FinishModal = React.memo(function FinishModal({ show, practiceResult, onClose, onRetry }: FinishModalProps) {
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     if (!show || !practiceResult) {
         return null;
@@ -134,27 +136,29 @@ export const FinishModal = React.memo(function FinishModal({ show, practiceResul
     return (
         <ModalOverlay onClick={onClose}>
             <ModalContent onClick={(e) => e.stopPropagation()}>
-                <CloseButton onClick={onClose} aria-label="Close">
+                <CloseButton onClick={onClose} aria-label={t('talk.closeAria')}>
                     <MdClose size={20} aria-hidden="true" />
                 </CloseButton>
                 <ModalIcon>
                     <FiCheckCircle />
                 </ModalIcon>
-                <ModalTitle>Practice Complete!</ModalTitle>
+                <ModalTitle>{t('talk.practiceComplete')}</ModalTitle>
                 <ModalText>
-                    Accuracy: {practiceResult.accuracy}% <br />
-                    Time: {Math.floor(practiceResult.timeSpent / 60)}m{' '}
-                    {practiceResult.timeSpent % 60}s
+                    {t('talk.accuracyLabel', { accuracy: practiceResult.accuracy })} <br />
+                    {t('talk.timeLabel', {
+                        minutes: Math.floor(practiceResult.timeSpent / 60),
+                        seconds: practiceResult.timeSpent % 60,
+                    })}
                 </ModalText>
                 <ModalButtonStack>
                     <PrimaryButton onClick={() => navigate('/mistakes')}>
-                        Mistake Results
+                        {t('talk.mistakeResults')}
                     </PrimaryButton>
                     <SecondaryButton onClick={onRetry}>
                         <FiRefreshCw
                             style={{ marginRight: 6, position: 'relative', top: 2 }}
                         />
-                        Try Again
+                        {t('talk.tryAgain')}
                     </SecondaryButton>
                 </ModalButtonStack>
             </ModalContent>

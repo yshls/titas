@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from '@emotion/styled';
+import { useTranslation } from 'react-i18next';
 import { MdArrowBack } from 'react-icons/md';
 
 const Header = styled.header`
@@ -59,13 +60,14 @@ interface PracticeHeaderProps {
 }
 
 export const PracticeHeader = React.memo(function PracticeHeader({ onStop, currentIndex, total }: PracticeHeaderProps) {
+    const { t } = useTranslation();
     return (
         <Header>
             <HeaderLeft>
-                <BackButton onClick={onStop} aria-label="Stop Practice">
+                <BackButton onClick={onStop} aria-label={t('talk.stopPracticeAria')}>
                     <MdArrowBack size={24} aria-hidden="true" />
                 </BackButton>
-                <HeaderTitle>Talking Practice</HeaderTitle>
+                <HeaderTitle>{t('talk.headerTitle')}</HeaderTitle>
             </HeaderLeft>
             <ProgressPill>
                 {Math.min(currentIndex + 1, total)} / {total}

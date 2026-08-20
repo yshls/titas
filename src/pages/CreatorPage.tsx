@@ -1,5 +1,5 @@
 import toast from 'react-hot-toast';
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '@/store/appStore';
 import { Seo } from '@/components/common/Seo';
@@ -13,7 +13,6 @@ import {
   MdRefresh,
   MdPlayArrow,
   MdInfoOutline,
-  MdAutoAwesome,
 } from 'react-icons/md';
 
 import type { ScriptData } from '@/utils/types';
@@ -116,17 +115,6 @@ const InputGroup = styled.div`
   gap: 6px;
 `;
 
-const AIGeneratorRow = styled.div`
-  display: flex;
-  gap: 8px;
-  align-items: center;
-
-  ${ActionButton} {
-    flex: none;
-    white-space: nowrap;
-  }
-`;
-
 const DialogueInput = styled.input`
   flex: 1;
   padding: 8px 12px;
@@ -156,7 +144,6 @@ export function CreatorPage() {
   const { saveNewScript, language } = useAppStore();
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [aiTopic, setAiTopic] = useState('');
 
   // 로직을 담당하는 Engine 훅 사용
   const {
@@ -173,49 +160,12 @@ export function CreatorPage() {
     messagesEndRef,
     activeSpeaker,
     activeColor,
-    isGenerating,
     handleSpeakerNameChange,
     handleAddLine,
     handleDeleteLine,
     handleUpdateLine,
     wipeDraft,
-    handleGenerateScript,
   } = useCreatorEngine();
-
-  const runGenerate = async () => {
-    const topic = aiTopic.trim();
-    if (!topic) return;
-
-    try {
-      await handleGenerateScript(topic);
-      setAiTopic('');
-      toast.success('AI script generated! ✨');
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to generate script. Please try again.';
-      toast.error(message);
-    }
-  };
-
-  const handleGenerateClick = () => {
-    if (!aiTopic.trim() || isGenerating) return;
-
-    if (scriptLines.length > 0) {
-      toast((t) => (
-        <ToastContainer>
-          <span>Overwrite current draft?</span>
-          <ToastWarningButton onClick={() => { toast.dismiss(t.id); runGenerate(); }}>
-            Overwrite
-          </ToastWarningButton>
-          <ToastCancelButton onClick={() => toast.dismiss(t.id)}>
-            Cancel
-          </ToastCancelButton>
-        </ToastContainer>
-      ), { duration: 4000 });
-      return;
-    }
-
-    runGenerate();
-  };
 
   const handleReset = () => {
     toast((t) => (
@@ -282,31 +232,6 @@ export function CreatorPage() {
             onChange={(e) => setScriptTitle(e.target.value)}
             aria-label="Script Title"
           />
-        </SectionCard>
-
-        <SectionCard>
-          <VisuallyHiddenLabel htmlFor="ai-topic-input">AI Topic</VisuallyHiddenLabel>
-          <Label>Generate with AI <LabelSubText>✨ Beta</LabelSubText></Label>
-          <AIGeneratorRow>
-            <DialogueInput
-              id="ai-topic-input"
-              placeholder="e.g. Ordering coffee at a cafe"
-              value={aiTopic}
-              onChange={(e) => setAiTopic(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleGenerateClick()}
-              disabled={isGenerating}
-              aria-label="AI script topic"
-            />
-            <ActionButton
-              variant="primary"
-              onClick={handleGenerateClick}
-              disabled={!aiTopic.trim() || isGenerating}
-              aria-disabled={!aiTopic.trim() || isGenerating}
-            >
-              <MdAutoAwesome size={18} />
-              {isGenerating ? 'Generating...' : 'Generate'}
-            </ActionButton>
-          </AIGeneratorRow>
         </SectionCard>
 
         <SectionCard>

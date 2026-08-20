@@ -102,7 +102,7 @@ export function TermsOfServicePage() {
         <BackButton onClick={() => navigate(-1)}>
           <MdArrowBack size={24} />
         </BackButton>
-        <HeaderTitle>Terms of Service</HeaderTitle>
+        <HeaderTitle>{seoProps.title}</HeaderTitle>
       </Header>
 
       <ContentContainer>

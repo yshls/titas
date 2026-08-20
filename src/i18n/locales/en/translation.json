@@ -15,6 +15,13 @@
       "error": "An error occurred"
     }
   },
+  "history": {
+    "emptyText": "No history yet. Start practicing!",
+    "lineLabel": "Line {{number}}",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "unknownScript": "Unknown Script"
+  },
   "nav": {
     "dashboard": "Dashboard",
     "create": "Create",

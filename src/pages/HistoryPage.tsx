@@ -1,6 +1,7 @@
 import styled from '@emotion/styled';
 import { useNavigate } from 'react-router-dom';
 import { MdArrowBack, MdHistory } from 'react-icons/md';
+import { useTranslation } from 'react-i18next';
 import { useAppStore } from '@/store/appStore';
 import { Seo } from '@/components/common/Seo';
 import { useHistoryLogs } from '@/hooks/pageSpecific/useHistoryLogs';
@@ -57,6 +58,7 @@ const EmptyState = styled.div`
 `;
 
 export function HistoryPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { language } = useAppStore();
   
@@ -84,11 +86,11 @@ export function HistoryPage() {
       </Header>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '40px' }}>Loading...</div>
+        <div style={{ textAlign: 'center', padding: '40px' }}>{t('common.action.loading')}</div>
       ) : logs.length === 0 ? (
         <EmptyState>
           <MdHistory />
-          <p>No history yet. Start practicing!</p>
+          <p>{t('history.emptyText')}</p>
         </EmptyState>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>

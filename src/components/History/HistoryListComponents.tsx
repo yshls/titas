@@ -1,5 +1,6 @@
 import styled from '@emotion/styled';
 import dayjs from 'dayjs';
+import { useTranslation } from 'react-i18next';
 import type { FSRSReviewLog } from '@/services/fsrsService';
 
 const GroupContainer = styled.div`
@@ -99,13 +100,14 @@ interface AttemptRowItemProps {
 }
 
 export function AttemptRowItem({ log, onClick }: AttemptRowItemProps) {
+  const { t } = useTranslation();
   return (
     <AttemptRowStyled onClick={() => onClick(log)}>
       <AttemptInfo>
         <AttemptTime>
           {dayjs(log.last_reviewed).format('HH:mm')}
         </AttemptTime>
-        <AttemptLine>Line {log.line_index + 1}</AttemptLine>
+        <AttemptLine>{t('history.lineLabel', { number: log.line_index + 1 })}</AttemptLine>
       </AttemptInfo>
       <AttemptScore score={log.accuracy}>
         {log.accuracy}%

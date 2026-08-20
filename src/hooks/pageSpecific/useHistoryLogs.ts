@@ -2,10 +2,12 @@ import { useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { useAppStore } from '@/store/appStore';
 import { getAllStudyLogs, type FSRSReviewLog } from '@/services/fsrsService';
 
 export function useHistoryLogs() {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { user, allScripts } = useAppStore();
 
@@ -37,22 +39,23 @@ export function useHistoryLogs() {
 
   const getScriptTitle = (log: FSRSReviewLog) => {
     if (log.script_id) {
-      return scriptTitleMap.get(String(log.script_id)) || `Script #${log.script_id}`;
+      return scriptTitleMap.get(String(log.script_id)) || t('review.scriptFallback', { id: log.script_id });
     }
-    return (log as any).script_title || 'Unknown Script';
+    return (log as any).script_title || t('history.unknownScript');
   };
 
   const groupedLogs = useMemo(() => {
     const groups: Record<string, Record<string, FSRSReviewLog[]>> = {};
+    const dateFormat = i18n.language === 'ko' ? 'YYYY년 M월 D일' : 'MMMM D, YYYY';
 
     logs.forEach((log) => {
       const date = dayjs(log.last_reviewed);
       const today = dayjs();
       const yesterday = dayjs().subtract(1, 'day');
 
-      let dateLabel = date.format('MMMM D, YYYY');
-      if (date.isSame(today, 'day')) dateLabel = 'Today';
-      if (date.isSame(yesterday, 'day')) dateLabel = 'Yesterday';
+      let dateLabel = date.format(dateFormat);
+      if (date.isSame(today, 'day')) dateLabel = t('history.today');
+      if (date.isSame(yesterday, 'day')) dateLabel = t('history.yesterday');
 
       if (!groups[dateLabel]) {
         groups[dateLabel] = {};
@@ -66,7 +69,7 @@ export function useHistoryLogs() {
     });
 
     return groups;
-  }, [logs]);
+  }, [logs, i18n.language, t]);
 
   const handleRowClick = (log: FSRSReviewLog) => {
     let targetId = log.script_id;

@@ -5,8 +5,25 @@ import { useAppStore } from './appStore';
 import { addPracticeLog as addPracticeLogLocally } from '@/utils/storageService';
 import { logPractice } from '@/services/fsrsService';
 import toast from 'react-hot-toast';
+import i18n from '@/i18n';
 
 export type PracticeStatus = 'idle' | 'preparing' | 'active' | 'finished';
+
+/**
+ * 문장 정확도를 FSRS 점수(1~5)로 바꾼다.
+ *
+ * 예전에는 틀린 단어가 하나라도 있으면 무조건 1점(=10분 뒤 재복습)이었다.
+ * 그러면 90% 맞힌 문장과 하나도 못 맞힌 문장이 똑같이 취급돼 2~4점이 아예
+ * 나오지 않았고, 원문을 다 말한 뒤 말을 덧붙이기만 해도 1점이 됐다.
+ * 정확도만 보고 나누면 복습 간격이 실력에 맞게 벌어진다.
+ */
+export function gradeFromAccuracy(ratio: number): number {
+  if (ratio >= 0.95) return 5; // 완벽
+  if (ratio >= 0.8) return 4; // 쉬움
+  if (ratio >= 0.6) return 3; // 보통
+  if (ratio >= 0.4) return 2; // 어려움
+  return 1; // 실패
+}
 
 export interface PracticeState {
   // Core State
@@ -167,34 +184,27 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
 
     //  FSRS 로직: 연습한 모든 라인에 대해 한 번만 기록
     const practicedLineIndexes = Object.keys(userInputMap).map(Number);
-    const uniqueErrorLineIndexes = [
-      ...new Set(sessionErrors.map((e) => e.lineIndex)),
-    ];
 
     practicedLineIndexes.forEach((lineIndex) => {
       const feedback = feedbackMap[lineIndex];
       if (!feedback) return;
 
       const lineAccuracy = calculateAccuracy(feedback).ratio;
-      const isErrorLine = uniqueErrorLineIndexes.includes(lineIndex);
 
-      let grade = 1; // 실패
-      if (!isErrorLine) {
-        if (lineAccuracy >= 0.95) grade = 5; // 완벽
-        else if (lineAccuracy >= 0.8) grade = 4; // 쉬움
-        else if (lineAccuracy >= 0.6) grade = 3; // 보통
-        else grade = 2; // 어려움
-      }
-
-      logPractice(scriptId, lineIndex, Math.round(lineAccuracy * 100), grade);
+      logPractice(
+        scriptId,
+        lineIndex,
+        Math.round(lineAccuracy * 100),
+        gradeFromAccuracy(lineAccuracy),
+      );
     });
 
     if (user) {
       addNewPracticeLog(newLog, title || 'Practice Session');
-      toast.success('Practice complete! Progress saved to your account.');
+      toast.success(i18n.t('toast.savedToAccount'));
     } else {
       addPracticeLogLocally(newLog);
-      toast.success('Practice complete! Progress saved to this browser.');
+      toast.success(i18n.t('toast.savedToBrowser'));
     }
 
     set({ status: 'finished', practiceResult: { accuracy, timeSpent } });
@@ -211,7 +221,7 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
       sessionErrors: [],
       practiceResult: null,
     });
-    toast.success("Alright, let's go again! Round two.");
+    toast.success(i18n.t('toast.restartPractice'));
   },
 
   exitPractice: () => {

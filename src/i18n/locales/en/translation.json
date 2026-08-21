@@ -309,6 +309,9 @@
     "deleteScriptFailed": "Failed to delete the script. Please try again.",
     "saveLogFailed": "Failed to save your practice log. This session wasn't recorded.",
     "migrationFailed": "Couldn't sync your existing data. Your local data is still safe.",
-    "updateLineFailed": "Failed to save. Please try again."
+    "updateLineFailed": "Failed to save. Please try again.",
+    "savedToAccount": "Practice complete! Progress saved to your account.",
+    "savedToBrowser": "Practice complete! Progress saved to this browser.",
+    "restartPractice": "Alright, let's go again! Round two."
   }
 }

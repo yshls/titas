@@ -16,6 +16,12 @@ export interface DialogueLine {
   speakerId: string; // 화자 이름 (Character.name과 매핑됨)
   speakerColor: string; // 할당된 실제 Hex 컬러 코드
   originalLine: string; // 대사 내용
+  /**
+   * 한국어 뜻. 무슨 말인지 모른 채 소리만 따라 하면 학습 효과가 떨어져서
+   * 연습·상세 화면에서 원문 아래에 함께 보여준다.
+   * lines(JSONB)에 함께 저장되므로 별도 컬럼이 필요 없다.
+   */
+  translatedLine?: string;
   isUserTurn?: boolean; // 사용자 차례 여부 (연습 모드용, 선택적)
   /**
    * 문장별 재생 속도 배율. 지정하지 않으면 기본 속도로 읽는다.

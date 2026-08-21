@@ -47,6 +47,11 @@ export interface AppState {
   saveNewScript: (script: ScriptData) => Promise<void>;
   updateScriptLine: (scriptId: string, lineId: string, newText: string) => void;
   updateScriptLineRate: (scriptId: string, lineId: string, rate: number) => void;
+  updateScriptLineTranslation: (
+    scriptId: string,
+    lineId: string,
+    translation: string,
+  ) => void;
   deleteScript: (scriptId: string) => Promise<void>;
   addNewPracticeLog: (
     logEntry: PracticeLog,
@@ -230,6 +235,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   // 문장별 재생 속도 저장 (lines JSONB에 함께 보관)
   updateScriptLineRate: (scriptId, lineId, rate) => {
     patchScriptLine(set, get, scriptId, lineId, { rate });
+  },
+
+  // 한국어 뜻 저장. 비우면 필드를 지워 저장 용량을 늘리지 않는다.
+  updateScriptLineTranslation: (scriptId, lineId, translation) => {
+    patchScriptLine(set, get, scriptId, lineId, {
+      translatedLine: translation.trim() || undefined,
+    });
   },
 
   // 스크립트 삭제

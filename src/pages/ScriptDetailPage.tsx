@@ -259,6 +259,14 @@ const DialogueText = styled.p`
   color: ${({ theme }) => theme.textMain};
 `;
 
+const TranslationText = styled.p`
+  font-size: 13px;
+  line-height: 1.5;
+  color: ${({ theme }) => theme.textSub};
+  word-break: keep-all;
+  margin-top: 4px;
+`;
+
 const LineControls = styled.div`
   display: flex;
   align-items: center;
@@ -369,6 +377,9 @@ export function ScriptDetailPage() {
   const language = useAppStore((state) => state.language);
   const updateScriptLine = useAppStore((state) => state.updateScriptLine);
   const updateScriptLineRate = useAppStore((state) => state.updateScriptLineRate);
+  const updateScriptLineTranslation = useAppStore(
+    (state) => state.updateScriptLineTranslation,
+  );
   const script = allScripts.find((s) => s.id === id);
 
   const { save: saveSentence, remove: removeSentence, isSaved, findByText } =
@@ -632,6 +643,21 @@ export function ScriptDetailPage() {
                       }}
                     />
                   </DialogueText>
+
+                  {/* 한국어 뜻: 비어 있어도 눌러서 바로 채울 수 있게 둔다. */}
+                  <TranslationText as="div">
+                    <EditableText
+                      initialText={line.translatedLine ?? ''}
+                      placeholder={t('scriptDetail.translationPlaceholder')}
+                      onEditStart={() => {
+                        stopAutoPlay();
+                        setClickedIndex(null);
+                      }}
+                      onSave={(newText) => {
+                        updateScriptLineTranslation(script.id, line.id, newText);
+                      }}
+                    />
+                  </TranslationText>
                 </MessageBubble>
 
                 <LineControls>

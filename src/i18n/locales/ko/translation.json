@@ -123,7 +123,9 @@
     "deleteLineAria": "대사 삭제",
     "dialogueEditAria": "대사 수정",
     "dialogueInputAria": "대사 입력창",
-    "addLineAria": "대사 추가"
+    "addLineAria": "대사 추가",
+    "translationPlaceholder": "한국어 뜻 (선택)",
+    "translationEditAria": "한국어 뜻 입력"
   },
   "mistakes": {
     "title": "실수 목록",
@@ -240,7 +242,8 @@
     "speedAria": "재생 속도 변경",
     "repeatAria": "반복 횟수 변경",
     "saveSentenceAria": "문장 저장/해제",
-    "startPractice": "연습 시작"
+    "startPractice": "연습 시작",
+    "translationPlaceholder": "한국어 뜻 추가"
   },
   "saved": {
     "pageTitle": "저장한 문장",

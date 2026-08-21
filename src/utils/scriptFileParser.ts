@@ -14,17 +14,24 @@ function stripExtension(filename: string): string {
   return filename.replace(/\.[^./]+$/, '');
 }
 
-// 대사 텍스트 배열을 화자 A/B가 번갈아 말하는 스크립트로 변환
-function buildScriptFromLines(title: string, rawLines: string[]): ParsedScript {
+/** 원문과 (있다면) 한국어 뜻 한 쌍 */
+interface RawLine {
+  text: string;
+  translation?: string;
+}
+
+// 대사 배열을 화자 A/B가 번갈아 말하는 스크립트로 변환
+function buildScriptFromLines(title: string, rawLines: RawLine[]): ParsedScript {
   const speakers = INITIAL_SPEAKERS.slice(0, 2);
 
-  const lines: DialogueLine[] = rawLines.map((text, index) => {
+  const lines: DialogueLine[] = rawLines.map(({ text, translation }, index) => {
     const speaker = speakers[index % speakers.length];
     return {
       id: generateUUID(),
       speakerId: speaker.id,
       speakerColor: SPEAKER_COLORS[speaker.colorKey] || '#f3f4f6',
       originalLine: text,
+      ...(translation ? { translatedLine: translation } : {}),
       isUserTurn: false,
     };
   });
@@ -36,7 +43,7 @@ function buildScriptFromLines(title: string, rawLines: string[]): ParsedScript {
   };
 }
 
-// 엑셀/CSV: 첫 번째 시트의 A열을 대사로 사용, 한 행 = 한 줄
+// 엑셀/CSV: 첫 번째 시트에서 A열은 대사, B열은 한국어 뜻. 한 행 = 한 줄
 export async function parseExcelFile(file: File): Promise<ParsedScript> {
   const XLSX = await import('xlsx');
   const buffer = await file.arrayBuffer();
@@ -53,9 +60,12 @@ export async function parseExcelFile(file: File): Promise<ParsedScript> {
     blankrows: false,
   });
 
-  const rawLines = rows
-    .map((row) => String(row?.[0] ?? '').trim())
-    .filter((text) => text.length > 0);
+  const rawLines: RawLine[] = rows
+    .map((row) => ({
+      text: String(row?.[0] ?? '').trim(),
+      translation: String(row?.[1] ?? '').trim() || undefined,
+    }))
+    .filter(({ text }) => text.length > 0);
 
   if (rawLines.length === 0) {
     throw new Error(i18n.t('scripts.noDialogueLines'));
@@ -104,7 +114,11 @@ export async function parsePdfFile(file: File): Promise<ParsedScript> {
     throw new Error(i18n.t('scripts.noPdfText'));
   }
 
-  return buildScriptFromLines(stripExtension(file.name), cleanedLines);
+  // PDF는 열 구분이 없어 뜻을 따로 뽑을 수 없다. 원문만 넣는다.
+  return buildScriptFromLines(
+    stripExtension(file.name),
+    cleanedLines.map((text) => ({ text })),
+  );
 }
 
 export async function parseScriptFile(file: File): Promise<ParsedScript> {

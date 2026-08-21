@@ -124,7 +124,9 @@
     "deleteLineAria": "Delete line",
     "dialogueEditAria": "Edit dialogue line",
     "dialogueInputAria": "Dialogue text input",
-    "addLineAria": "Add dialogue line"
+    "addLineAria": "Add dialogue line",
+    "translationPlaceholder": "Meaning (optional)",
+    "translationEditAria": "Edit meaning"
   },
   "mistakes": {
     "title": "Mistakes",
@@ -242,7 +244,8 @@
     "speedAria": "Change playback speed",
     "repeatAria": "Change repeat count",
     "saveSentenceAria": "Save or unsave sentence",
-    "startPractice": "Start Practice"
+    "startPractice": "Start Practice",
+    "translationPlaceholder": "Add meaning"
   },
   "saved": {
     "pageTitle": "Saved Sentences",

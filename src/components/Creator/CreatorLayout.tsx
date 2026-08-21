@@ -221,6 +221,28 @@ export const DialogueItemWrapper = styled(motion.article)<{ isEditing: boolean }
     font-family: inherit;
     padding: 0;
   }
+  /* 한국어 뜻: 원문보다 한 단계 작고 흐리게 */
+  .translation-display,
+  .translation-input {
+    font-size: 13px;
+    font-weight: 400;
+    color: ${({ theme }) => theme.textSub};
+    line-height: 1.5;
+    word-break: keep-all;
+    margin-top: 4px;
+  }
+  .translation-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    resize: none;
+    font-family: inherit;
+    padding: 0;
+  }
+  .translation-input::placeholder {
+    color: ${({ theme }) => theme.colors.grey400};
+  }
 `;
 
 export const DeleteLineButton = styled.button`

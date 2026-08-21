@@ -49,20 +49,35 @@ const TextGroup = styled.div`
   min-width: 0;
 `;
 
-const Title = styled.p`
+/*
+ * 강조 상태의 배경(primaryLight)은 테마와 무관하게 밝은 색이므로,
+ * 그 위 글자에 다크 모드용 밝은 textMain을 쓰면 대비가 1.35까지 떨어져 읽을 수 없다.
+ * 밝은 배경 위에서는 글자색도 고정한다.
+ */
+const Title = styled.p<{ $urgent: boolean }>`
   font-size: 15px;
-  font-weight: 800;
-  color: ${({ theme }) => theme.textMain};
+  /* 기본 줄바꿈은 한글을 아무 글자에서나 끊어 "있어/요"처럼 한 글자가 남는다. */
+  word-break: keep-all;
+  /* 개수를 900으로 강조하려면 본문은 그보다 가벼워야 차이가 보인다. */
+  font-weight: 600;
+  color: ${({ $urgent, theme }) =>
+    $urgent ? theme.colors.grey900 : theme.textMain};
   margin: 0 0 2px;
 
+  /*
+   * 크림색 배경 위 주황 계열은 팔레트에서 가장 진한 orange900을 써도 대비가 3.3에
+   * 그쳐 WCAG AA(4.5)를 넘지 못한다. 색 대신 굵기로만 개수를 강조한다.
+   */
   b {
-    color: ${({ theme }) => theme.colors.primary};
+    font-weight: 900;
   }
 `;
 
-const Subtitle = styled.p`
+const Subtitle = styled.p<{ $urgent: boolean }>`
   font-size: 13px;
-  color: ${({ theme }) => theme.textSub};
+  word-break: keep-all;
+  color: ${({ $urgent, theme }) =>
+    $urgent ? theme.colors.grey700 : theme.textSub};
   margin: 0;
 `;
 
@@ -98,19 +113,19 @@ export function ReviewPrompt() {
       <TextGroup>
         {hasDue ? (
           <>
-            <Title>
+            <Title $urgent>
               <Trans
                 i18nKey="reviewPrompt.dueTitle"
                 values={{ count: dueCount }}
                 components={{ highlight: <b /> }}
               />
             </Title>
-            <Subtitle>{t('reviewPrompt.dueSubtitle')}</Subtitle>
+            <Subtitle $urgent>{t('reviewPrompt.dueSubtitle')}</Subtitle>
           </>
         ) : (
           <>
-            <Title>{t('reviewPrompt.caughtUpTitle')}</Title>
-            <Subtitle>
+            <Title $urgent={false}>{t('reviewPrompt.caughtUpTitle')}</Title>
+            <Subtitle $urgent={false}>
               {nextReviewTime
                 ? t('reviewPrompt.nextReview', {
                     time: getRelativeTime(nextReviewTime),

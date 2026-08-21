@@ -71,6 +71,14 @@
     "totalSentences": "총 문장 수",
     "totalScripts": "총 대본 수"
   },
+  "reviewPrompt": {
+    "dueTitle": "복습할 카드 <highlight>{{count}}개</highlight>가 기다리고 있어요",
+    "dueSubtitle": "지금 복습하면 기억에 가장 오래 남아요",
+    "caughtUpTitle": "복습 완료! 오늘은 밀린 게 없어요",
+    "caughtUpSubtitle": "복습 현황 보러 가기",
+    "nextReview": "다음 복습은 {{time}}이에요",
+    "goToReview": "스마트 복습으로 이동"
+  },
   "missions": {
     "title": "오늘의 미션",
     "emptyLoginTitle": "데일리 미션이 준비되어 있어요",

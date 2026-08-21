@@ -105,6 +105,27 @@ export const getDueReviews = async () => {
 };
 
 /**
+ * 복습 예정 카드 개수만 조회 (대시보드 배지용)
+ * getDueReviews는 목록 표시용이라 limit(20)이 걸려 있어 개수 표시에는 쓸 수 없다.
+ */
+export const getDueReviewCount = async () => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return 0;
+
+  const { count, error } = await supabase
+    .from('study_logs')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+    .lt('next_review', new Date().toISOString());
+
+  if (error) {
+    console.error('Error fetching due review count:', error);
+    return 0;
+  }
+  return count || 0;
+};
+
+/**
  * 전체 학습 중인 카드 개수 가져오기 (Total Reviews 통계용)
  */
 export const getTotalLearningCount = async () => {

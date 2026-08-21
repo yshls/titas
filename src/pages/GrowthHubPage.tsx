@@ -7,6 +7,7 @@ import { Seo } from '@/components/common/Seo';
 import { useMissions } from '@/hooks/pageSpecific/useMissions';
 
 import { MissionManager } from '@/components/GrowthHub/MissionManager';
+import { ReviewPrompt } from '@/components/GrowthHub/ReviewPrompt';
 import { CalendarSection, StatisticsColumn } from '@/components/GrowthHub/ProgressDashboard';
 
 import {
@@ -129,6 +130,8 @@ export function GrowthHubPage() {
           <Trans i18nKey={greetingKey} values={{ name: userName }} components={{ bold: <b /> }} />
         </GreetingTitle>
       </HeaderSection>
+
+      <ReviewPrompt />
 
       <GridContainer>
         {/* 왼쪽: 커스텀 분리된 달력 컴포넌트 */}

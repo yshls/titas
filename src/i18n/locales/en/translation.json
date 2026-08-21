@@ -71,6 +71,15 @@
     "totalSentences": "Total Sentences",
     "totalScripts": "Total Scripts"
   },
+  "reviewPrompt": {
+    "dueTitle": "<highlight>{{count}} cards</highlight> are ready for review",
+    "dueTitle_one": "<highlight>{{count}} card</highlight> is ready for review",
+    "dueSubtitle": "Reviewing now is when it sticks best",
+    "caughtUpTitle": "All caught up! Nothing due today",
+    "caughtUpSubtitle": "See your review schedule",
+    "nextReview": "Next review {{time}}",
+    "goToReview": "Go to Smart Review"
+  },
   "missions": {
     "title": "Daily Missions",
     "emptyLoginTitle": "Daily Missions Available",

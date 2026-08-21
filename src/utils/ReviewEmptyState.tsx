@@ -1,6 +1,7 @@
 import styled from '@emotion/styled';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { MdCelebration, MdHourglassEmpty } from 'react-icons/md';
 import { getRelativeTime, getNaturalTime } from '@/utils/timeUtils';
 
 const Container = styled.div`
@@ -16,7 +17,8 @@ const Container = styled.div`
 `;
 
 const IconWrapper = styled(motion.div)`
-  font-size: 48px;
+  display: flex;
+  color: #1db954;
   margin-bottom: 16px;
 `;
 
@@ -55,6 +57,12 @@ const SubTime = styled.span`
   font-weight: 400;
 `;
 
+const NextReviewRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+`;
+
 interface ReviewEmptyStateProps {
   nextReviewTime?: string | null;
 }
@@ -69,7 +77,7 @@ export const ReviewEmptyState = ({ nextReviewTime }: ReviewEmptyStateProps) => {
         animate={{ scale: 1, rotate: [0, 10, -10, 0] }}
         transition={{ duration: 0.5 }}
       >
-        🎉
+        <MdCelebration size={44} />
       </IconWrapper>
 
       <Title>{t('review.allCaughtUpTitle')}</Title>
@@ -80,7 +88,10 @@ export const ReviewEmptyState = ({ nextReviewTime }: ReviewEmptyStateProps) => {
 
       {nextReviewTime && (
         <TimeInfo>
-          <span>{t('review.nextReviewPrefix', { time: getRelativeTime(nextReviewTime) })}</span>
+          <NextReviewRow>
+            <MdHourglassEmpty size={16} aria-hidden="true" />
+            <span>{t('review.nextReviewPrefix', { time: getRelativeTime(nextReviewTime) })}</span>
+          </NextReviewRow>
           <SubTime>({getNaturalTime(nextReviewTime)})</SubTime>
         </TimeInfo>
       )}

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from '@emotion/styled';
 import { useTranslation } from 'react-i18next';
+import { MdLock } from 'react-icons/md';
 import { useAppStore } from '@/store/appStore';
 import { supabase } from '@/supabaseClient';
 import toast from 'react-hot-toast';
@@ -52,7 +53,8 @@ const LoginGateWrapper = styled.div`
 `;
 
 const LoginGateIcon = styled.div`
-  font-size: 48px;
+  display: flex;
+  color: ${({ theme }) => theme.textSub};
   margin-bottom: 8px;
 `;
 
@@ -349,7 +351,9 @@ export default function ReviewPage() {
           </Subtitle>
         </Header>
         <LoginGateWrapper>
-          <LoginGateIcon>🔒</LoginGateIcon>
+          <LoginGateIcon aria-hidden="true">
+            <MdLock size={44} />
+          </LoginGateIcon>
           <LoginGateTitle>{t('review.loginGateTitle')}</LoginGateTitle>
           <LoginGateText>
             {t('review.loginGateText')}

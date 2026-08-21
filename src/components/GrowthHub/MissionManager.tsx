@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { MdCheck, MdDeleteOutline } from 'react-icons/md';
+import { MdCheck, MdDeleteOutline, MdTrackChanges } from 'react-icons/md';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import type { Mission } from '@/utils/types';
@@ -37,7 +37,8 @@ const EmptyStateCard = styled.div`
 `;
 
 const EmptyIcon = styled.div`
-  font-size: 48px;
+  display: flex;
+  color: ${({ theme }) => theme.colors.primary};
   margin-bottom: 8px;
 `;
 
@@ -243,7 +244,9 @@ export function MissionManager({
 
       {!user ? (
         <EmptyStateCard>
-          <EmptyIcon>🎯</EmptyIcon>
+          <EmptyIcon aria-hidden="true">
+            <MdTrackChanges size={44} />
+          </EmptyIcon>
           <EmptyTitle>{t('missions.emptyLoginTitle')}</EmptyTitle>
           <EmptyText>{t('missions.emptyLoginText')}</EmptyText>
           <LoginButton onClick={loginWithGoogle}>{t('missions.loginToStart')}</LoginButton>

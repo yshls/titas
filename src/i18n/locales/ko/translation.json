@@ -56,10 +56,10 @@
     "noScripts": "아직 스크립트가 없습니다",
     "createFirst": "첫 스크립트를 만들어보세요!",
     "greeting": {
-      "morning": "☀️ <bold>또렷한 목소리</bold>로 하루를 시작해요, {{name}}님.",
-      "afternoon": "⚡ <bold>짧게 한 세션</bold> 하기 딱 좋은 시간이에요, {{name}}님.",
-      "evening": "✨ <bold>오늘의 진행 상황</bold>을 확인해볼까요, {{name}}님?",
-      "night": "🌙 <bold>좋은 기분</bold>으로 하루를 마무리해요, {{name}}님."
+      "morning": "<bold>또렷한 목소리</bold>로 하루를 시작해요, {{name}}님.",
+      "afternoon": "<bold>짧게 한 세션</bold> 하기 딱 좋은 시간이에요, {{name}}님.",
+      "evening": "<bold>오늘의 진행 상황</bold>을 확인해볼까요, {{name}}님?",
+      "night": "<bold>좋은 기분</bold>으로 하루를 마무리해요, {{name}}님."
     },
     "defaultUserName": "사용자",
     "currentStreak": "연속 학습일",
@@ -113,7 +113,7 @@
     "wipeConfirmTitle": "전부 지울까요?",
     "wipeConfirmButton": "지우기",
     "missingFields": "제목이나 대사가 없어요!",
-    "saveSuccess": "대본이 저장되었습니다! 🎉",
+    "saveSuccess": "대본이 저장되었습니다!",
     "saveFailed": "대본 저장에 실패했습니다.",
     "emptyState": "아래에 대사를 입력해 시작하세요",
     "lineHint": "문장부호(. ? !) 기준으로 자동으로 줄이 나뉩니다",
@@ -147,7 +147,7 @@
     "slow": "느리게 (0.5배속)",
     "tapMicPrompt": "마이크를 누르고 말해보세요!",
     "listeningPrompt": "듣는 중... 말씀해보세요!",
-    "successPrompt": "완벽해요! 해결 🎉",
+    "successPrompt": "완벽해요! 해결!",
     "failPrompt": "다시 시도해보세요.",
     "youSaid": "이렇게 말씀하셨어요: \"{{text}}\"",
     "contextExamples": "예문"
@@ -183,7 +183,7 @@
     "reviewButton": "복습하기",
     "allCaughtUpTitle": "모두 완료했어요!",
     "allCaughtUpDesc": "지금은 복습할 카드가 없어요. 꾸준히 목표를 지키고 계시네요!",
-    "nextReviewPrefix": "⏳ 다음 복습 {{time}}"
+    "nextReviewPrefix": "다음 복습 {{time}}"
   },
   "practice": {
     "listening": "듣기",

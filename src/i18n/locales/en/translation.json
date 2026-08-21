@@ -56,10 +56,10 @@
     "noScripts": "No scripts yet",
     "createFirst": "Create your first script!",
     "greeting": {
-      "morning": "☀️ Start your day with a <bold>clear voice</bold>, {{name}}.",
-      "afternoon": "⚡ Perfect time for a <bold>quick session</bold>, {{name}}.",
-      "evening": "✨ Shall we <bold>review your progress</bold>, {{name}}?",
-      "night": "🌙 End your day on a <bold>high note</bold>, {{name}}."
+      "morning": "Start your day with a <bold>clear voice</bold>, {{name}}.",
+      "afternoon": "Perfect time for a <bold>quick session</bold>, {{name}}.",
+      "evening": "Shall we <bold>review your progress</bold>, {{name}}?",
+      "night": "End your day on a <bold>high note</bold>, {{name}}."
     },
     "defaultUserName": "User",
     "currentStreak": "Current Streak",
@@ -114,7 +114,7 @@
     "wipeConfirmTitle": "Wipe everything?",
     "wipeConfirmButton": "Clear",
     "missingFields": "Missing title or lines!",
-    "saveSuccess": "Script saved successfully! 🎉",
+    "saveSuccess": "Script saved successfully!",
     "saveFailed": "Failed to save script.",
     "emptyState": "Start by typing a dialogue below",
     "lineHint": "Lines split automatically by punctuation (. ? !)",
@@ -149,7 +149,7 @@
     "slow": "Slow (0.5x)",
     "tapMicPrompt": "Tap mic & say the word!",
     "listeningPrompt": "Listening... Say it!",
-    "successPrompt": "Perfect! Solved 🎉",
+    "successPrompt": "Perfect! Solved!",
     "failPrompt": "Try again.",
     "youSaid": "You said: \"{{text}}\"",
     "contextExamples": "Context Examples"
@@ -185,7 +185,7 @@
     "reviewButton": "Review",
     "allCaughtUpTitle": "All Caught Up!",
     "allCaughtUpDesc": "You have no reviews due right now. Great job keeping up with your daily goals!",
-    "nextReviewPrefix": "⏳ Next review {{time}}"
+    "nextReviewPrefix": "Next review {{time}}"
   },
   "practice": {
     "listening": "Listening",

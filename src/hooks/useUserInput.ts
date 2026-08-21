@@ -1,5 +1,6 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, createElement } from 'react';
 import toast from 'react-hot-toast';
+import { MdKeyboard } from 'react-icons/md';
 import { useTranslation } from 'react-i18next';
 import { useDevice } from '@/hooks/useDevice';
 import { usePracticeStore } from '@/store/practiceStore';
@@ -158,7 +159,7 @@ export function useUserInput() {
             processAndAdvance(finalTranscript);
           } else {
             toast(t('talk.sttFailedTypeInstead'), {
-              icon: '⌨️',
+              icon: createElement(MdKeyboard),
               duration: 2000,
             });
             setInputMode('keyboard');

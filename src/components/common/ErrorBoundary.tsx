@@ -1,5 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { useRouteError, isRouteErrorResponse } from 'react-router-dom';
+import { MdErrorOutline, MdExplore } from 'react-icons/md';
 import i18n from '@/i18n';
 
 /**
@@ -20,7 +21,7 @@ const styles = {
     color: '#333d4b',
     backgroundColor: '#ffffff',
   },
-  icon: { fontSize: '44px', marginBottom: '4px' },
+  icon: { display: 'flex', color: '#8b95a1', marginBottom: '4px' },
   title: { fontSize: '20px', fontWeight: 800, margin: 0 },
   message: {
     fontSize: '15px',
@@ -65,7 +66,9 @@ function FallbackScreen({ error }: { error?: unknown }) {
 
   return (
     <div style={styles.container} role="alert">
-      <div style={styles.icon}>😵</div>
+      <div style={styles.icon} aria-hidden="true">
+        <MdErrorOutline size={44} />
+      </div>
       <h1 style={styles.title}>
         {translate('error.title', '문제가 발생했어요')}
       </h1>
@@ -125,7 +128,9 @@ export function RouteErrorFallback() {
   if (isRouteErrorResponse(error) && error.status === 404) {
     return (
       <div style={styles.container} role="alert">
-        <div style={styles.icon}>🧭</div>
+        <div style={styles.icon} aria-hidden="true">
+          <MdExplore size={44} />
+        </div>
         <h1 style={styles.title}>
           {translate('error.notFoundTitle', '페이지를 찾을 수 없어요')}
         </h1>

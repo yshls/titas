@@ -7,17 +7,25 @@ import {
   MdRecordVoiceOver,
   MdStop,
   MdPlayCircle,
+  MdSpeed,
+  MdRepeat,
+  MdBookmarkBorder,
+  MdBookmark,
 } from 'react-icons/md';
 import type { ScriptData } from '@/utils/types';
-import { useTTS } from '@/utils/useTTS';
+import { useTTS, DEFAULT_RATE, RATE_STEPS } from '@/utils/useTTS';
 import { useMemo, useState, useEffect, useRef } from 'react';
 import styled from '@emotion/styled';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { Seo } from '@/components/common/Seo';
 import { EditableText } from '@/components/common/EditableText';
+import { useSavedSentences } from '@/hooks/pageSpecific/useSavedSentences';
 
 // --- 상수 정의 ---
+
+/** 문장별 반복 횟수 단계 */
+const REPEAT_STEPS = [1, 2, 3] as const;
 
 const PALETTE = [
   '#e8f3ff', // blue50
@@ -251,6 +259,37 @@ const DialogueText = styled.p`
   color: ${({ theme }) => theme.textMain};
 `;
 
+const LineControls = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 0 4px;
+`;
+
+const LineControlButton = styled.button<{ $active?: boolean }>`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+
+  background-color: ${({ $active, theme }) =>
+    $active ? theme.colors.primary : theme.cardBg};
+  color: ${({ $active, theme }) =>
+    $active ? theme.colors.onPrimary : theme.textSub};
+
+  &:hover {
+    color: ${({ $active, theme }) =>
+      $active ? theme.colors.onPrimary : theme.textMain};
+  }
+`;
+
 const Footer = styled.div`
   flex-shrink: 0;
   padding: 16px;
@@ -329,7 +368,15 @@ export function ScriptDetailPage() {
   const allScripts = useAppStore((state) => state.allScripts);
   const language = useAppStore((state) => state.language);
   const updateScriptLine = useAppStore((state) => state.updateScriptLine);
+  const updateScriptLineRate = useAppStore((state) => state.updateScriptLineRate);
   const script = allScripts.find((s) => s.id === id);
+
+  const { save: saveSentence, remove: removeSentence, isSaved, findByText } =
+    useSavedSentences();
+
+  // 문장별 반복 횟수. 저장할 값이 아니라 이번 세션에서만 쓰는 설정이다.
+  const [repeatCounts, setRepeatCounts] = useState<Record<string, number>>({});
+  const repeatTimerRef = useRef<number | undefined>(undefined);
 
   const speakerIds = useMemo(
     () =>
@@ -361,6 +408,57 @@ export function ScriptDetailPage() {
     });
   };
 
+  const getRate = (lineId: string) =>
+    script?.lines.find((l) => l.id === lineId)?.rate ?? DEFAULT_RATE;
+
+  // 속도 버튼을 누르면 다음 단계로 순환한다.
+  const cycleRate = (lineId: string) => {
+    const current = getRate(lineId);
+    const idx = RATE_STEPS.findIndex((r) => r === current);
+    const next = RATE_STEPS[(idx + 1) % RATE_STEPS.length];
+    if (script) updateScriptLineRate(script.id, lineId, next);
+  };
+
+  const cycleRepeat = (lineId: string) => {
+    setRepeatCounts((prev) => {
+      const next = (prev[lineId] ?? 1) % REPEAT_STEPS[REPEAT_STEPS.length - 1] + 1;
+      // 1 → 2 → 3 → 1 순환 (REPEAT_STEPS의 마지막 값에서 되돌아온다)
+      return { ...prev, [lineId]: next };
+    });
+  };
+
+  // 한 문장을 지정한 횟수만큼 이어서 읽는다.
+  const speakRepeatedly = (text: string, rate: number, times: number) => {
+    let done = 0;
+    const runOnce = () => {
+      speak(text, selectedVoiceURI, () => {
+        done += 1;
+        if (done < times) {
+          // 연달아 붙지 않도록 짧게 쉬었다가 다음 반복을 시작한다.
+          repeatTimerRef.current = window.setTimeout(runOnce, 350);
+        } else {
+          setClickedIndex(null);
+        }
+      }, rate);
+    };
+    runOnce();
+  };
+
+  const toggleSave = (line: { id: string; originalLine: string; speakerId: string }) => {
+    const existing = findByText(line.originalLine);
+    if (existing) {
+      removeSentence(existing.id);
+      return;
+    }
+    saveSentence({
+      text: line.originalLine,
+      speakerId: line.speakerId,
+      scriptId: script?.id ?? null,
+      scriptTitle: script?.title ?? null,
+      rate: getRate(line.id),
+    });
+  };
+
   const toggleAutoPlay = () => {
     if (isAutoPlaying) {
       stopAutoPlay();
@@ -376,6 +474,11 @@ export function ScriptDetailPage() {
     setIsAutoPlaying(false);
     setPlayingIndex(null);
     setClickedIndex(null);
+    // 반복 대기 중인 타이머가 남아 있으면 정지 후에도 다시 읽어버린다.
+    if (repeatTimerRef.current) {
+      clearTimeout(repeatTimerRef.current);
+      repeatTimerRef.current = undefined;
+    }
     window.speechSynthesis.cancel();
   };
 
@@ -395,13 +498,18 @@ export function ScriptDetailPage() {
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
 
-      speak(line.originalLine, selectedVoiceURI, () => {
-        if (isAutoPlaying) {
-          setTimeout(() => {
-            setPlayingIndex((prev) => (prev !== null ? prev + 1 : null));
-          }, 500);
-        }
-      });
+      speak(
+        line.originalLine,
+        selectedVoiceURI,
+        () => {
+          if (isAutoPlaying) {
+            setTimeout(() => {
+              setPlayingIndex((prev) => (prev !== null ? prev + 1 : null));
+            }, 500);
+          }
+        },
+        line.rate ?? DEFAULT_RATE,
+      );
     }
   }, [isAutoPlaying, playingIndex, script, selectedVoiceURI, speak]);
 
@@ -500,9 +608,11 @@ export function ScriptDetailPage() {
                   onClick={() => {
                     stopAutoPlay();
                     setClickedIndex(index);
-                    speak(line.originalLine, selectedVoiceURI, () => {
-                      setClickedIndex(null);
-                    });
+                    speakRepeatedly(
+                      line.originalLine,
+                      line.rate ?? DEFAULT_RATE,
+                      repeatCounts[line.id] ?? 1,
+                    );
                   }}
                   aria-label={t('scriptDetail.speakLineAria', { speaker: line.speakerId })}
                 >
@@ -523,6 +633,38 @@ export function ScriptDetailPage() {
                     />
                   </DialogueText>
                 </MessageBubble>
+
+                <LineControls>
+                  <LineControlButton
+                    $active={(line.rate ?? DEFAULT_RATE) !== DEFAULT_RATE}
+                    onClick={() => cycleRate(line.id)}
+                    aria-label={t('scriptDetail.speedAria')}
+                  >
+                    <MdSpeed size={13} aria-hidden="true" />
+                    {(line.rate ?? DEFAULT_RATE).toFixed(2).replace(/0$/, '')}x
+                  </LineControlButton>
+
+                  <LineControlButton
+                    $active={(repeatCounts[line.id] ?? 1) > 1}
+                    onClick={() => cycleRepeat(line.id)}
+                    aria-label={t('scriptDetail.repeatAria')}
+                  >
+                    <MdRepeat size={13} aria-hidden="true" />
+                    {repeatCounts[line.id] ?? 1}
+                  </LineControlButton>
+
+                  <LineControlButton
+                    $active={isSaved(line.originalLine)}
+                    onClick={() => toggleSave(line)}
+                    aria-label={t('scriptDetail.saveSentenceAria')}
+                  >
+                    {isSaved(line.originalLine) ? (
+                      <MdBookmark size={13} aria-hidden="true" />
+                    ) : (
+                      <MdBookmarkBorder size={13} aria-hidden="true" />
+                    )}
+                  </LineControlButton>
+                </LineControls>
               </BubbleContainer>
             </DialogueRow>
           );

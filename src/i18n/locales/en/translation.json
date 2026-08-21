@@ -35,6 +35,7 @@
     "create": "Create",
     "scripts": "Scripts",
     "mistakes": "Mistakes",
+    "saved": "Saved",
     "review": "Review",
     "history": "History"
   },
@@ -236,7 +237,23 @@
     "selectVoiceAria": "Select TTS voice",
     "defaultVoice": "Default Voice",
     "speakLineAria": "Speak line by {{speaker}}",
+    "speedAria": "Change playback speed",
+    "repeatAria": "Change repeat count",
+    "saveSentenceAria": "Save or unsave sentence",
     "startPractice": "Start Practice"
+  },
+  "saved": {
+    "pageTitle": "Saved Sentences",
+    "pageSubtitle": "Practice the sentences you saved, at your own speed and repeat count.",
+    "emptyTitle": "Nothing saved yet",
+    "emptyDesc": "Tap the bookmark button under a sentence in a script to collect it here.",
+    "fromScript": "From: {{title}}",
+    "play": "Play",
+    "playAria": "Play sentence",
+    "deleteAria": "Remove from saved",
+    "savedToast": "Sentence saved",
+    "saveFailed": "Couldn't save the sentence",
+    "deleteFailed": "Couldn't remove it"
   },
   "scripts": {
     "pageTitle": "My Scripts",

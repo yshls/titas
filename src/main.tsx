@@ -24,6 +24,7 @@ const ScriptDetailPage = lazy(() => import('@/pages/ScriptDetailPage').then(m =>
 const PrivacyPolicyPage = lazy(() => import('@/pages/PrivacyPolicyPage').then(m => ({ default: m.PrivacyPolicyPage })));
 const TermsOfServicePage = lazy(() => import('@/pages/TermsOfServicePage').then(m => ({ default: m.TermsOfServicePage })));
 const HistoryPage = lazy(() => import('@/pages/HistoryPage').then(m => ({ default: m.HistoryPage })));
+const SavedSentencesPage = lazy(() => import('@/pages/SavedSentencesPage').then(m => ({ default: m.SavedSentencesPage })));
 
 const SuspenseWrapper = ({ children }: { children: React.ReactNode }) => (
   <Suspense fallback={<div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>}>
@@ -59,6 +60,7 @@ const router = createBrowserRouter([
       { path: '/history', element: <SuspenseWrapper><HistoryPage /></SuspenseWrapper> },
 
       { path: '/scripts', element: <SuspenseWrapper><ScriptListPage /></SuspenseWrapper> },
+      { path: '/saved', element: <SuspenseWrapper><SavedSentencesPage /></SuspenseWrapper> },
       { path: '/script/:id', element: <SuspenseWrapper><ScriptDetailPage /></SuspenseWrapper> },
 
       { path: '/privacy', element: <SuspenseWrapper><PrivacyPolicyPage /></SuspenseWrapper> },

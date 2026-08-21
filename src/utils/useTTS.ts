@@ -1,5 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
+/** 기본 재생 속도. 원어민 속도보다 살짝 느리게 잡아 따라 말하기 쉽게 한다. */
+export const DEFAULT_RATE = 0.9;
+
+/** 문장별로 고를 수 있는 속도 단계 */
+export const RATE_STEPS = [0.5, 0.75, DEFAULT_RATE, 1.2] as const;
+
 export const useTTS = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const utterancesRef = useRef<SpeechSynthesisUtterance[]>([]);
@@ -18,7 +24,12 @@ export const useTTS = () => {
 
   // 안정적인 speak 함수
   const speak = useCallback(
-    (text: string, voiceURI: string | null = null, onEnd?: () => void) => {
+    (
+      text: string,
+      voiceURI: string | null = null,
+      onEnd?: () => void,
+      rate: number = DEFAULT_RATE,
+    ) => {
       // 호출 시점에 최신 음성 목록 바로 가져오기
       const availableVoices = window.speechSynthesis.getVoices();
 
@@ -63,7 +74,8 @@ export const useTTS = () => {
           }
         }
 
-        utterance.rate = 0.9;
+        // SpeechSynthesis 사양상 rate는 0.1~10 범위를 벗어나면 무시될 수 있다.
+        utterance.rate = Math.min(10, Math.max(0.1, rate));
         utterance.pitch = 1.0;
 
         const cleanup = () => {

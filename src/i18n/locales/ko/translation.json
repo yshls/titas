@@ -35,6 +35,7 @@
     "create": "생성",
     "scripts": "스크립트",
     "mistakes": "실수 목록",
+    "saved": "저장한 문장",
     "review": "복습",
     "history": "기록"
   },
@@ -234,7 +235,23 @@
     "selectVoiceAria": "음성 선택",
     "defaultVoice": "기본 음성",
     "speakLineAria": "{{speaker}}의 대사 듣기",
+    "speedAria": "재생 속도 변경",
+    "repeatAria": "반복 횟수 변경",
+    "saveSentenceAria": "문장 저장/해제",
     "startPractice": "연습 시작"
+  },
+  "saved": {
+    "pageTitle": "저장한 문장",
+    "pageSubtitle": "따로 담아둔 문장을 원하는 속도와 반복 횟수로 연습하세요.",
+    "emptyTitle": "아직 담아둔 문장이 없어요",
+    "emptyDesc": "대본 화면에서 문장 아래 북마크 버튼을 누르면 여기에 모입니다.",
+    "fromScript": "출처: {{title}}",
+    "play": "듣기",
+    "playAria": "문장 듣기",
+    "deleteAria": "저장 취소",
+    "savedToast": "문장을 저장했어요",
+    "saveFailed": "문장 저장에 실패했어요",
+    "deleteFailed": "삭제에 실패했어요"
   },
   "scripts": {
     "pageTitle": "내 스크립트",

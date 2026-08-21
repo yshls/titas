@@ -430,7 +430,8 @@ const NAV_ITEMS = [
 
   { to: '/', key: 'nav.dashboard' },
   { to: '/create', key: 'nav.create' },
-  { to: '/scripts', key: 'nav.scripts' },  
+  { to: '/scripts', key: 'nav.scripts' },
+  { to: '/saved', key: 'nav.saved' },
   { to: '/mistakes', key: 'nav.mistakes' },
   { to: '/review', key: 'nav.review' },
 

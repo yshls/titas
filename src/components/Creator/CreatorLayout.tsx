@@ -36,7 +36,6 @@ export const VisuallyHiddenLabel = styled.label`
 export const SectionCard = styled.section`
   background-color: ${({ theme }) => theme.cardBg};
   border-radius: 12px;
-  border: 1px solid ${({ theme }) => theme.border};
   padding: 10px;
 `;
 
@@ -126,7 +125,6 @@ export const SpeakerIndicator = styled.div<{ color: string; inDialogue?: boolean
   margin-top: ${({ inDialogue }) => (inDialogue ? '4px' : '0')};
   border-radius: 6px;
   background-color: ${({ color }) => color};
-  border: 1px solid rgba(0, 0, 0, 0.05);
   flex-shrink: 0;
 `;
 
@@ -164,7 +162,6 @@ export const ScriptListWrapper = styled.div`
   flex: 1;
   overflow-y: auto;
   background-color: ${({ theme }) => theme.cardBg};
-  border: 1px solid ${({ theme }) => theme.border};
   border-radius: 12px;
   padding: 8px;
   position: relative;
@@ -260,7 +257,7 @@ export const ActionButton = styled.button<{ variant?: 'primary' | 'secondary' | 
     variant === 'primary' &&
     `
     background-color: ${theme.colors.primary};
-    color: white;
+    color: ${theme.colors.onPrimary};
     &:hover { background-color: ${theme.colors.primaryHover}; transform: translateY(-1px); }
     &:active { transform: translateY(0); }
   `}
@@ -268,8 +265,7 @@ export const ActionButton = styled.button<{ variant?: 'primary' | 'secondary' | 
   ${({ variant, theme }) =>
     variant === 'secondary' &&
     `
-    background-color: ${theme.cardBg};
-    border: 1px solid ${theme.border};
+    background-color: ${theme.background};
     color: ${theme.textSub};
     &:hover { background-color: ${theme.border}; color: ${theme.textMain}; }
   `}
@@ -351,7 +347,7 @@ export const InputHintWrapper = styled.div`
 export const SendButton = styled.button<{ disabled: boolean }>`
   padding: 12px;
   background: ${({ theme, disabled }) => disabled ? theme.colors.grey400 : theme.colors.primary};
-  color: white;
+  color: ${({ theme, disabled }) => disabled ? '#ffffff' : theme.colors.onPrimary};
   border: none;
   border-radius: 8px;
   cursor: ${({ disabled }) => disabled ? 'not-allowed' : 'pointer'};
@@ -392,5 +388,4 @@ export const ActiveBadge = styled.div<{ color: string }>`
   font-size: 13px;
   color: #333d4b;
   white-space: nowrap;
-  border: 1px solid rgba(0, 0, 0, 0.05);
 `;

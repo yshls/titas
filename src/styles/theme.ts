@@ -1,8 +1,13 @@
 const colors = {
   // 브랜드
-  primary: '#fe9800',
-  primaryHover: '#fb8800',
-  primaryLight: '#fff3e0',
+  primary: '#1db954',
+  primaryHover: '#1aa34a',
+  primaryLight: '#f1fbf5',
+  /*
+   * primary 위에 얹는 글자색. 밝은 그린이라 흰 글자는 대비가 2.59로 기준(4.5)에
+   * 못 미치지만, 진한 글자를 쓰면 6.4로 통과한다.
+   */
+  onPrimary: '#191f28',
 
   // 기능
   success: '#3182f6',
@@ -20,17 +25,17 @@ const colors = {
   grey800: '#333d4b',
   grey900: '#191f28',
 
-  // 오렌지
-  orange50: '#fff3e0',
-  orange100: '#ffe0b0',
-  orange200: '#ffcd80',
-  orange300: '#ffbd51',
-  orange400: '#ffa927',
-  orange500: '#fe9800',
-  orange600: '#fb8800',
-  orange700: '#f57800',
-  orange800: '#ed6700',
-  orange900: '#e45600',
+  // 브랜드 그린 스케일
+  brand50: '#f1fbf5',
+  brand100: '#dbf4e4',
+  brand200: '#b2e7c5',
+  brand300: '#80d89f',
+  brand400: '#4fc87a',
+  brand500: '#1db954',
+  brand600: '#1aa34a',
+  brand700: '#15893e',
+  brand800: '#116f32',
+  brand900: '#0e5928',
 
   // 블루
   blue50: '#e8f3ff',

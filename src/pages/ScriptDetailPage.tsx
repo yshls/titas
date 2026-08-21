@@ -154,7 +154,7 @@ const VoiceSelect = styled.select`
 const ScrollArea = styled.div`
   flex: 1;
   overflow-y: auto;
-  padding: 20px;
+  padding: 14px;
   background-color: ${({ theme }) => theme.background};
   display: flex;
   flex-direction: column;
@@ -195,7 +195,6 @@ const MessageBubble = styled.div<{
   padding: 14px 18px;
   border-radius: 24px;
   text-align: left;
-  border: 1px solid rgba(0, 0, 0, 0.05);
   background-color: ${({ bgColor }) => bgColor};
   color: #333d4b;
   cursor: default;
@@ -254,7 +253,7 @@ const DialogueText = styled.p`
 
 const Footer = styled.div`
   flex-shrink: 0;
-  padding: 24px;
+  padding: 16px;
   display: flex;
   justify-content: center;
   background-color: ${({ theme }) => theme.background};
@@ -271,7 +270,7 @@ const StartButton = styled.button`
   gap: 8px;
   padding: 12px;
   background-color: ${({ theme }) => theme.colors.primary};
-  color: white;
+  color: ${({ theme }) => theme.colors.onPrimary};
   border-radius: 12px;
   font-weight: 800;
   font-size: 16px;

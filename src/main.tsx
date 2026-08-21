@@ -10,6 +10,7 @@ import './i18n';
 
 import GlobalStyle from '@/GlobalStyle';
 import { AppWrapper } from '@/AppWrapper';
+import { ErrorBoundary, RouteErrorFallback } from '@/components/common/ErrorBoundary';
 
 // 레이아웃 및 페이지 (Lazy load)
 import { RootLayout } from '@/layouts/RootLayout';
@@ -48,6 +49,7 @@ const router = createBrowserRouter([
   {
     path: '/',
     element: <RootLayout />,
+    errorElement: <RouteErrorFallback />,
     children: [
       { path: '/', element: <SuspenseWrapper><GrowthHubPage /></SuspenseWrapper> },
       { path: '/create', element: <SuspenseWrapper><CreatorPage /></SuspenseWrapper> },
@@ -78,13 +80,16 @@ const queryClient = new QueryClient({
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <HelmetProvider>
-      <QueryClientProvider client={queryClient}>
-        <AppWrapper>
-          <GlobalStyle />
-          <RouterProvider router={router} />
-        </AppWrapper>
-      </QueryClientProvider>
-    </HelmetProvider>
+    {/* 프로바이더 내부에서 난 렌더 에러가 빈 화면이 되지 않도록 가장 바깥에 둔다. */}
+    <ErrorBoundary>
+      <HelmetProvider>
+        <QueryClientProvider client={queryClient}>
+          <AppWrapper>
+            <GlobalStyle />
+            <RouterProvider router={router} />
+          </AppWrapper>
+        </QueryClientProvider>
+      </HelmetProvider>
+    </ErrorBoundary>
   </React.StrictMode>,
 );

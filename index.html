@@ -49,7 +49,7 @@
     
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json" />
-    <meta name="theme-color" content="#FF6B35" />
+    <meta name="theme-color" content="#1db954" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="TiTaS" />
@@ -110,6 +110,40 @@
   </head>
   <body>
     <div id="root"></div>
+
+    <!--
+      React 트리 밖(모듈 평가 단계)에서 터지는 오류는 ErrorBoundary가 잡을 수 없어
+      그대로 흰 화면이 된다. 앱이 끝내 마운트되지 않았을 때만 안내 문구를 보여준다.
+    -->
+    <script>
+      (function () {
+        var bootFailed = false;
+
+        window.addEventListener('error', function (event) {
+          if (bootFailed) return;
+          var root = document.getElementById('root');
+          if (!root || root.childElementCount > 0) return; // 이미 렌더링됨 = 부팅 성공
+
+          bootFailed = true;
+          console.error('App failed to start:', event.error || event.message);
+          root.innerHTML =
+            '<div role="alert" style="min-height:100vh;display:flex;flex-direction:column;' +
+            'align-items:center;justify-content:center;gap:12px;padding:24px;text-align:center;' +
+            "font-family:'Lato','Noto Sans KR',sans-serif;color:#333d4b\">" +
+            '<svg width="44" height="44" viewBox="0 0 24 24" fill="#8b95a1" aria-hidden="true">' +
+            '<path d="M11 15h2v2h-2zm0-8h2v6h-2zm.99-5C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/>' +
+            '</svg>' +
+            '<h1 style="font-size:20px;font-weight:800;margin:0">앱을 시작하지 못했어요</h1>' +
+            '<p style="font-size:15px;color:#6b7684;margin:0;max-width:420px;line-height:1.6">' +
+            'Failed to start the app. 잠시 후 새로고침해주세요.</p>' +
+            '<button onclick="window.location.reload()" style="margin-top:12px;padding:12px 28px;' +
+            'border-radius:12px;border:none;background:#1db954;color:#191f28;font-size:15px;' +
+            'font-weight:700;cursor:pointer">새로고침 / Refresh</button>' +
+            '</div>';
+        });
+      })();
+    </script>
+
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

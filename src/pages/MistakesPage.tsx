@@ -254,7 +254,6 @@ const ExampleItem = styled.div`
   background-color: ${({ theme }) => theme.cardBg};
   padding: 12px;
   border-radius: 12px;
-  border: 1px solid ${({ theme }) => theme.border};
   margin-bottom: 8px;
   font-size: 14px;
   color: ${({ theme }) => theme.textMain};
@@ -283,7 +282,6 @@ const PracticeArea = styled.div`
   background-color: ${({ theme }) => theme.cardBg};
   padding: 12px;
   border-radius: 16px;
-  border: 1px solid ${({ theme }) => theme.border};
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -328,7 +326,8 @@ const MicButton = styled.button<{ isListening: boolean }>`
 
   background-color: ${({ isListening, theme }) =>
     isListening ? theme.colors.error : theme.colors.primary};
-  color: white;
+  color: ${({ isListening, theme }) =>
+    isListening ? '#ffffff' : theme.colors.onPrimary};
 
   &:hover {
     transform: scale(1.05);
@@ -362,7 +361,7 @@ const EmptyStateContainer = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px 20px;
+  padding: 40px 16px;
   text-align: center;
 `;
 
@@ -371,7 +370,6 @@ const EmptyIconBox = styled.div`
   height: 80px;
   border-radius: 20px;
   background-color: ${({ theme }) => theme.cardBg};
-  border: 1px solid ${({ theme }) => theme.border};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -394,7 +392,7 @@ const ActionButton = styled.button`
   margin-top: 24px;
   padding: 14px 28px;
   background-color: ${({ theme }) => theme.colors.primary};
-  color: white;
+  color: ${({ theme }) => theme.colors.onPrimary};
   border-radius: 14px;
   font-weight: 800;
   font-size: 16px;

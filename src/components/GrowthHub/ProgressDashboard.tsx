@@ -12,8 +12,7 @@ import { useAppStore } from '@/store/appStore';
 const CalendarCard = styled.div`
   background: ${({ theme }) => theme.cardBg};
   border-radius: 24px;
-  border: 1px solid ${({ theme }) => theme.border};
-  padding: 24px 20px 20px;
+  padding: 16px 14px 14px;
   height: fit-content;
   box-shadow: none;
 
@@ -92,15 +91,15 @@ const CalendarCard = styled.div`
   }
 
   .react-calendar__tile--active {
-    background: ${({ theme }) => theme.colors.orange500} !important;
-    color: white !important;
+    background: ${({ theme }) => theme.colors.brand500} !important;
+    color: ${({ theme }) => theme.colors.onPrimary} !important;
   }
 
   /* Heatmap Colors */
-  .color-scale-1 { background-color: ${({ theme }) => theme.colors.orange50} !important; color: ${({ theme }) => theme.colors.primary} !important; }
-  .color-scale-2 { background-color: ${({ theme }) => theme.colors.orange100} !important; color: ${({ theme }) => theme.colors.orange900} !important; }
-  .color-scale-3 { background-color: ${({ theme }) => theme.colors.orange300} !important; color: white !important; }
-  .color-scale-4 { background-color: ${({ theme }) => theme.colors.primary} !important; color: white !important; }
+  .color-scale-1 { background-color: ${({ theme }) => theme.colors.brand50} !important; color: ${({ theme }) => theme.colors.primary} !important; }
+  .color-scale-2 { background-color: ${({ theme }) => theme.colors.brand100} !important; color: ${({ theme }) => theme.colors.brand900} !important; }
+  .color-scale-3 { background-color: ${({ theme }) => theme.colors.brand300} !important; color: ${({ theme }) => theme.colors.grey900} !important; }
+  .color-scale-4 { background-color: ${({ theme }) => theme.colors.primary} !important; color: ${({ theme }) => theme.colors.onPrimary} !important; }
 `;
 
 const StreakInfo = styled.div`
@@ -125,8 +124,7 @@ const StreakItem = styled.div`
 const StatCard = styled(motion.div)`
   background: ${({ theme }) => theme.cardBg};
   border-radius: 20px;
-  border: 1px solid ${({ theme }) => theme.border};
-  padding: 24px;
+  padding: 16px;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -135,7 +133,7 @@ const StatCard = styled(motion.div)`
   overflow: hidden;
   cursor: pointer;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  transition: box-shadow 0.3s ease;
 
   &:hover {
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
@@ -234,7 +232,7 @@ export function CalendarSection({
           animate={currentStreak > 0 ? { scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] } : {}}
           transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
         >
-          <MdLocalFireDepartment size={32} color={currentStreak > 0 ? theme.colors.orange700 : theme.colors.grey400} />
+          <MdLocalFireDepartment size={32} color={currentStreak > 0 ? theme.colors.brand700 : theme.colors.grey400} />
         </motion.div>
         <StreakItem>
           <strong>{t('dashboard.practiceTimes', { count: totalPractice })}</strong>

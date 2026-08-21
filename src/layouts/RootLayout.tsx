@@ -11,6 +11,7 @@ import { Seo } from '@/components/common/Seo';
 import { migrateData } from '@/services/migrateService';
 
 import { useTranslation } from 'react-i18next';
+import i18n from '@/i18n';
 
 import { AnimatedLayout } from './AnimatedLayout';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
@@ -21,7 +22,6 @@ import { ThemeToggle } from '@/components/common/ThemeToggle';
 const LanguageSwitcher = styled.button`
   display: none;
   background: none;
-  border: 1px solid ${({ theme }) => theme.border};
   color: ${({ theme }) => theme.textSub};
   padding: 6px 10px;
   border-radius: 6px;
@@ -157,7 +157,7 @@ const MobileMenuButton = styled.button`
 
 const LoginButton = styled.button`
   background-color: ${({ theme }) => theme.colors.primary};
-  color: white;
+  color: ${({ theme }) => theme.colors.onPrimary};
   padding: 6px 12px;
   border-radius: 8px;
   font-weight: 600;
@@ -209,7 +209,6 @@ const ProfileDropdown = styled(motion.div)`
   border-radius: 16px;
   padding: 8px;
   z-index: 100;
-  border: 1px solid ${({ theme }) => theme.border};
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -279,7 +278,7 @@ const DrawerSidebar = styled(motion.aside)`
   height: 100%;
   width: 260px;
   background-color: ${({ theme }) => theme.cardBg};
-  padding: 24px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
 `;
@@ -475,14 +474,22 @@ export function RootLayout() {
       setUser(session?.user ?? null);
 
       if (session) {
-        await migrateData(session.user.id);
-        await loadInitialData();
-      } else {
-        loadInitialData();
+        // 마이그레이션이 실패해도 기존 데이터 로드는 계속돼야 한다.
+        try {
+          await migrateData(session.user.id);
+        } catch (error) {
+          console.error('Data migration failed:', error);
+          // 이 effect는 언어 변경 시 재실행되지 않으므로 항상 현재 언어를 읽는 i18n.t를 쓴다.
+          toast.error(i18n.t('toast.migrationFailed'));
+        }
       }
+
+      await loadInitialData();
     };
 
-    runMigration();
+    runMigration().catch((error) => {
+      console.error('App initialization failed:', error);
+    });
 
     const {
       data: { subscription },
@@ -490,7 +497,11 @@ export function RootLayout() {
       setUser(session?.user ?? null);
 
       if (event === 'SIGNED_IN' && session) {
-        setTimeout(() => runMigration(), 500);
+        setTimeout(() => {
+          runMigration().catch((error) => {
+            console.error('Post-login initialization failed:', error);
+          });
+        }, 500);
       }
 
       if (session?.user) {

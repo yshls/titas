@@ -21,7 +21,6 @@ const DateHeader = styled.h2`
 const ScriptGroupCard = styled.div`
   background: ${({ theme }) => theme.cardBg};
   border-radius: 16px;
-  border: 1px solid ${({ theme }) => theme.border};
   overflow: hidden;
 `;
 

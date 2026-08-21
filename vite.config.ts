@@ -40,9 +40,25 @@ export default defineConfig({
   },
   build: {
     target: 'esnext',
-    sourcemap: true,
+    // 소스맵에는 원본 코드 전문이 담겨 배포 시 전체 소스가 공개된다.
+    // 로컬 디버깅이 필요하면 일시적으로 true로 두고 빌드할 것.
+    sourcemap: false,
     rollupOptions: {
       external: ['sharp', 'onnxruntime-node'],
+      output: {
+        // 배포마다 바뀌는 앱 코드와, 거의 바뀌지 않는 라이브러리를 분리해
+        // 재방문 시 라이브러리 청크가 캐시에서 재사용되도록 한다.
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-supabase': ['@supabase/supabase-js'],
+          'vendor-motion': ['framer-motion'],
+          'vendor-i18n': [
+            'i18next',
+            'react-i18next',
+            'i18next-browser-languagedetector',
+          ],
+        },
+      },
     },
   },
   worker: {

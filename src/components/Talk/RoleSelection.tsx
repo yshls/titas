@@ -36,7 +36,6 @@ const RoleButton = styled.button`
   width: 140px;
   height: 160px;
   border-radius: 24px;
-  border: 1px solid rgba(0, 0, 0, 0.06);
   background-color: white;
   display: flex;
   flex-direction: column;

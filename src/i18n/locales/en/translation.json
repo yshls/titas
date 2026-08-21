@@ -15,6 +15,14 @@
       "error": "An error occurred"
     }
   },
+  "error": {
+    "title": "Something went wrong",
+    "message": "We hit an error loading this screen. Refreshing usually fixes it.",
+    "reload": "Refresh",
+    "notFoundTitle": "Page not found",
+    "notFoundMessage": "That address is wrong, or the page no longer exists.",
+    "goHome": "Go home"
+  },
   "history": {
     "emptyText": "No history yet. Start practicing!",
     "lineLabel": "Line {{number}}",
@@ -48,10 +56,10 @@
     "noScripts": "No scripts yet",
     "createFirst": "Create your first script!",
     "greeting": {
-      "morning": "☀️ Start your day with a <bold>clear voice</bold>, {{name}}.",
-      "afternoon": "⚡ Perfect time for a <bold>quick session</bold>, {{name}}.",
-      "evening": "✨ Shall we <bold>review your progress</bold>, {{name}}?",
-      "night": "🌙 End your day on a <bold>high note</bold>, {{name}}."
+      "morning": "Start your day with a <bold>clear voice</bold>, {{name}}.",
+      "afternoon": "Perfect time for a <bold>quick session</bold>, {{name}}.",
+      "evening": "Shall we <bold>review your progress</bold>, {{name}}?",
+      "night": "End your day on a <bold>high note</bold>, {{name}}."
     },
     "defaultUserName": "User",
     "currentStreak": "Current Streak",
@@ -62,6 +70,15 @@
     "selectedDatePractice": "Selected Date Practice",
     "totalSentences": "Total Sentences",
     "totalScripts": "Total Scripts"
+  },
+  "reviewPrompt": {
+    "dueTitle": "<highlight>{{count}} cards</highlight> are ready for review",
+    "dueTitle_one": "<highlight>{{count}} card</highlight> is ready for review",
+    "dueSubtitle": "Reviewing now is when it sticks best",
+    "caughtUpTitle": "All caught up! Nothing due today",
+    "caughtUpSubtitle": "See your review schedule",
+    "nextReview": "Next review {{time}}",
+    "goToReview": "Go to Smart Review"
   },
   "missions": {
     "title": "Daily Missions",
@@ -97,7 +114,7 @@
     "wipeConfirmTitle": "Wipe everything?",
     "wipeConfirmButton": "Clear",
     "missingFields": "Missing title or lines!",
-    "saveSuccess": "Script saved successfully! 🎉",
+    "saveSuccess": "Script saved successfully!",
     "saveFailed": "Failed to save script.",
     "emptyState": "Start by typing a dialogue below",
     "lineHint": "Lines split automatically by punctuation (. ? !)",
@@ -132,7 +149,7 @@
     "slow": "Slow (0.5x)",
     "tapMicPrompt": "Tap mic & say the word!",
     "listeningPrompt": "Listening... Say it!",
-    "successPrompt": "Perfect! Solved 🎉",
+    "successPrompt": "Perfect! Solved!",
     "failPrompt": "Try again.",
     "youSaid": "You said: \"{{text}}\"",
     "contextExamples": "Context Examples"
@@ -168,7 +185,7 @@
     "reviewButton": "Review",
     "allCaughtUpTitle": "All Caught Up!",
     "allCaughtUpDesc": "You have no reviews due right now. Great job keeping up with your daily goals!",
-    "nextReviewPrefix": "⏳ Next review {{time}}"
+    "nextReviewPrefix": "Next review {{time}}"
   },
   "practice": {
     "listening": "Listening",
@@ -265,6 +282,11 @@
     "deleteWarning": "This action cannot be undone.",
     "yesDelete": "Yes, delete it!",
     "accountDeleted": "It's a sad day! Your account is gone forever.",
-    "deleteFailed": "Oops! Something went wrong with the deletion."
+    "deleteFailed": "Oops! Something went wrong with the deletion.",
+    "loadDataFailed": "Couldn't load your data. Check your connection and refresh.",
+    "deleteScriptFailed": "Failed to delete the script. Please try again.",
+    "saveLogFailed": "Failed to save your practice log. This session wasn't recorded.",
+    "migrationFailed": "Couldn't sync your existing data. Your local data is still safe.",
+    "updateLineFailed": "Failed to save. Please try again."
   }
 }

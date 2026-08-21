@@ -2,11 +2,18 @@ import { useMemo, useState, useEffect } from 'react';
 import styled from '@emotion/styled';
 import dayjs from 'dayjs';
 import { Trans, useTranslation } from 'react-i18next';
+import {
+  MdWbSunny,
+  MdBolt,
+  MdAutoAwesome,
+  MdNightlight,
+} from 'react-icons/md';
 import { useAppStore } from '@/store/appStore';
 import { Seo } from '@/components/common/Seo';
 import { useMissions } from '@/hooks/pageSpecific/useMissions';
 
 import { MissionManager } from '@/components/GrowthHub/MissionManager';
+import { ReviewPrompt } from '@/components/GrowthHub/ReviewPrompt';
 import { CalendarSection, StatisticsColumn } from '@/components/GrowthHub/ProgressDashboard';
 
 import {
@@ -15,13 +22,16 @@ import {
 } from '@/utils/storageService';
 import type { PracticeLog, ScriptData } from '@/utils/types';
 
-// 시간대별 인사말 번역 키 결정 함수
-const getGreetingKey = () => {
+// 시간대별 인사말: 번역 키와 아이콘을 함께 결정한다.
+const getGreeting = () => {
   const hour = new Date().getHours();
-  if (hour >= 6 && hour < 12) return 'dashboard.greeting.morning';
-  if (hour >= 12 && hour < 18) return 'dashboard.greeting.afternoon';
-  if (hour >= 18 && hour < 22) return 'dashboard.greeting.evening';
-  return 'dashboard.greeting.night';
+  if (hour >= 6 && hour < 12)
+    return { key: 'dashboard.greeting.morning', Icon: MdWbSunny };
+  if (hour >= 12 && hour < 18)
+    return { key: 'dashboard.greeting.afternoon', Icon: MdBolt };
+  if (hour >= 18 && hour < 22)
+    return { key: 'dashboard.greeting.evening', Icon: MdAutoAwesome };
+  return { key: 'dashboard.greeting.night', Icon: MdNightlight };
 };
 
 const DashboardContainer = styled.div`
@@ -41,6 +51,20 @@ const GreetingTitle = styled.h1`
   color: ${({ theme }) => theme.textMain};
   margin-bottom: 8px;
   b { font-weight: 800; }
+`;
+
+const GreetingRow = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+`;
+
+const GreetingIcon = styled.span`
+  flex-shrink: 0;
+  /* 첫 줄 글자 높이에 맞춰 아이콘을 정렬한다. */
+  line-height: 1;
+  padding-top: 4px;
+  color: ${({ theme }) => theme.colors.primary};
 `;
 
 const GridContainer = styled.div`
@@ -73,7 +97,10 @@ export function GrowthHubPage() {
   const practiceLogs = user ? storeLogs : localLogs;
 
   const userName = user?.user_metadata.full_name?.split(' ')[0] || t('dashboard.defaultUserName');
-  const greetingKey = useMemo(() => getGreetingKey(), []);
+  const { key: greetingKey, Icon: GreetingTimeIcon } = useMemo(
+    () => getGreeting(),
+    [],
+  );
 
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [activeStartDate, setActiveStartDate] = useState(new Date());
@@ -125,10 +152,17 @@ export function GrowthHubPage() {
     <DashboardContainer>
       <Seo {...seoProps} />
       <HeaderSection>
-        <GreetingTitle>
-          <Trans i18nKey={greetingKey} values={{ name: userName }} components={{ bold: <b /> }} />
-        </GreetingTitle>
+        <GreetingRow>
+          <GreetingIcon aria-hidden="true">
+            <GreetingTimeIcon size={26} />
+          </GreetingIcon>
+          <GreetingTitle>
+            <Trans i18nKey={greetingKey} values={{ name: userName }} components={{ bold: <b /> }} />
+          </GreetingTitle>
+        </GreetingRow>
       </HeaderSection>
+
+      <ReviewPrompt />
 
       <GridContainer>
         {/* 왼쪽: 커스텀 분리된 달력 컴포넌트 */}

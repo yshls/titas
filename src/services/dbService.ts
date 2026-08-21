@@ -24,8 +24,9 @@ export const fetchScripts = async (): Promise<ScriptData[]> => {
     .select('*')
     .order('created_at', { ascending: false });
 
+  // 조회 실패를 빈 목록으로 감추면 "데이터 없음"과 구분되지 않으므로 그대로 전파한다.
   if (error) {
-    return [];
+    throw error;
   }
 
   return data.map((item: any) => ({
@@ -67,8 +68,9 @@ export const saveScriptToDB = async (script: ScriptData) => {
     { onConflict: 'user_id, title' },
   );
 
+  // 저장 실패를 삼키면 호출부가 성공으로 오인하므로 그대로 전파한다.
   if (error) {
-    // 에러 발생 시 처리 (필요시 추가)
+    throw error;
   }
 };
 
@@ -87,7 +89,11 @@ export const deleteScriptFromDB = async (scriptId: string) => {
     return;
   }
 
-  await supabase.from('scripts').delete().eq('id', scriptId);
+  const { error } = await supabase.from('scripts').delete().eq('id', scriptId);
+
+  if (error) {
+    throw error;
+  }
 };
 
 export const updateScriptLinesInDB = async (scriptId: string, updatedLines: DialogueLine[]) => {
@@ -113,8 +119,10 @@ export const updateScriptLinesInDB = async (scriptId: string, updatedLines: Dial
     .eq('id', scriptId)
     .eq('user_id', user.id);
 
+  // 호출부(appStore)가 실패 시 낙관적 업데이트를 롤백할 수 있도록 전파한다.
   if (error) {
     console.error('Error updating script lines:', error);
+    throw error;
   }
 };
 
@@ -135,7 +143,9 @@ export const fetchLogs = async (): Promise<PracticeLog[]> => {
     .select('*')
     .order('created_at', { ascending: false });
 
-  if (error) return [];
+  if (error) {
+    throw error;
+  }
 
   return data.map((item: any) => ({
     id: item.id.toString(),
@@ -169,7 +179,7 @@ export const saveLogToDB = async (log: PracticeLog, scriptTitle: string) => {
   });
 
   if (error) {
-    // 에러 발생 시 처리 (필요시 추가)
+    throw error;
   }
 };
 

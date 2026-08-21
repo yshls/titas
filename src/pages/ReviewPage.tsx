@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from '@emotion/styled';
 import { useTranslation } from 'react-i18next';
+import { MdLock } from 'react-icons/md';
 import { useAppStore } from '@/store/appStore';
 import { supabase } from '@/supabaseClient';
 import toast from 'react-hot-toast';
@@ -41,9 +42,8 @@ const Subtitle = styled.p`
 // --- 로그인 게이트 스타일 ---
 const LoginGateWrapper = styled.div`
   background: ${({ theme }) => theme.cardBg};
-  border: 1px solid ${({ theme }) => theme.border};
   border-radius: 16px;
-  padding: 40px 24px;
+  padding: 28px 20px;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -53,7 +53,8 @@ const LoginGateWrapper = styled.div`
 `;
 
 const LoginGateIcon = styled.div`
-  font-size: 48px;
+  display: flex;
+  color: ${({ theme }) => theme.textSub};
   margin-bottom: 8px;
 `;
 
@@ -74,7 +75,7 @@ const LoginGateText = styled.p`
 
 const LoginGateButton = styled.button`
   background: ${({ theme }) => theme.colors.primary};
-  color: white;
+  color: ${({ theme }) => theme.colors.onPrimary};
   border: none;
   border-radius: 12px;
   padding: 12px 32px;
@@ -103,12 +104,10 @@ const ReviewCard = styled.div`
   padding: 12px 16px;
   background: ${({ theme }) => theme.cardBg};
   border-radius: 12px;
-  border: 1px solid ${({ theme }) => theme.border};
   transition: all 0.2s;
 
   &:hover {
     background-color: ${({ theme }) => theme.background};
-    border-color: ${({ theme }) => theme.textSub};
   }
 `;
 
@@ -120,7 +119,7 @@ const PriorityIndicator = styled.div<{ level: number }>`
     level > 5
       ? theme.colors.error
       : level > 2
-        ? theme.colors.orange500
+        ? theme.colors.brand500
         : theme.colors.success};
 `;
 
@@ -151,7 +150,8 @@ const ReviewButton = styled.button<{ urgent?: boolean }>`
   padding: 8px 16px;
   background: ${({ urgent, theme }) =>
     urgent ? theme.colors.error : theme.colors.primary};
-  color: white;
+  color: ${({ urgent, theme }) =>
+    urgent ? '#ffffff' : theme.colors.onPrimary};
   border: none;
   border-radius: 100px; /* Pill shape */
   font-size: 13px;
@@ -183,7 +183,6 @@ const StatCard = styled.div<{ urgent?: boolean; onClick?: any }>`
   padding: 16px;
   background: ${({ theme }) => theme.cardBg};
   border-radius: 12px;
-  border: 1px solid ${({ theme }) => theme.border};
   text-align: center;
   transition: all 0.2s;
   cursor: ${({ onClick }) => (onClick ? 'pointer' : 'default')};
@@ -192,7 +191,6 @@ const StatCard = styled.div<{ urgent?: boolean; onClick?: any }>`
     urgent &&
     `
     background: ${theme.colors.red50};
-    border-color: ${theme.colors.error}40;
     color: ${theme.colors.error};
   `}
 
@@ -353,7 +351,9 @@ export default function ReviewPage() {
           </Subtitle>
         </Header>
         <LoginGateWrapper>
-          <LoginGateIcon>🔒</LoginGateIcon>
+          <LoginGateIcon aria-hidden="true">
+            <MdLock size={44} />
+          </LoginGateIcon>
           <LoginGateTitle>{t('review.loginGateTitle')}</LoginGateTitle>
           <LoginGateText>
             {t('review.loginGateText')}

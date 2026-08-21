@@ -39,6 +39,8 @@ export interface PracticeState {
   ) => void;
   addUserAudio: (lineIndex: number, audioUrl: string) => void;
   advanceLine: () => void;
+  /** 현재 문장의 결과를 지우고 다시 말할 수 있게 되돌린다. */
+  retryCurrentLine: () => void;
   finishPractice: () => void;
   retryPractice: () => void;
   exitPractice: () => void;
@@ -110,6 +112,27 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
     set((state) => ({
       userAudioMap: { ...state.userAudioMap, [lineIndex]: audioUrl },
     }));
+  },
+
+  retryCurrentLine: () => {
+    const { currentLineIndex } = get();
+
+    set((state) => {
+      // 해당 라인의 결과만 걷어내고 나머지 진행 상황은 유지한다.
+      const { [currentLineIndex]: _f, ...feedbackMap } = state.feedbackMap;
+      const { [currentLineIndex]: _i, ...userInputMap } = state.userInputMap;
+      const { [currentLineIndex]: _a, ...userAudioMap } = state.userAudioMap;
+
+      return {
+        feedbackMap,
+        userInputMap,
+        userAudioMap,
+        // 이번 시도에서 기록된 오답도 함께 지워야 실수 목록에 중복으로 쌓이지 않는다.
+        sessionErrors: state.sessionErrors.filter(
+          (e) => e.lineIndex !== currentLineIndex,
+        ),
+      };
+    });
   },
 
   advanceLine: () => {

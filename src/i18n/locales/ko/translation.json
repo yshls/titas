@@ -200,6 +200,8 @@
     "stopPracticeAria": "연습 중지",
     "headerTitle": "말하기 연습",
     "tapWhenDone": "완료되면 탭하세요",
+    "retryLine": "다시 말하기",
+    "nextLine": "다음 문장",
     "switchToKeyboardAria": "키보드 입력으로 전환",
     "stopRecordingAria": "녹음 중지",
     "startRecordingAria": "녹음 시작",

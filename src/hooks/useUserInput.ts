@@ -6,7 +6,7 @@ import { useDevice } from '@/hooks/useDevice';
 import { usePracticeStore } from '@/store/practiceStore';
 import { useSpeechRecognition } from '@/utils/useSpeechRecognition';
 import { useTTS } from '@/utils/useTTS';
-import { checkWordDiff } from '@/utils/diffChecker';
+import { checkWordDiff, calculateAccuracy } from '@/utils/diffChecker';
 import { transcribeAudio } from '@/api/groqWhisper';
 
 export function useUserInput() {
@@ -20,6 +20,7 @@ export function useUserInput() {
   const addUserInput = usePracticeStore((state) => state.addUserInput);
   const addUserAudio = usePracticeStore((state) => state.addUserAudio);
   const advanceLine = usePracticeStore((state) => state.advanceLine);
+  const retryCurrentLine = usePracticeStore((state) => state.retryCurrentLine);
 
   const isMyTurn =
     status === 'active' && currentLine?.speakerId === userSpeakerId;
@@ -45,11 +46,16 @@ export function useUserInput() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const hasProcessedCurrentLine = useRef(false);
+  const advanceTimerRef = useRef<number | undefined>(undefined);
 
   // 라인 변경 시 초기화
   useEffect(() => {
     hasProcessedCurrentLine.current = false;
     audioChunksRef.current = [];
+    if (advanceTimerRef.current) {
+      clearTimeout(advanceTimerRef.current);
+      advanceTimerRef.current = undefined;
+    }
   }, [currentLineIndex]);
 
   // 음성/텍스트 처리 및 다음 라인 진행
@@ -87,11 +93,22 @@ export function useUserInput() {
       addUserInput(currentLineIndex, text, diff);
       clearTranscript();
 
-      // 다음 라인으로
-      setTimeout(() => {
-        advanceLine();
+      /*
+       * 틀린 곳이 있으면 자동으로 넘기지 않는다. 쉐도잉은 틀린 문장을 다시
+       * 말해보는 게 핵심인데, 바로 다음 줄로 넘어가면 재시도할 틈이 없다.
+       * 정확히 말했을 때만 흐름을 끊지 않고 이어간다.
+       */
+      const { total, correct } = calculateAccuracy(diff);
+      const isPerfect = total > 0 && correct === total;
+
+      if (isPerfect) {
+        advanceTimerRef.current = window.setTimeout(() => {
+          advanceLine();
+          setIsProcessing(false);
+        }, 2000);
+      } else {
         setIsProcessing(false);
-      }, 2000);
+      }
     },
     [
       currentLine,
@@ -278,6 +295,30 @@ export function useUserInput() {
     startRecognition,
   ]);
 
+  // 방금 말한 문장을 지우고 다시 말할 수 있게 되돌린다.
+  const handleRetryLine = useCallback(() => {
+    if (advanceTimerRef.current) {
+      clearTimeout(advanceTimerRef.current);
+      advanceTimerRef.current = undefined;
+    }
+    retryCurrentLine();
+    clearTranscript();
+    setTypedInput('');
+    // 이 값이 true로 남아 있으면 다시 말해도 결과가 반영되지 않는다.
+    hasProcessedCurrentLine.current = false;
+    setIsProcessing(false);
+  }, [retryCurrentLine, clearTranscript]);
+
+  // 결과를 확인한 뒤 사용자가 직접 다음 문장으로 넘어간다.
+  const handleAdvanceLine = useCallback(() => {
+    if (advanceTimerRef.current) {
+      clearTimeout(advanceTimerRef.current);
+      advanceTimerRef.current = undefined;
+    }
+    advanceLine();
+    setIsProcessing(false);
+  }, [advanceLine]);
+
   // 키보드 입력 제출
   const handleKeyboardSubmit = useCallback(() => {
     if (typedInput.trim()) {
@@ -298,6 +339,8 @@ export function useUserInput() {
     mediaStream,
     handleMicClick,
     handleKeyboardSubmit,
+    handleRetryLine,
+    handleAdvanceLine,
     stopRecordingAndListening,
   };
 }

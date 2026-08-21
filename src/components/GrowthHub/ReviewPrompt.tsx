@@ -13,24 +13,20 @@ const Card = styled(motion.button)<{ $urgent: boolean }>`
   gap: 16px;
   padding: 18px 20px;
   margin-bottom: 24px;
+  border: none;
   border-radius: 20px;
   cursor: pointer;
   text-align: left;
-  transition: border-color 0.2s, background-color 0.2s;
+  transition: background-color 0.2s;
 
   ${({ $urgent, theme }) =>
     $urgent
-      ? `
-    background-color: ${theme.colors.primaryLight};
-    border: 1px solid ${theme.colors.orange200};
-  `
-      : `
-    background-color: ${theme.cardBg};
-    border: 1px solid ${theme.border};
-  `}
+      ? `background-color: ${theme.colors.primaryLight};`
+      : `background-color: ${theme.cardBg};`}
 
   &:hover {
-    border-color: ${({ theme }) => theme.colors.primary};
+    background-color: ${({ $urgent, theme }) =>
+      $urgent ? theme.colors.orange100 : theme.background};
   }
 `;
 

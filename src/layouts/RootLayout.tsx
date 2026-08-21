@@ -22,7 +22,6 @@ import { ThemeToggle } from '@/components/common/ThemeToggle';
 const LanguageSwitcher = styled.button`
   display: none;
   background: none;
-  border: 1px solid ${({ theme }) => theme.border};
   color: ${({ theme }) => theme.textSub};
   padding: 6px 10px;
   border-radius: 6px;
@@ -158,7 +157,7 @@ const MobileMenuButton = styled.button`
 
 const LoginButton = styled.button`
   background-color: ${({ theme }) => theme.colors.primary};
-  color: white;
+  color: ${({ theme }) => theme.colors.onPrimary};
   padding: 6px 12px;
   border-radius: 8px;
   font-weight: 600;
@@ -210,7 +209,6 @@ const ProfileDropdown = styled(motion.div)`
   border-radius: 16px;
   padding: 8px;
   z-index: 100;
-  border: 1px solid ${({ theme }) => theme.border};
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -280,7 +278,7 @@ const DrawerSidebar = styled(motion.aside)`
   height: 100%;
   width: 260px;
   background-color: ${({ theme }) => theme.cardBg};
-  padding: 24px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
 `;

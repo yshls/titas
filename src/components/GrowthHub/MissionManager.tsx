@@ -27,9 +27,8 @@ const SectionDate = styled.span`
 
 const EmptyStateCard = styled.div`
   background: ${({ theme }) => theme.cardBg};
-  border: 1px solid ${({ theme }) => theme.border};
   border-radius: 16px;
-  padding: 40px 24px;
+  padding: 28px 20px;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -59,7 +58,7 @@ const EmptyText = styled.p`
 
 const LoginButton = styled.button`
   background: ${({ theme }) => theme.colors.primary};
-  color: white;
+  color: ${({ theme }) => theme.colors.onPrimary};
   border: none;
   border-radius: 12px;
   padding: 12px 32px;
@@ -81,7 +80,7 @@ const TaskList = styled.div`
 `;
 
 const EmptyTask = styled.div`
-  padding: 20px;
+  padding: 14px;
   text-align: center;
   color: ${({ theme }) => theme.textSub};
   font-size: 14px;
@@ -92,7 +91,6 @@ const TaskItemWrapper = styled.div`
   align-items: center;
   padding: 10px;
   background-color: ${({ theme }) => theme.cardBg};
-  border: 1px solid ${({ theme }) => theme.border};
   border-radius: 12px;
   gap: 12px;
   position: relative;
@@ -163,7 +161,7 @@ const TaskInput = styled.input`
 
 const AddButton = styled.button`
   background-color: ${({ theme }) => theme.colors.primary};
-  color: white;
+  color: ${({ theme }) => theme.colors.onPrimary};
   border-radius: 10px;
   padding: 6px 18px;
   font-size: 14px;

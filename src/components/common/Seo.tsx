@@ -85,7 +85,7 @@ export function Seo({
       <meta name="twitter:image" content={pageOgImage} />
 
       {/* 추가 메타 태그 */}
-      <meta name="theme-color" content="#FF6B35" />
+      <meta name="theme-color" content="#1db954" />
       <meta name="author" content="TiTaS" />
 
       {/* 모바일 최적화 */}

@@ -47,7 +47,7 @@ const Title = styled.h1`
 
 const EmptyState = styled.div`
   text-align: center;
-  padding: 60px 20px;
+  padding: 40px 16px;
   color: ${({ theme }) => theme.textSub};
 
   svg {

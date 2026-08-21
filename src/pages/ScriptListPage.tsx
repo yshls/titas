@@ -94,7 +94,8 @@ const SearchInput = styled.input`
   width: 100%;
   padding: 10px 36px 10px 12px;
   border-radius: 8px;
-  border: 1px solid ${({ theme }) => theme.border};
+  /* 지정하지 않으면 브라우저 기본 테두리(2px inset)가 그대로 보인다. */
+  border: none;
   background-color: ${({ theme }) => theme.cardBg};
   font-size: 14px;
   font-weight: 500;
@@ -103,7 +104,7 @@ const SearchInput = styled.input`
   transition: all 0.2s;
 
   &:focus {
-    border-color: ${({ theme }) => theme.colors.primary};
+    box-shadow: inset 0 0 0 2px ${({ theme }) => theme.colors.primary};
   }
 
   &::placeholder {
@@ -143,7 +144,7 @@ const UploadButton = styled.button`
   align-items: center;
   gap: 8px;
   padding: 10px 12px;
-  color: white;
+  color: ${({ theme }) => theme.colors.onPrimary};
   border-radius: 8px;
   font-weight: 700;
   font-size: 14px;
@@ -180,7 +181,6 @@ const SortButton = styled.button`
   border-radius: 8px;
   font-weight: 700;
   font-size: 14px;
-  border: 1px solid ${({ theme }) => theme.border};
   background-color: ${({ theme }) => theme.cardBg};
   transition: all 0.2s;
   cursor: pointer;
@@ -206,7 +206,6 @@ const SortMenu = styled.div`
   width: 180px;
   background-color: ${({ theme }) => theme.cardBg};
   border-radius: 12px;
-  border: 1px solid ${({ theme }) => theme.border};
   z-index: 20;
   padding: 6px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
@@ -238,10 +237,9 @@ const SortOption = styled.button<{ isActive: boolean }>`
 
 const EmptyStateContainer = styled.section`
   text-align: center;
-  padding: 64px 24px;
+  padding: 40px 20px;
   background-color: ${({ theme }) => theme.cardBg};
   border-radius: 24px;
-  border: 1px solid ${({ theme }) => theme.border};
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -288,7 +286,8 @@ const CreateButton = styled.button<{ isLoggedIn: boolean }>`
 
   background-color: ${({ isLoggedIn, theme }) =>
     isLoggedIn ? theme.colors.primary : theme.border};
-  color: ${({ isLoggedIn, theme }) => (isLoggedIn ? 'white' : theme.textSub)};
+  color: ${({ isLoggedIn, theme }) =>
+    isLoggedIn ? theme.colors.onPrimary : theme.textSub};
 
   &:hover {
     background-color: ${({ isLoggedIn, theme }) =>
@@ -315,7 +314,7 @@ const Grid = styled(motion.div)`
 // 검색 결과 없음 컨테이너
 const NoResultsContainer = styled.div`
   text-align: center;
-  padding: 60px;
+  padding: 40px 20px;
   color: ${({ theme }) => theme.textSub};
 `;
 
@@ -327,7 +326,6 @@ const NoResultsText = styled.p`
 const ScriptCard = styled(motion.article)<{ isDeleting: boolean }>`
   background-color: ${({ theme }) => theme.cardBg};
   border-radius: 16px;
-  border: 1px solid ${({ theme }) => theme.border};
   display: flex;
   flex-direction: column;
   transition: all 0.2s;
@@ -398,7 +396,6 @@ const Tag = styled.span`
   background-color: ${({ theme }) => theme.background};
   padding: 4px 8px;
   border-radius: 6px;
-  border: 1px solid ${({ theme }) => theme.border};
 `;
 
 const CardFooter = styled.div`
@@ -432,7 +429,7 @@ const ActionButton = styled.button<{ variant?: 'primary' | 'neutral' }>`
   ${({ variant, theme }) =>
     variant === 'primary'
       ? `
-    background-color: ${theme.colors.primary}; color: white; border: 1px solid ${theme.colors.primary};
+    background-color: ${theme.colors.primary}; color: ${theme.colors.onPrimary};
     &:hover { background-color: ${theme.colors.primaryHover}; }
   `
       : `
@@ -462,7 +459,6 @@ const ToastContainer = styled.div`
   max-width: 360px;
   width: 100%;
   background-color: ${({ theme }) => theme.cardBg};
-  border: 1px solid ${({ theme }) => theme.border};
   border-radius: 16px;
   padding: 12px;
   display: flex;

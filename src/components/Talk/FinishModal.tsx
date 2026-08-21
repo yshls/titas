@@ -29,7 +29,7 @@ const ModalOverlay = styled.div`
 
 const ModalContent = styled.div`
   background: white;
-  padding: 32px;
+  padding: 16px;
   border-radius: 24px;
   text-align: center;
   max-width: 320px;
@@ -92,7 +92,7 @@ const PrimaryButton = styled.button`
   padding: 14px;
   border-radius: 14px;
   background: ${({ theme }) => theme.colors.primary};
-  color: white;
+  color: ${({ theme }) => theme.colors.onPrimary};
   font-weight: 700;
   font-size: 15px;
   border: none;

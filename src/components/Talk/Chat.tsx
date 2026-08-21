@@ -13,7 +13,7 @@ const floatUp = keyframes`
 const ChatContainer = styled.div`
   flex: 1;
   overflow-y: auto;
-  padding: 20px;
+  padding: 14px;
   padding-bottom: 140px; /* space for floating bar */
   display: flex;
   flex-direction: column;

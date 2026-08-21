@@ -11,7 +11,7 @@ const Card = styled(motion.button)<{ $urgent: boolean }>`
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 18px 20px;
+  padding: 14px 16px;
   margin-bottom: 24px;
   border: none;
   border-radius: 20px;
@@ -26,7 +26,7 @@ const Card = styled(motion.button)<{ $urgent: boolean }>`
 
   &:hover {
     background-color: ${({ $urgent, theme }) =>
-      $urgent ? theme.colors.orange100 : theme.background};
+      $urgent ? theme.colors.brand100 : theme.background};
   }
 `;
 
@@ -41,7 +41,7 @@ const IconBadge = styled.div<{ $urgent: boolean }>`
   background-color: ${({ $urgent, theme }) =>
     $urgent ? theme.colors.primary : theme.background};
   color: ${({ $urgent, theme }) =>
-    $urgent ? '#ffffff' : theme.textSub};
+    $urgent ? theme.colors.onPrimary : theme.textSub};
 `;
 
 const TextGroup = styled.div`
@@ -65,8 +65,8 @@ const Title = styled.p<{ $urgent: boolean }>`
   margin: 0 0 2px;
 
   /*
-   * 크림색 배경 위 주황 계열은 팔레트에서 가장 진한 orange900을 써도 대비가 3.3에
-   * 그쳐 WCAG AA(4.5)를 넘지 못한다. 색 대신 굵기로만 개수를 강조한다.
+   * 옅은 브랜드 배경 위에서는 그린 계열 글자도 대비가 부족하므로,
+   * 색 대신 굵기로만 개수를 강조한다.
    */
   b {
     font-weight: 900;

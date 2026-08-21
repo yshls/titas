@@ -48,7 +48,7 @@ const HeaderTitle = styled.span`
 const ContentContainer = styled.div`
   flex: 1;
   overflow-y: auto;
-  padding: 24px 20px;
+  padding: 16px 14px;
   color: #333;
   line-height: 1.6;
   font-size: 14px;

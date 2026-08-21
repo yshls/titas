@@ -38,7 +38,6 @@ const FloatingIsland = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.6);
   width: 100%;
   max-width: 300px;
   justify-content: space-between;
@@ -88,7 +87,7 @@ const HeroMicButton = styled.button<{ isListening: boolean }>`
         `
       : css`
           background-color: ${theme.colors.primary};
-          color: white;
+          color: ${theme.colors.onPrimary};
           &:hover {
             transform: scale(1.08);
           }
@@ -113,7 +112,6 @@ const KeyboardInputWrapper = styled.div`
   display: flex;
   align-items: center;
   gap: 10px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
 `;
 
 const StyledInput = styled.input`
@@ -134,7 +132,7 @@ const SendBtn = styled.button`
   height: 44px;
   border-radius: 14px;
   background: ${({ theme }) => theme.colors.primary};
-  color: white;
+  color: ${({ theme }) => theme.colors.onPrimary};
   display: flex;
   align-items: center;
   justify-content: center;

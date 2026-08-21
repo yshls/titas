@@ -144,7 +144,6 @@ const ActionBtn = styled.button`
   font-size: 11px;
   font-weight: 700;
   background-color: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(0, 0, 0, 0.05);
   cursor: pointer;
   color: #555;
   transition: all 0.2s;

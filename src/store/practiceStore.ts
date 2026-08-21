@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { DialogueLine, WeakSpot, PracticeLog } from '@/utils/types';
-import { type DiffResult } from '@/utils/diffChecker';
+import { type DiffResult, calculateAccuracy } from '@/utils/diffChecker';
 import { useAppStore } from './appStore';
 import { addPracticeLog as addPracticeLogLocally } from '@/utils/storageService';
 import { logPractice } from '@/services/fsrsService';
@@ -128,16 +128,9 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
     const user = useAppStore.getState().user;
     const addNewPracticeLog = useAppStore.getState().addNewPracticeLog;
 
-    let totalWords = 0;
-    let correctWords = 0;
-    Object.values(feedbackMap).forEach((diff) => {
-      diff.forEach((part) => {
-        if (part.status !== 'added') totalWords++;
-        if (part.status === 'correct') correctWords++;
-      });
-    });
-    const accuracy =
-      totalWords > 0 ? Math.round((correctWords / totalWords) * 100) : 100;
+    // 세션 전체 정확도: 모든 라인의 단어를 합산해 한 번에 계산한다.
+    const sessionDiff = Object.values(feedbackMap).flat();
+    const accuracy = Math.round(calculateAccuracy(sessionDiff).ratio * 100);
     const timeSpent = Math.floor((Date.now() - startTime) / 1000);
 
     const newLog: PracticeLog = {
@@ -159,15 +152,7 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
       const feedback = feedbackMap[lineIndex];
       if (!feedback) return;
 
-      let lineTotalWords = 0;
-      let lineCorrectWords = 0;
-      feedback.forEach((part) => {
-        if (part.status !== 'added') lineTotalWords++;
-        if (part.status === 'correct') lineCorrectWords++;
-      });
-
-      const lineAccuracy =
-        lineTotalWords > 0 ? lineCorrectWords / lineTotalWords : 1;
+      const lineAccuracy = calculateAccuracy(feedback).ratio;
       const isErrorLine = uniqueErrorLineIndexes.includes(lineIndex);
 
       let grade = 1; // 실패

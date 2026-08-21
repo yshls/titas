@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { defineConfig } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
@@ -63,5 +64,10 @@ export default defineConfig({
   },
   worker: {
     format: 'es',
+  },
+  test: {
+    // tests/·e2e/의 Playwright 스펙까지 Vitest가 실행하지 않도록 src 안으로 제한한다.
+    include: ['src/**/*.{test,spec}.{ts,tsx}'],
+    environment: 'node',
   },
 });

@@ -2,7 +2,7 @@ import React from 'react';
 import styled from '@emotion/styled';
 import { keyframes, css } from '@emotion/react';
 import { useTranslation } from 'react-i18next';
-import { FiMic, FiSend, FiX } from 'react-icons/fi';
+import { FiMic, FiSend, FiX, FiRefreshCw, FiArrowRight } from 'react-icons/fi';
 import { MdKeyboard, MdLightbulb } from 'react-icons/md';
 import { AudioVisualizer } from './AudioVisualizer';
 
@@ -168,6 +168,45 @@ const MobileHint = styled.div`
   `} 0.3s ease-out;
 `;
 
+// 결과를 본 뒤 다시 말할지 넘어갈지 고르는 바
+const ReviewIsland = styled.div`
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 340px;
+  padding: 8px;
+  border-radius: 100px;
+  background: ${({ theme }) => theme.cardBg};
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+`;
+
+const ReviewButton = styled.button<{ $primary?: boolean }>`
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px;
+  border: none;
+  border-radius: 100px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  background: ${({ $primary, theme }) =>
+    $primary ? theme.colors.primary : theme.background};
+  color: ${({ $primary, theme }) =>
+    $primary ? theme.colors.onPrimary : theme.textSub};
+
+  &:hover {
+    background: ${({ $primary, theme }) =>
+      $primary ? theme.colors.primaryHover : theme.border};
+  }
+`;
+
 interface InputBarProps {
   inputMode: 'mic' | 'keyboard';
   setInputMode: (mode: 'mic' | 'keyboard') => void;
@@ -181,6 +220,8 @@ interface InputBarProps {
   typedInput: string;
   setTypedInput: (text: string) => void;
   handleSendTypedInput: () => void;
+  handleRetryLine: () => void;
+  handleAdvanceLine: () => void;
 }
 
 export const InputBar = React.memo(function InputBar({
@@ -196,8 +237,29 @@ export const InputBar = React.memo(function InputBar({
   typedInput,
   setTypedInput,
   handleSendTypedInput,
+  handleRetryLine,
+  handleAdvanceLine,
 }: InputBarProps) {
   const { t } = useTranslation();
+
+  // 결과가 나왔으면 입력 대신 "다시 말하기 / 다음"을 보여준다.
+  if (hasFeedback) {
+    return (
+      <FloatingBarWrapper>
+        <ReviewIsland>
+          <ReviewButton onClick={handleRetryLine}>
+            <FiRefreshCw size={16} aria-hidden="true" />
+            {t('talk.retryLine')}
+          </ReviewButton>
+          <ReviewButton $primary onClick={handleAdvanceLine}>
+            {t('talk.nextLine')}
+            <FiArrowRight size={16} aria-hidden="true" />
+          </ReviewButton>
+        </ReviewIsland>
+      </FloatingBarWrapper>
+    );
+  }
+
   return (
     <FloatingBarWrapper>
       {/*  모바일 안내 메시지 추가 */}

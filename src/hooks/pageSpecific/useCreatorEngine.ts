@@ -12,6 +12,7 @@ export type CreatorDialogueLine = {
   id: string;
   speakerId: string;
   originalLine: string;
+  translatedLine?: string;
   speakerColor: string;
   isUserTurn: boolean;
 };
@@ -105,6 +106,17 @@ export function useCreatorEngine() {
     );
   };
 
+  // 한국어 뜻은 비워둘 수 있어야 해서 빈 문자열이면 필드를 지운다.
+  const handleUpdateLineTranslation = (id: string, newText: string) => {
+    setScriptLines((prev) =>
+      prev.map((line) =>
+        line.id === id
+          ? { ...line, translatedLine: newText.trim() || undefined }
+          : line,
+      ),
+    );
+  };
+
   const wipeDraft = () => {
     setScriptLines([]);
     setScriptTitle('');
@@ -131,6 +143,7 @@ export function useCreatorEngine() {
     handleAddLine,
     handleDeleteLine,
     handleUpdateLine,
+    handleUpdateLineTranslation,
     wipeDraft,
   };
 }

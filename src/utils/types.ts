@@ -16,7 +16,32 @@ export interface DialogueLine {
   speakerId: string; // 화자 이름 (Character.name과 매핑됨)
   speakerColor: string; // 할당된 실제 Hex 컬러 코드
   originalLine: string; // 대사 내용
+  /**
+   * 한국어 뜻. 무슨 말인지 모른 채 소리만 따라 하면 학습 효과가 떨어져서
+   * 연습·상세 화면에서 원문 아래에 함께 보여준다.
+   * lines(JSONB)에 함께 저장되므로 별도 컬럼이 필요 없다.
+   */
+  translatedLine?: string;
   isUserTurn?: boolean; // 사용자 차례 여부 (연습 모드용, 선택적)
+  /**
+   * 문장별 재생 속도 배율. 지정하지 않으면 기본 속도로 읽는다.
+   * scripts 테이블의 lines(JSONB)에 함께 저장되므로 별도 테이블이 필요 없다.
+   */
+  rate?: number;
+}
+
+/**
+ * 따로 모아둔 문장 (스크립트에서 저장 버튼으로 담은 것)
+ * Supabase 'saved_sentences' 테이블과 대응
+ */
+export interface SavedSentence {
+  id: string;
+  text: string;
+  speakerId?: string | null;
+  scriptId?: string | null;
+  scriptTitle?: string | null;
+  rate?: number | null;
+  createdAt: number;
 }
 
 /**

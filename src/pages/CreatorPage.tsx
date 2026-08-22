@@ -166,6 +166,7 @@ export function CreatorPage() {
     handleAddLine,
     handleDeleteLine,
     handleUpdateLine,
+    handleUpdateLineTranslation,
     wipeDraft,
   } = useCreatorEngine();
 
@@ -285,28 +286,59 @@ export function CreatorPage() {
                   onClick={() => setEditingLineId(line.id)}
                 >
                   <SpeakerIndicator color={line.speakerColor} inDialogue />
-                  <div className="content">
+                  {/* 원문과 뜻 입력칸 사이를 오갈 때는 편집을 유지하고,
+                      블록 바깥으로 나갈 때만 편집을 끝낸다. */}
+                  <div
+                    className="content"
+                    onBlur={(e) => {
+                      if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                        setEditingLineId(null);
+                      }
+                    }}
+                  >
                     <div className="speaker-label">
                       {speakers.find((s) => s.id === line.speakerId)?.name || line.speakerId}
                     </div>
                     {editingLineId === line.id ? (
-                      <textarea
-                        className="edit-input"
-                        value={line.originalLine}
-                        onChange={(e) => handleUpdateLine(line.id, e.target.value)}
-                        onBlur={() => setEditingLineId(null)}
-                        autoFocus
-                        rows={Math.max(1, Math.ceil(line.originalLine.length / 50))}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault();
-                            setEditingLineId(null);
+                      <>
+                        <textarea
+                          className="edit-input"
+                          value={line.originalLine}
+                          onChange={(e) => handleUpdateLine(line.id, e.target.value)}
+                          autoFocus
+                          rows={Math.max(1, Math.ceil(line.originalLine.length / 50))}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
+                              setEditingLineId(null);
+                            }
+                          }}
+                          aria-label={t('creator.dialogueEditAria')}
+                        />
+                        <textarea
+                          className="translation-input"
+                          value={line.translatedLine ?? ''}
+                          onChange={(e) =>
+                            handleUpdateLineTranslation(line.id, e.target.value)
                           }
-                        }}
-                        aria-label={t('creator.dialogueEditAria')}
-                      />
+                          rows={1}
+                          placeholder={t('creator.translationPlaceholder')}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
+                              setEditingLineId(null);
+                            }
+                          }}
+                          aria-label={t('creator.translationEditAria')}
+                        />
+                      </>
                     ) : (
-                      <p className="text-display">{line.originalLine}</p>
+                      <>
+                        <p className="text-display">{line.originalLine}</p>
+                        {line.translatedLine && (
+                          <p className="translation-display">{line.translatedLine}</p>
+                        )}
+                      </>
                     )}
                   </div>
                   <DeleteLineButton

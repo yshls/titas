@@ -1,5 +1,11 @@
 import { supabase } from '@/supabaseClient';
-import type { ScriptData, PracticeLog, Mission, DialogueLine } from '@/utils/types';
+import type {
+  ScriptData,
+  PracticeLog,
+  Mission,
+  DialogueLine,
+  SavedSentence,
+} from '@/utils/types';
 import dayjs from 'dayjs';
 
 const SCRIPTS_KEY = 'titas_scripts';
@@ -232,4 +238,108 @@ export const toggleMissionInDB = async (id: string, completed: boolean) => {
 
 export const deleteMissionFromDB = async (id: string) => {
   await supabase.from('missions').delete().eq('id', id);
+};
+
+// --- 저장한 문장 관리 ---
+
+const SAVED_SENTENCES_KEY = 'titas_saved_sentences';
+
+const readLocalSaved = (): SavedSentence[] => {
+  const raw = localStorage.getItem(SAVED_SENTENCES_KEY);
+  return raw ? JSON.parse(raw) : [];
+};
+
+const writeLocalSaved = (items: SavedSentence[]) => {
+  localStorage.setItem(SAVED_SENTENCES_KEY, JSON.stringify(items));
+};
+
+const mapSavedRow = (row: any): SavedSentence => ({
+  id: row.id.toString(),
+  text: row.text,
+  speakerId: row.speaker_id,
+  scriptId: row.script_id,
+  scriptTitle: row.script_title,
+  rate: row.rate,
+  createdAt: new Date(row.created_at).getTime(),
+});
+
+export const fetchSavedSentences = async (): Promise<SavedSentence[]> => {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return readLocalSaved().sort((a, b) => b.createdAt - a.createdAt);
+  }
+
+  const { data, error } = await supabase
+    .from('saved_sentences')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  return data.map(mapSavedRow);
+};
+
+export const saveSentenceToDB = async (
+  sentence: SavedSentence,
+): Promise<SavedSentence> => {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    const items = readLocalSaved();
+    // 같은 문장을 중복으로 담지 않는다 (DB의 unique 인덱스와 동일한 규칙).
+    if (items.some((s) => s.text === sentence.text)) {
+      return sentence;
+    }
+    writeLocalSaved([sentence, ...items]);
+    return sentence;
+  }
+
+  const { data, error } = await supabase
+    .from('saved_sentences')
+    .upsert(
+      {
+        user_id: user.id,
+        text: sentence.text,
+        speaker_id: sentence.speakerId,
+        script_id: sentence.scriptId,
+        script_title: sentence.scriptTitle,
+        rate: sentence.rate,
+      },
+      { onConflict: 'user_id, text' },
+    )
+    .select()
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return mapSavedRow(data);
+};
+
+export const deleteSavedSentenceFromDB = async (id: string) => {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    writeLocalSaved(readLocalSaved().filter((s) => s.id !== id));
+    return;
+  }
+
+  const { error } = await supabase
+    .from('saved_sentences')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    throw error;
+  }
 };

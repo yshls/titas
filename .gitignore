@@ -103,6 +103,10 @@ build
 # ----------------------------------------
 supabase/.temp
 
+# DB 스키마·마이그레이션은 저장소가 공개돼 있어 커밋하지 않는다.
+# 실행은 Supabase 대시보드 SQL Editor에서 직접 한다.
+supabase/migrations/
+
 # Playwright
 /test-results/
 /playwright-report/

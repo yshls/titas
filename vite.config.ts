@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { defineConfig } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
@@ -63,5 +64,16 @@ export default defineConfig({
   },
   worker: {
     format: 'es',
+  },
+  test: {
+    // tests/·e2e/의 Playwright 스펙까지 Vitest가 실행하지 않도록 src 안으로 제한한다.
+    include: ['src/**/*.{test,spec}.{ts,tsx}'],
+    environment: 'node',
+    // supabaseClient는 키가 없으면 모듈을 읽는 순간 예외를 던진다.
+    // 실제 통신은 하지 않으므로 테스트에서만 형식이 맞는 더미 값을 넣어준다.
+    env: {
+      VITE_SUPABASE_URL: 'https://test.supabase.co',
+      VITE_SUPABASE_ANON_KEY: 'test-anon-key',
+    },
   },
 });

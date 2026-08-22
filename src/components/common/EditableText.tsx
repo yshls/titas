@@ -21,6 +21,10 @@ const TextContent = styled.div`
   white-space: pre-wrap;
 `;
 
+const PlaceholderText = styled.span`
+  color: ${({ theme }) => theme.colors?.grey400 || '#adb5bd'};
+`;
+
 const EditIconWrapper = styled.button`
   background: none;
   border: none;
@@ -58,9 +62,16 @@ interface EditableTextProps {
   initialText: string;
   onSave: (newText: string) => void;
   onEditStart?: () => void;
+  /** 비어 있을 때 대신 보여줄 안내 문구 (한국어 뜻처럼 비워둘 수 있는 값에 사용) */
+  placeholder?: string;
 }
 
-export function EditableText({ initialText, onSave, onEditStart }: EditableTextProps) {
+export function EditableText({
+  initialText,
+  onSave,
+  onEditStart,
+  placeholder,
+}: EditableTextProps) {
   const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const [text, setText] = useState(initialText);
@@ -87,9 +98,12 @@ export function EditableText({ initialText, onSave, onEditStart }: EditableTextP
 
   const handleSave = () => {
     const trimmedText = text.trim();
-    if (trimmedText && trimmedText !== initialText) {
+    // placeholder가 있는 칸은 비워두는 것도 유효한 값이라 빈 문자열도 저장한다.
+    const canBeEmpty = placeholder !== undefined;
+
+    if (trimmedText !== initialText && (trimmedText || canBeEmpty)) {
       onSave(trimmedText);
-    } else {
+    } else if (!trimmedText && !canBeEmpty) {
       setText(initialText); // 원복
     }
     setIsEditing(false);
@@ -115,14 +129,22 @@ export function EditableText({ initialText, onSave, onEditStart }: EditableTextP
         onBlur={handleSave}
         onKeyDown={handleKeyDown}
         onClick={(e) => e.stopPropagation()}
+        placeholder={placeholder}
       />
     );
   }
 
+  // 안내 문구만 있는 빈 칸은 한 번만 눌러도 바로 채울 수 있게 한다.
+  // (더블클릭은 마우스에서만 편해서 모바일에서는 채울 방법이 없다.)
+  const isEmptyPlaceholder = !initialText && placeholder !== undefined;
+
   return (
     <Container>
-      <TextContent onDoubleClick={handleEditStart}>
-        {initialText}
+      <TextContent
+        onDoubleClick={handleEditStart}
+        onClick={isEmptyPlaceholder ? handleEditStart : undefined}
+      >
+        {initialText || <PlaceholderText>{placeholder}</PlaceholderText>}
       </TextContent>
       <EditIconWrapper onClick={handleEditStart} className="edit-icon" title={t('common.button.edit')}>
         <MdEdit size={16} />

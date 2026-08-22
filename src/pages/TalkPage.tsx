@@ -87,6 +87,8 @@ export function TalkPage() {
     mediaStream,
     handleMicClick,
     handleKeyboardSubmit,
+    handleRetryLine,
+    handleAdvanceLine,
     handleStartPractice,
     handleRetryPractice,
     handleStopPractice,
@@ -178,6 +180,8 @@ export function TalkPage() {
           typedInput={typedInput}
           setTypedInput={setTypedInput}
           handleSendTypedInput={handleKeyboardSubmit}
+          handleRetryLine={handleRetryLine}
+          handleAdvanceLine={handleAdvanceLine}
         />
       )}
 

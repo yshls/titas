@@ -46,6 +46,12 @@ export interface AppState {
   loadInitialData: () => Promise<void>;
   saveNewScript: (script: ScriptData) => Promise<void>;
   updateScriptLine: (scriptId: string, lineId: string, newText: string) => void;
+  updateScriptLineRate: (scriptId: string, lineId: string, rate: number) => void;
+  updateScriptLineTranslation: (
+    scriptId: string,
+    lineId: string,
+    translation: string,
+  ) => void;
   deleteScript: (scriptId: string) => Promise<void>;
   addNewPracticeLog: (
     logEntry: PracticeLog,
@@ -89,6 +95,45 @@ const getInitialTheme = (): 'light' | 'dark' => {
     }
   }
   return 'light';
+};
+
+
+/**
+ * 대본의 라인 하나를 부분 수정하고 DB에 반영한다.
+ * UI를 먼저 바꾼 뒤 저장하고, 실패하면 원래 상태로 되돌린다.
+ */
+const patchScriptLine = (
+  set: (partial: Partial<AppState>) => void,
+  get: () => AppState,
+  scriptId: string,
+  lineId: string,
+  patch: Partial<DialogueLine>,
+) => {
+  const originalScripts = get().allScripts;
+
+  const newAllScripts = originalScripts.map((script) =>
+    script.id === scriptId
+      ? {
+          ...script,
+          lines: script.lines.map((line) =>
+            line.id === lineId ? { ...line, ...patch } : line,
+          ),
+        }
+      : script,
+  );
+
+  const targetScript = newAllScripts.find((s) => s.id === scriptId);
+  if (!targetScript) return;
+
+  set({ allScripts: newAllScripts });
+
+  import('@/services/dbService').then(({ updateScriptLinesInDB }) => {
+    updateScriptLinesInDB(scriptId, targetScript.lines).catch((err) => {
+      console.error('Update failed, reverting state.', err);
+      set({ allScripts: originalScripts });
+      toast.error(i18n.t('toast.updateLineFailed'));
+    });
+  });
 };
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -184,34 +229,19 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   // 스크립트 라인 수정 (낙관적 업데이트)
   updateScriptLine: (scriptId, lineId, newText) => {
-    const originalScripts = get().allScripts;
+    patchScriptLine(set, get, scriptId, lineId, { originalLine: newText });
+  },
 
-    const newAllScripts = originalScripts.map((script) => {
-      if (script.id === scriptId) {
-        const updatedLines = script.lines.map((line) =>
-          line.id === lineId ? { ...line, originalLine: newText } : line
-        );
-        return { ...script, lines: updatedLines };
-      }
-      return script;
+  // 문장별 재생 속도 저장 (lines JSONB에 함께 보관)
+  updateScriptLineRate: (scriptId, lineId, rate) => {
+    patchScriptLine(set, get, scriptId, lineId, { rate });
+  },
+
+  // 한국어 뜻 저장. 비우면 필드를 지워 저장 용량을 늘리지 않는다.
+  updateScriptLineTranslation: (scriptId, lineId, translation) => {
+    patchScriptLine(set, get, scriptId, lineId, {
+      translatedLine: translation.trim() || undefined,
     });
-
-    const targetScript = newAllScripts.find((s) => s.id === scriptId);
-    if (!targetScript) return;
-
-    // 1. 낙관적 UI 업데이트
-    set({ allScripts: newAllScripts });
-
-    // 2. 백그라운드 DB 업데이트 및 실패 시 롤백
-    import('@/services/dbService')
-      .then(({ updateScriptLinesInDB }) => {
-        updateScriptLinesInDB(scriptId, targetScript.lines).catch((err) => {
-          console.error('Update failed, reverting state.', err);
-          // 3. 실패 시 원본 상태로 되돌리기
-          set({ allScripts: originalScripts });
-          toast.error(i18n.t('toast.updateLineFailed'));
-        });
-      });
   },
 
   // 스크립트 삭제

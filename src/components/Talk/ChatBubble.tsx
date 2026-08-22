@@ -128,6 +128,16 @@ const HintText = styled.span`
   opacity: 0.5;
 `;
 
+// 한국어 뜻. 원문을 가린 상태에서도 무슨 말을 해야 하는지 알 수 있게 한다.
+// 내 차례에는 원문 위(말할 내용의 단서), 상대 대사에는 원문 아래(해석)에 둔다.
+const TranslatedText = styled.div<{ $below?: boolean }>`
+  font-size: 13px;
+  line-height: 1.5;
+  opacity: 0.65;
+  word-break: keep-all;
+  ${({ $below }) => ($below ? 'margin-top: 6px;' : 'margin-bottom: 6px;')}
+`;
+
 const ActionButtons = styled.div`
   display: flex;
   gap: 6px;
@@ -207,6 +217,9 @@ export const ChatBubble = React.memo(function ChatBubble({
 
           {isUser ? (
             <>
+              {line.translatedLine && (
+                <TranslatedText>{line.translatedLine}</TranslatedText>
+              )}
               {feedback ? (
                 <>
                   <DialogueText style={{ opacity: 0.7, fontSize: '15px' }}>
@@ -229,7 +242,12 @@ export const ChatBubble = React.memo(function ChatBubble({
               )}
             </>
           ) : (
-            <DialogueText>{line.originalLine}</DialogueText>
+            <>
+              <DialogueText>{line.originalLine}</DialogueText>
+              {line.translatedLine && (
+                <TranslatedText $below>{line.translatedLine}</TranslatedText>
+              )}
+            </>
           )}
         </MessageBubble>
 

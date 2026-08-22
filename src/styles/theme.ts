@@ -1,149 +1,202 @@
+const greyColors = {
+  grey50: '#FAFAFA',
+  grey100: '#DFDFDF',
+  grey200: '#C5C5C5',
+  grey300: '#ABABAB',
+  grey400: '#909090',
+  grey500: '#767676',
+  grey600: '#5B5B5B',
+  grey700: '#414141',
+  grey800: '#262626',
+  grey900: '#0C0C0C', // 원본 스와치
+};
+
+const greenColors = {
+  green50: '#F8FCF9',
+  green100: '#D5ECDA',
+  green200: '#B1DCBA',
+  green300: '#8ECD9B',
+  green400: '#6ABD7C',
+  green500: '#4BA95F', // 원본 스와치
+  green600: '#3B864B',
+  green700: '#2C6337',
+  green800: '#1C3F24',
+  green900: '#0D1C10',
+};
+
+const blueColors = {
+  blue50: '#F5FDFF',
+  blue100: '#DCF6FE',
+  blue200: '#C3F0FD',
+  blue300: '#A9EAFC',
+  blue400: '#90E3FB',
+  blue500: '#77DDFA', // 원본 스와치
+  blue600: '#28C9F7',
+  blue700: '#079BC6',
+  blue800: '#045D76',
+  blue900: '#011F27',
+};
+
+const amberColors = {
+  amber50: '#FFFAF5',
+  amber100: '#FFE9CF',
+  amber200: '#FFD7AA',
+  amber300: '#FEC684',
+  amber400: '#FEB45F',
+  amber500: '#FEA339', // 원본 스와치
+  amber600: '#F28301',
+  amber700: '#AF5F01',
+  amber800: '#6C3A01',
+  amber900: '#291600',
+};
+
+const brandColors = {
+  brand50: '#F7F5FF',
+  brand100: '#E4DFFE',
+  brand200: '#D1C8FD',
+  brand300: '#BEB2FC',
+  brand400: '#AC9BFC',
+  brand500: '#9985FB', // 원본 스와치
+  brand600: '#5432F8',
+  brand700: '#2807CE',
+  brand800: '#18047B',
+  brand900: '#080128',
+};
+
+const magentaColors = {
+  magenta50: '#FCF6FC',
+  magenta100: '#F6E3F6',
+  magenta200: '#ECC7EC',
+  magenta300: '#E0A7E0',
+  magenta400: '#D285D2',
+  magenta500: '#C264C2', // 원본 스와치 (5번째 화자 마젠타/오키드)
+  magenta600: '#A948A9',
+  magenta700: '#863286',
+  magenta800: '#5D205D',
+  magenta900: '#330E33',
+};
+
+const redColors = {
+  red50: '#FFF5F5',
+  red100: '#FFE1E0',
+  red200: '#FFCDCB',
+  red300: '#FFB8B7',
+  red400: '#FFA4A2',
+  red500: '#FF908D', // 원본 스와치
+  red600: '#FF3A34',
+  red700: '#DA0600',
+  red800: '#820300',
+  red900: '#290100',
+};
+
 const colors = {
   // 브랜드
-  primary: '#1db954',
-  primaryHover: '#1aa34a',
-  primaryLight: '#f1fbf5',
-  /*
-   * primary 위에 얹는 글자색. 밝은 그린이라 흰 글자는 대비가 2.59로 기준(4.5)에
-   * 못 미치지만, 진한 글자를 쓰면 6.4로 통과한다.
-   */
-  onPrimary: '#191f28',
+  primary: brandColors.brand500,
+  primaryHover: brandColors.brand600,
+  primaryLight: brandColors.brand50,
+  onPrimary: '#ffffff',
+
+  accent: amberColors.amber500,
+  onAccent: '#2d3136', // 밝은 톤이라 흰색보다 다크텍스트가 대비 좋음
 
   // 기능
-  success: '#3182f6',
-  error: '#f04452',
+  success: greenColors.green500,
+  onSuccess: '#ffffff',
+  error: redColors.red500,
+  errorText: redColors.red700, // 텍스트/아이콘용으로는 500보다 진한 700이 가독성 좋음
+  onError: '#ffffff',
 
-  // 그레이
-  grey50: '#f9fafb',
-  grey100: '#f2f4f6',
-  grey200: '#e5e8eb',
-  grey300: '#d1d6db',
-  grey400: '#b0b8c1',
-  grey500: '#8b95a1',
-  grey600: '#6b7684',
-  grey700: '#4e5968',
-  grey800: '#333d4b',
-  grey900: '#191f28',
-
-  // 브랜드 그린 스케일
-  brand50: '#f1fbf5',
-  brand100: '#dbf4e4',
-  brand200: '#b2e7c5',
-  brand300: '#80d89f',
-  brand400: '#4fc87a',
-  brand500: '#1db954',
-  brand600: '#1aa34a',
-  brand700: '#15893e',
-  brand800: '#116f32',
-  brand900: '#0e5928',
-
-  // 블루
-  blue50: '#e8f3ff',
-  blue100: '#c9e2ff',
-  blue200: '#90c2ff',
-  blue300: '#64a8ff',
-  blue400: '#4593fc',
-  blue500: '#3182f6',
-  blue600: '#2272eb',
-  blue700: '#1b64da',
-  blue800: '#1957c2',
-  blue900: '#194aa6',
-
-  // 레드
-  red50: '#ffeeee',
-  red100: '#ffd4d6',
-  red200: '#feafb4',
-  red300: '#fb8890',
-  red400: '#f66570',
-  red500: '#f04452',
-  red600: '#e42939',
-  red700: '#d22030',
-  red800: '#bc1b2a',
-  red900: '#a51926',
-
-  // 그린
-  green50: '#f0faf6',
-  green100: '#aeefd5',
-  green200: '#76e4b8',
-  green300: '#3fd599',
-  green400: '#15c47e',
-  green500: '#03b26c',
-  green600: '#02a262',
-  green700: '#029359',
-  green800: '#028450',
-  green900: '#027648',
+  // 스케일 전체 (필요시 직접 참조)
+  ...greyColors,
+  ...greenColors,
+  ...blueColors,
+  ...amberColors,
+  ...brandColors,
+  ...magentaColors,
+  ...redColors,
 };
 
 export const lightTheme = {
   colors,
-  background: '#FAFAFA',
-  cardBg: '#FFFFFF',
-  textMain: '#333d4b',
-  textSub: '#4e5968', // grey700 for WCAG AA (4.5:1+)
-  textDisabled: '#b0b8c1',
-  border: '#e5e8eb',
+  background: greyColors.grey50,
+  cardBg: '#ffffff',
+  textMain: greyColors.grey900,
+  textSub: greyColors.grey500,
+  textDisabled: greyColors.grey300,
+  border: greyColors.grey200,
+  borderSubtle: greyColors.grey100,
   mode: 'light' as 'light' | 'dark',
-  // 화자 말풍선 배경 및 텍스트 (Light Mode)
+  // 화자 말풍선 — 각 컬러 패밀리의 파스텔(50~100) 단계에서 배경을,
+  // 진한 단계(700)에서 텍스트를 가져와서 스케일과 정합성을 맞춤
   speaker: {
-    blue: '#e8f3ff',
-    red: '#ffeeee',
-    green: '#f0faf6',
-    amber: '#fff8e1',
-    purple: '#f3e5f5',
-    // 하위 호환성
-    blue50: '#e8f3ff',
-    red50: '#ffeeee',
-    green50: '#f0faf6',
-    amber50: '#fff8e1',
-    purple50: '#f3e5f5',
+    speaker1: greenColors.green100,
+    speaker2: blueColors.blue100,
+    speaker3: amberColors.amber100,
+    speaker4: redColors.red100,
+    speaker5: magentaColors.magenta100,
+    blue: blueColors.blue100,
+    red: redColors.red100,
+    green: greenColors.green100,
+    amber: amberColors.amber100,
+    purple: magentaColors.magenta100,
   },
   speakerText: {
-    blue: '#1e3a8a',
-    red: '#881337',
-    green: '#064e3b',
-    amber: '#78350f',
-    purple: '#581c87',
-    main: '#191f28',
-    sub: '#4e5968',
+    speaker1: greenColors.green700,
+    speaker2: blueColors.blue700,
+    speaker3: amberColors.amber700,
+    speaker4: redColors.red700,
+    speaker5: magentaColors.magenta700,
+    blue: blueColors.blue700,
+    red: redColors.red700,
+    green: greenColors.green700,
+    amber: amberColors.amber700,
+    purple: magentaColors.magenta700,
+    main: greyColors.grey900,
+    sub: greyColors.grey500,
   },
 };
 
 export const darkTheme = {
   colors,
-  background: '#1a1a1a',
-  cardBg: '#242424',
-  textMain: '#d4d4d4',
-  textSub: '#9ca3af',
-  textDisabled: '#6b7280',
-  border: '#333333',
+  background: '#1a1918',
+  cardBg: '#242322',
+  textMain: '#f2f1ed',
+  textSub: greyColors.grey300,
+  textDisabled: greyColors.grey600,
+  border: greyColors.grey700,
+  borderSubtle: '#2a2826',
   mode: 'dark' as 'light' | 'dark',
-  // 화자 말풍선 배경 및 텍스트 (Dark Mode: #1a1a1a 위 눈부심 제거 및 WCAG AA/AAA 대비 충족)
+  // 다크모드 화자 배경은 각 컬러의 900(가장 어두운 단계)을,
+  // 텍스트는 200(밝은 파스텔)을 사용해 어두운 배경 위 대비를 확보
   speaker: {
-    blue: '#1a2736',
-    red: '#351c22',
-    green: '#152b22',
-    amber: '#302412',
-    purple: '#281a36',
-    // 하위 호환성
-    blue50: '#1a2736',
-    red50: '#351c22',
-    green50: '#152b22',
-    amber50: '#302412',
-    purple50: '#281a36',
+    speaker1: greenColors.green900,
+    speaker2: blueColors.blue900,
+    speaker3: amberColors.amber900,
+    speaker4: redColors.red900,
+    speaker5: magentaColors.magenta900,
+    blue: blueColors.blue900,
+    red: redColors.red900,
+    green: greenColors.green900,
+    amber: amberColors.amber900,
+    purple: magentaColors.magenta900,
   },
   speakerText: {
-    blue: '#93c5fd',
-    red: '#fda4af',
-    green: '#6ee7b7',
-    amber: '#fcd34d',
-    purple: '#d8b4fe',
-    main: '#f3f4f6',
-    sub: '#9ca3af',
+    speaker1: greenColors.green200,
+    speaker2: blueColors.blue200,
+    speaker3: amberColors.amber200,
+    speaker4: redColors.red200,
+    speaker5: magentaColors.magenta200,
+    blue: blueColors.blue200,
+    red: redColors.red200,
+    green: greenColors.green200,
+    amber: amberColors.amber200,
+    purple: magentaColors.magenta200,
+    main: '#f2f1ed',
+    sub: greyColors.grey300,
   },
 };
 
-// 하위 호환성을 위해 lightTheme을 기본 theme으로 export
 export const theme = lightTheme;
 
 export type Theme = typeof lightTheme;
-export type ThemeType = Theme;
+export type ThemeType = Theme;

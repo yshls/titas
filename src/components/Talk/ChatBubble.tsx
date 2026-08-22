@@ -6,13 +6,6 @@ import type { DialogueLine } from '@/utils/types';
 import { type DiffResult } from '@/utils/diffChecker';
 import { motion } from 'framer-motion';
 
-const DIFF_COLOR_MAP = {
-  correct: 'color: #059669; font-weight: 800; text-shadow: none;',
-  removed: 'color: #ef4444; text-decoration: line-through; opacity: 0.75;',
-  added: 'color: #3b82f6; font-weight: 700;',
-  neutral: 'color: inherit;',
-};
-
 const MessageRow = styled.div<{ isRight: boolean }>`
   display: flex;
   justify-content: ${({ isRight }) => (isRight ? 'flex-end' : 'flex-start')};
@@ -44,7 +37,7 @@ const MessageBubble = styled(motion.div)<{
   overflow-wrap: anywhere;
   background-color: ${({ bgColor, theme }) =>
     (theme.speaker as Record<string, string>)?.[bgColor] || bgColor};
-  color: ${({ theme }) => theme.speakerText.main};
+  color: ${({ theme }) => theme.textMain};
 
   /* Focus Styles */
   opacity: ${({ isFocused }) => (isFocused ? 1 : 0.4)};
@@ -76,7 +69,7 @@ const BubbleHeader = styled.div<{ isRight: boolean }>`
   opacity: 0.8;
   gap: 8px;
   flex-direction: ${({ isRight }) => (isRight ? 'row-reverse' : 'row')};
-  color: ${({ theme }) => theme.speakerText.sub};
+  color: ${({ theme }) => theme.textSub};
 `;
 
 const SpeakerName = styled.span`
@@ -106,7 +99,7 @@ const DialogueText = styled.div`
   font-size: 15px;
   line-height: 1.5;
   font-weight: 500;
-  color: ${({ theme }) => theme.speakerText.main};
+  color: ${({ theme }) => theme.textMain};
   word-break: break-word;
   overflow-wrap: anywhere;
 `;
@@ -123,7 +116,7 @@ const BlurredText = styled.div`
 const FeedbackContainer = styled.div`
   margin-top: 8px;
   padding-top: 8px;
-  border-top: 1px solid ${({ theme }) => (theme.mode === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)')};
+  border-top: 1px solid ${({ theme }) => theme.borderSubtle};
   font-size: 14px;
   line-height: 1.55;
 `;
@@ -134,10 +127,16 @@ const Highlight = styled.span<{
   font-weight: 600;
   padding: 0 2px;
 
-  ${({ type }) => type === 'correct' && DIFF_COLOR_MAP.correct}
-  ${({ type }) => type === 'removed' && DIFF_COLOR_MAP.removed}
-  ${({ type }) => type === 'added' && DIFF_COLOR_MAP.added}
-  ${({ type }) => type === 'neutral' && DIFF_COLOR_MAP.neutral}
+  ${({ type, theme }) =>
+    type === 'correct' &&
+    `color: ${theme.colors.success}; font-weight: 800; text-shadow: none;`}
+  ${({ type, theme }) =>
+    type === 'removed' &&
+    `color: ${theme.colors.errorText}; text-decoration: line-through; opacity: 0.75;`}
+  ${({ type, theme }) =>
+    type === 'added' &&
+    `color: ${theme.colors.blue700}; font-weight: 700;`}
+  ${({ type }) => type === 'neutral' && 'color: inherit;'}
 `;
 
 const HintText = styled.span`
@@ -149,7 +148,7 @@ const HintText = styled.span`
 const TranslatedText = styled.div<{ $below?: boolean }>`
   font-size: 13px;
   line-height: 1.45;
-  color: ${({ theme }) => theme.speakerText.sub};
+  color: ${({ theme }) => theme.textSub};
   opacity: 0.85;
   word-break: keep-all;
   overflow-wrap: break-word;
@@ -171,16 +170,14 @@ const ActionBtn = styled.button`
   border-radius: 10px;
   font-size: 11px;
   font-weight: 700;
-  background-color: ${({ theme }) =>
-    theme.mode === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.7)'};
+  background-color: ${({ theme }) => theme.cardBg};
   cursor: pointer;
   color: ${({ theme }) => theme.textMain};
-  border: 1px solid ${({ theme }) => (theme.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'transparent')};
+  border: 1px solid ${({ theme }) => theme.borderSubtle};
   transition: all 0.2s;
 
   &:hover {
-    background-color: ${({ theme }) =>
-      theme.mode === 'dark' ? 'rgba(255, 255, 255, 0.2)' : '#ffffff'};
+    background-color: ${({ theme }) => theme.borderSubtle};
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   }

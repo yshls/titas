@@ -28,7 +28,7 @@ const ModalOverlay = styled.div`
 `;
 
 const ModalContent = styled.div`
-  background: white;
+  background: ${({ theme }) => theme.cardBg};
   padding: 16px;
   border-radius: 24px;
   text-align: center;
@@ -45,25 +45,25 @@ const CloseButton = styled.button`
   right: 16px;
   background: none;
   border: none;
-  color: #9daab8;
+  color: ${({ theme }) => theme.textDisabled};
   cursor: pointer;
   padding: 4px;
   border-radius: 50%;
   &:hover {
-    background: #f2f4f6;
-    color: #333;
+    background: ${({ theme }) => theme.borderSubtle};
+    color: ${({ theme }) => theme.textMain};
   }
 `;
 
 const ModalIcon = styled.div`
   width: 64px;
   height: 64px;
-  background: #e8f5e9;
+  background: ${({ theme }) => theme.speaker.speaker1};
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #4caf50;
+  color: ${({ theme }) => theme.colors.success};
   font-size: 32px;
   margin: 0 auto 16px;
 `;
@@ -71,12 +71,13 @@ const ModalIcon = styled.div`
 const ModalTitle = styled.h2`
   font-size: 20px;
   font-weight: 800;
-  color: #333;
+  color: ${({ theme }) => theme.textMain};
+  font-family: 'Shantell Sans', cursive;
   margin-bottom: 8px;
 `;
 
 const ModalText = styled.p`
-  color: #6b7684;
+  color: ${({ theme }) => theme.textSub};
   margin-bottom: 24px;
   font-size: 15px;
 `;
@@ -97,7 +98,10 @@ const PrimaryButton = styled.button`
   font-size: 15px;
   border: none;
   cursor: pointer;
-  transition: transform 0.1s;
+  transition: transform 0.1s, background-color 0.2s;
+  &:hover {
+    background: ${({ theme }) => theme.colors.primaryHover};
+  }
   &:active {
     transform: scale(0.98);
   }
@@ -107,14 +111,15 @@ const SecondaryButton = styled.button`
   width: 100%;
   padding: 14px;
   border-radius: 14px;
-  background: #f2f4f6;
-  color: #4e5968;
+  background: ${({ theme }) => theme.background};
+  color: ${({ theme }) => theme.textMain};
+  border: 1px solid ${({ theme }) => theme.borderSubtle};
   font-weight: 700;
   font-size: 15px;
-  border: none;
   cursor: pointer;
+  transition: background-color 0.2s;
   &:hover {
-    background: #e5e8eb;
+    background: ${({ theme }) => theme.borderSubtle};
   }
 `;
 

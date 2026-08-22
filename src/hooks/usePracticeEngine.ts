@@ -7,11 +7,10 @@ import { useTTS } from '@/utils/useTTS';
 import type { DialogueLine } from '@/utils/types';
 
 const PALETTE = [
-  '#e8f3ff', // blue50
-  '#ffeeee', // red50
-  '#f0faf6', // green50
-  '#fff8e1', // amber50
-  '#f3e5f5', // purple50
+  'speaker1',
+  'speaker2',
+  'speaker3',
+  'speaker4',
 ];
 
 interface PracticeEngineProps {

@@ -7,15 +7,15 @@ import { MdKeyboard, MdLightbulb } from 'react-icons/md';
 import { AudioVisualizer } from './AudioVisualizer';
 
 // Zero-reflow: 레이아웃 크기를 변경하지 않고 외곽 파동 링을 표현하는 box-shadow 애니메이션
-const pulseRing = keyframes`
+const pulseRing = (errorColor: string) => keyframes`
   0% {
-    box-shadow: 0 0 0 0 rgba(240, 68, 82, 0.65);
+    box-shadow: 0 0 0 0 ${errorColor}a6;
   }
   70% {
-    box-shadow: 0 0 0 14px rgba(240, 68, 82, 0);
+    box-shadow: 0 0 0 14px transparent;
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(240, 68, 82, 0);
+    box-shadow: 0 0 0 0 transparent;
   }
 `;
 
@@ -31,7 +31,7 @@ const FloatingBarWrapper = styled.div`
   background: linear-gradient(
     to top,
     ${({ theme }) => theme.background} 30%,
-    rgba(255, 255, 255, 0) 100%
+    transparent 100%
   );
   z-index: 30;
 `;
@@ -39,12 +39,12 @@ const FloatingBarWrapper = styled.div`
 const FloatingIsland = styled.div`
   pointer-events: auto;
   background: ${({ theme }) =>
-    theme.mode === 'dark' ? 'rgba(36, 36, 36, 0.92)' : 'rgba(255, 255, 255, 0.95)'};
+    theme.mode === 'dark' ? 'rgba(36, 35, 34, 0.95)' : 'rgba(255, 255, 255, 0.95)'};
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   padding: 6px 8px;
   border-radius: 100px;
-  border: 1px solid ${({ theme }) => (theme.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)')};
+  border: 1px solid ${({ theme }) => theme.borderSubtle};
   display: flex;
   align-items: center;
   gap: 8px;
@@ -63,19 +63,13 @@ const SideButton = styled.button<{ active?: boolean }>`
   justify-content: center;
   flex-shrink: 0;
   color: ${({ active, theme }) => (active ? theme.colors.primary : theme.textSub)};
-  background: ${({ active, theme }) =>
-    active
-      ? theme.mode === 'dark'
-        ? 'rgba(255, 255, 255, 0.1)'
-        : '#F2F4F6'
-      : 'transparent'};
+  background: ${({ active, theme }) => (active ? theme.borderSubtle : 'transparent')};
   border: none;
   cursor: pointer;
   transition: all 0.2s;
 
   &:hover {
-    background: ${({ theme }) =>
-      theme.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : '#f2f4f6'};
+    background: ${({ theme }) => theme.borderSubtle};
     color: ${({ theme }) => theme.textMain};
   }
 
@@ -104,7 +98,7 @@ const HeroMicButton = styled.button<{ isListening: boolean }>`
   align-items: center;
   justify-content: center;
   transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.25s ease;
-  border: 3px solid ${({ theme }) => (theme.mode === 'dark' ? '#333333' : '#ffffff')};
+  border: 3px solid ${({ theme }) => (theme.mode === 'dark' ? theme.border : '#ffffff')};
   cursor: pointer;
   flex-shrink: 0;
 
@@ -112,13 +106,14 @@ const HeroMicButton = styled.button<{ isListening: boolean }>`
     isListening
       ? css`
           background-color: ${theme.colors.error};
-          color: white;
-          animation: ${pulseRing} 1.8s infinite;
+          color: ${theme.colors.onPrimary};
+          animation: ${pulseRing(theme.colors.error)} 1.8s infinite;
         `
       : css`
           background-color: ${theme.colors.primary};
           color: ${theme.colors.onPrimary};
           &:hover {
+            background-color: ${theme.colors.primaryHover};
             transform: scale(1.06);
           }
         `}
@@ -175,16 +170,20 @@ const SendBtn = styled.button`
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: transform 0.1s;
+  transition: transform 0.1s, background-color 0.2s;
   border: none;
   cursor: pointer;
+
+  &:hover {
+    background: ${({ theme }) => theme.colors.primaryHover};
+  }
 
   &:active {
     transform: scale(0.92);
   }
 
   &:disabled {
-    background: ${({ theme }) => theme.border};
+    background: ${({ theme }) => theme.borderSubtle};
     color: ${({ theme }) => theme.textDisabled};
     cursor: not-allowed;
   }
@@ -243,11 +242,11 @@ const ReviewButton = styled.button<{ $primary?: boolean }>`
   background: ${({ $primary, theme }) =>
     $primary ? theme.colors.primary : theme.background};
   color: ${({ $primary, theme }) =>
-    $primary ? theme.colors.onPrimary : theme.textSub};
+    $primary ? theme.colors.onPrimary : theme.textMain};
 
   &:hover {
     background: ${({ $primary, theme }) =>
-      $primary ? theme.colors.primaryHover : theme.border};
+      $primary ? theme.colors.primaryHover : theme.borderSubtle};
   }
 `;
 

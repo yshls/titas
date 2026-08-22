@@ -105,25 +105,25 @@ const WordCardContainer = styled(motion.div)<{
   border: 2px solid
     ${({ theme, isExpanded, isSolved }) =>
       isSolved
-        ? '#059669'
+        ? theme.colors.success
         : isExpanded
-          ? theme.colors.primary
+          ? theme.colors.accent
           : 'transparent'};
   overflow: hidden;
   transition: all 0.2s ease-in-out;
   cursor: pointer;
 
-  ${({ isSolved }) =>
+  ${({ isSolved, theme }) =>
     isSolved &&
     `
-    background-color: #05966908;
-    border-color: #059669;
+    background-color: ${theme.colors.green50};
+    border-color: ${theme.colors.success};
   `}
 
   @media (hover: hover) {
     &:hover {
       border-color: ${({ theme, isSolved }) =>
-        isSolved ? '#059669' : theme.colors.primary};
+        isSolved ? theme.colors.success : theme.colors.accent};
     }
   }
 `;
@@ -181,7 +181,7 @@ const WordText = styled.h3`
 
 const SolvedIcon = styled(MdCheckCircle)`
   margin-left: 4px;
-  color: #059669;
+  color: ${({ theme }) => theme.colors.success};
 `;
 
 const StatRow = styled.div`
@@ -211,7 +211,7 @@ const FrequencyBar = styled.div<{ percent: number }>`
   height: 100%;
   width: ${({ percent }) => percent}%;
   background-color: ${({ percent, theme }) =>
-    percent > 70 ? theme.colors.error : theme.colors.primary};
+    percent > 70 ? theme.colors.error : theme.colors.accent};
   border-radius: 3px;
   transition: width 0.5s ease-out;
 `;
@@ -228,26 +228,25 @@ const ExpandIconWrapper = styled.div<{ isExpanded: boolean }>`
 
 const expandAnimation = keyframes`
   from { opacity: 0; max-height: 0; }
-  to { opacity: 1; max-height: 600px; }
+  to { opacity: 1; max-height: 500px; }
 `;
 
 const ExpandedContent = styled.div`
-  background-color: ${({ theme }) => theme.background};
-  padding: 0 20px 20px 20px;
   border-top: 1px solid ${({ theme }) => theme.border};
-  animation: ${expandAnimation} 0.3s ease-in-out forwards;
+  padding: 16px;
+  background-color: ${({ theme }) => theme.background};
+  animation: ${expandAnimation} 0.3s ease-out forwards;
 `;
 
-const SectionHeader = styled.p`
-  font-size: 11px;
-  font-weight: 800;
-  color: ${({ theme }) => theme.textSub};
-  margin: 20px 0 10px 0;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+const SectionHeader = styled.div`
   display: flex;
   align-items: center;
   gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.textSub};
+  margin-bottom: 12px;
+  text-transform: uppercase;
 `;
 
 const ExampleItem = styled.div`
@@ -296,7 +295,7 @@ const TTSButtonGroup = styled.div`
 `;
 
 const PracticeStatus = styled.p<{
-  status: 'idle' | 'listening' | 'success' | 'fail';
+  status: 'idle' | 'listening' | 'evaluating' | 'success' | 'fail';
 }>`
   font-size: 14px;
   font-weight: 700;
@@ -304,7 +303,7 @@ const PracticeStatus = styled.p<{
     status === 'listening'
       ? theme.colors.primary
       : status === 'success'
-        ? '#059669'
+        ? theme.colors.success
         : status === 'fail'
           ? theme.colors.error
           : theme.textSub};
@@ -351,8 +350,8 @@ const TTSButton = styled.button`
   transition: all 0.2s;
 
   &:hover {
-    background-color: ${({ theme }) => theme.colors.primary}15;
-    color: ${({ theme }) => theme.colors.primary};
+    background-color: ${({ theme }) => theme.borderSubtle};
+    color: ${({ theme }) => theme.textMain};
   }
 `;
 

@@ -8,9 +8,9 @@ const Header = styled.header`
   align-items: center;
   justify-content: space-between;
   padding: 12px;
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: ${({ theme }) => theme.background};
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid ${({ theme }) => theme.borderSubtle};
   position: sticky;
   top: 0;
   z-index: 20;
@@ -25,7 +25,7 @@ const HeaderLeft = styled.div`
 const HeaderTitle = styled.h1`
   font-weight: 700;
   font-size: 16px;
-  color: #333;
+  color: ${({ theme }) => theme.textMain};
   margin: 0;
 `;
 
@@ -39,13 +39,13 @@ const BackButton = styled.button`
   cursor: pointer;
   transition: background 0.2s;
   &:hover {
-    background-color: rgba(0, 0, 0, 0.05);
+    background-color: ${({ theme }) => theme.borderSubtle};
   }
 `;
 
 const ProgressPill = styled.div`
   padding: 6px 12px;
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: ${({ theme }) => theme.borderSubtle};
   border-radius: 20px;
   font-size: 13px;
   font-weight: 700;

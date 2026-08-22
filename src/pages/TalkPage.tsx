@@ -13,14 +13,12 @@ import { PracticeHeader } from '@/components/Talk/PracticeHeader';
 import { Chat } from '@/components/Talk/Chat';
 import { InputBar } from '@/components/Talk/InputBar';
 import { FinishModal } from '@/components/Talk/FinishModal';
-import { Global, css } from '@emotion/react';
 
 const PageContainer = styled.div`
   display: flex;
   flex-direction: column;
   height: 100vh;
   background-color: ${({ theme }) => theme.background};
-  font-family: 'lato', sans-serif;
   overflow: hidden;
   position: relative;
 `;
@@ -127,13 +125,6 @@ export function TalkPage() {
     return (
       <>
         <Seo {...seoProps} />
-        <Global
-          styles={css`
-            body {
-              background-color: #f7f9fc;
-            }
-          `}
-        />
         <RoleSelection
           speakerIds={speakerIds}
           speakerColors={speakerColors}

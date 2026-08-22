@@ -365,8 +365,8 @@ const LineBadge = styled.span`
   padding: 4px 8px;
   font-size: 10px;
   font-weight: 700;
-  color: ${({ theme }) => theme.textSub};
-  background-color: ${({ theme }) => theme.border};
+  color: ${({ theme }) => theme.colors.grey700};
+  background-color: ${({ theme }) => theme.colors.grey100};
   border-radius: 6px;
 `;
 
@@ -748,7 +748,7 @@ export function ScriptListPage() {
             {isLoggedIn ? (
               <MdLibraryBooks size={40} />
             ) : (
-              <MdCloudDone size={40} style={{ color: theme.colors.primary }} />
+              <MdCloudDone size={40} style={{ color: theme.colors.success }} />
             )}
           </IconWrapper>
           <EmptyTitle>

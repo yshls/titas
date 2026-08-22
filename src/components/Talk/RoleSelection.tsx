@@ -17,11 +17,12 @@ const RoleTitle = styled.h1`
   font-size: 28px;
   font-weight: 800;
   margin-bottom: 10px;
-  color: #333d4b;
+  color: ${({ theme }) => theme.textMain};
+  font-family: 'Shantell Sans', cursive;
 `;
 
 const RoleSubtitle = styled.p`
-  color: #8b95a1;
+  color: ${({ theme }) => theme.textSub};
   margin-bottom: 40px;
 `;
 
@@ -36,7 +37,8 @@ const RoleButton = styled.button`
   width: 140px;
   height: 160px;
   border-radius: 24px;
-  background-color: white;
+  background-color: ${({ theme }) => theme.cardBg};
+  border: 1px solid ${({ theme }) => theme.borderSubtle};
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -47,6 +49,7 @@ const RoleButton = styled.button`
   &:hover {
     transform: translateY(-4px);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+    border-color: ${({ theme }) => theme.border};
   }
 `;
 
@@ -54,20 +57,21 @@ const RoleAvatarCircle = styled.div<{ bgColor: string }>`
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background-color: ${({ bgColor }) => bgColor};
+  background-color: ${({ bgColor, theme }) =>
+    (theme.speaker as Record<string, string>)?.[bgColor] || bgColor};
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 24px;
   font-weight: 800;
-  color: rgba(0, 0, 0, 0.6);
+  color: ${({ theme }) => theme.textMain};
   margin-bottom: 16px;
 `;
 
 const RoleName = styled.span`
   font-weight: 700;
   font-size: 16px;
-  color: #333d4b;
+  color: ${({ theme }) => theme.textMain};
 `;
 
 interface RoleSelectionProps {

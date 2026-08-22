@@ -6,15 +6,19 @@ const VisualizerBars = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  height: 24px;
+  gap: 3px;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
 `;
 
 const Bar = styled(motion.div)`
-  width: 4px;
+  width: 3px;
   background-color: white;
-  border-radius: 4px;
+  border-radius: 3px;
+  min-height: 4px;
 `;
+
 
 export const AudioVisualizer = ({ stream }: { stream: MediaStream | null }) => {
   const [data, setData] = useState<number[]>([10, 15, 20, 15, 10]); 

@@ -298,7 +298,13 @@ export const logPractice = async (
     last_reviewed: new Date().toISOString(),
   };
 
-  const { error } = await supabase.from('study_logs').upsert(logToUpsert);
+  // onConflict를 명시해야 동시에 두 번 저장돼도(연타, 여러 탭 등)
+  // 같은 사용자·스크립트·문장 행이 새로 하나 더 생기지 않고 갱신된다.
+  // (DB에 (user_id, script_id, line_index) 유니크 인덱스가 있어야 동작한다.
+  //  supabase/migrations/002_study_logs_integrity.sql 참고.)
+  const { error } = await supabase
+    .from('study_logs')
+    .upsert(logToUpsert, { onConflict: 'user_id,script_id,line_index' });
 
   if (error) throw error;
 };

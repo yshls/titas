@@ -82,7 +82,7 @@ export const lightTheme = {
   textSub: '#4e5968', // grey700 for WCAG AA (4.5:1+)
   textDisabled: '#b0b8c1',
   border: '#e5e8eb',
-  mode: 'light' as const,
+  mode: 'light' as 'light' | 'dark',
   // 화자 말풍선 배경 및 텍스트 (Light Mode)
   speaker: {
     blue: '#e8f3ff',
@@ -116,7 +116,7 @@ export const darkTheme = {
   textSub: '#9ca3af',
   textDisabled: '#6b7280',
   border: '#333333',
-  mode: 'dark' as const,
+  mode: 'dark' as 'light' | 'dark',
   // 화자 말풍선 배경 및 텍스트 (Dark Mode: #1a1a1a 위 눈부심 제거 및 WCAG AA/AAA 대비 충족)
   speaker: {
     blue: '#1a2736',

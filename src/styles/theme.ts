@@ -82,22 +82,68 @@ export const lightTheme = {
   textSub: '#4e5968', // grey700 for WCAG AA (4.5:1+)
   textDisabled: '#b0b8c1',
   border: '#e5e8eb',
-  mode: 'light',
+  mode: 'light' as const,
+  // 화자 말풍선 배경 및 텍스트 (Light Mode)
+  speaker: {
+    blue: '#e8f3ff',
+    red: '#ffeeee',
+    green: '#f0faf6',
+    amber: '#fff8e1',
+    purple: '#f3e5f5',
+    // 하위 호환성
+    blue50: '#e8f3ff',
+    red50: '#ffeeee',
+    green50: '#f0faf6',
+    amber50: '#fff8e1',
+    purple50: '#f3e5f5',
+  },
+  speakerText: {
+    blue: '#1e3a8a',
+    red: '#881337',
+    green: '#064e3b',
+    amber: '#78350f',
+    purple: '#581c87',
+    main: '#191f28',
+    sub: '#4e5968',
+  },
 };
 
 export const darkTheme = {
   colors,
-  background: '#1a1a1a',   
-  cardBg: '#242424',     
-  textMain: '#d4d4d4',     
-  textSub: '#9ca3af',      
+  background: '#1a1a1a',
+  cardBg: '#242424',
+  textMain: '#d4d4d4',
+  textSub: '#9ca3af',
   textDisabled: '#6b7280',
-  border: '#333333',       
-  mode: 'dark',
+  border: '#333333',
+  mode: 'dark' as const,
+  // 화자 말풍선 배경 및 텍스트 (Dark Mode: #1a1a1a 위 눈부심 제거 및 WCAG AA/AAA 대비 충족)
+  speaker: {
+    blue: '#1a2736',
+    red: '#351c22',
+    green: '#152b22',
+    amber: '#302412',
+    purple: '#281a36',
+    // 하위 호환성
+    blue50: '#1a2736',
+    red50: '#351c22',
+    green50: '#152b22',
+    amber50: '#302412',
+    purple50: '#281a36',
+  },
+  speakerText: {
+    blue: '#93c5fd',
+    red: '#fda4af',
+    green: '#6ee7b7',
+    amber: '#fcd34d',
+    purple: '#d8b4fe',
+    main: '#f3f4f6',
+    sub: '#9ca3af',
+  },
 };
 
 // 하위 호환성을 위해 lightTheme을 기본 theme으로 export
 export const theme = lightTheme;
 
 export type Theme = typeof lightTheme;
-export type ThemeType = Theme; 
+export type ThemeType = Theme;

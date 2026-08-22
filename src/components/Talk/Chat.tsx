@@ -13,13 +13,15 @@ const floatUp = keyframes`
 const ChatContainer = styled.div`
   flex: 1;
   overflow-y: auto;
-  padding: 14px;
-  padding-bottom: 140px; /* space for floating bar */
+  padding: 12px 14px;
+  padding-bottom: 120px; /* 플로팅 바 영역 확보 */
+  scroll-padding-bottom: 120px;
   display: flex;
   flex-direction: column;
   gap: 8px;
   scroll-behavior: smooth;
   animation: ${floatUp} 0.3s ease-out;
+  -webkit-overflow-scrolling: touch;
 `;
 
 interface ChatProps {
@@ -47,15 +49,20 @@ export const Chat = React.memo(function Chat({
 }: ChatProps) {
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
-  // 자동 스크롤 효과
-  
+  // 자동 스크롤 효과 (하단 플로팅 바 차폐 영역을 고려한 중심점 보정)
   useEffect(() => {
     if (chatContainerRef.current) {
       const activeElement = chatContainerRef.current.children[currentLineIndex] as HTMLElement;
       if (activeElement) {
-        
         const container = chatContainerRef.current;
-        const offset = activeElement.offsetTop - container.offsetTop - container.clientHeight / 2 + activeElement.clientHeight / 2;
+        const FLOATING_BAR_CLEARANCE = 110; // 플로팅 바 유효 높이
+        const effectiveCenter = (container.clientHeight - FLOATING_BAR_CLEARANCE) / 2;
+        const offset =
+          activeElement.offsetTop -
+          container.offsetTop -
+          effectiveCenter +
+          activeElement.clientHeight / 2;
+
         container.scrollTo({
           top: Math.max(0, offset),
           behavior: 'smooth',

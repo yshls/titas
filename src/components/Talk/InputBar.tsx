@@ -6,10 +6,17 @@ import { FiMic, FiSend, FiX, FiRefreshCw, FiArrowRight } from 'react-icons/fi';
 import { MdKeyboard, MdLightbulb } from 'react-icons/md';
 import { AudioVisualizer } from './AudioVisualizer';
 
+// Zero-reflow: 레이아웃 크기를 변경하지 않고 외곽 파동 링을 표현하는 box-shadow 애니메이션
 const pulseRing = keyframes`
-  0% { transform: scale(0.95); }
-  70% { transform: scale(1); }
-  100% { transform: scale(0.95); }
+  0% {
+    box-shadow: 0 0 0 0 rgba(240, 68, 82, 0.65);
+  }
+  70% {
+    box-shadow: 0 0 0 14px rgba(240, 68, 82, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(240, 68, 82, 0);
+  }
 `;
 
 const FloatingBarWrapper = styled.div`
@@ -31,18 +38,20 @@ const FloatingBarWrapper = styled.div`
 
 const FloatingIsland = styled.div`
   pointer-events: auto;
-  background: rgba(255, 255, 255, 0.95);
+  background: ${({ theme }) =>
+    theme.mode === 'dark' ? 'rgba(36, 36, 36, 0.92)' : 'rgba(255, 255, 255, 0.95)'};
   backdrop-filter: blur(20px);
-  padding: 6px 6px 6px 10px;
+  -webkit-backdrop-filter: blur(20px);
+  padding: 6px 8px;
   border-radius: 100px;
+  border: 1px solid ${({ theme }) => (theme.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)')};
   display: flex;
   align-items: center;
   gap: 8px;
   width: 100%;
   max-width: 300px;
   justify-content: space-between;
-  transform: translateZ(0);
-  box-shadow: none;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
 `;
 
 const SideButton = styled.button<{ active?: boolean }>`
@@ -52,19 +61,39 @@ const SideButton = styled.button<{ active?: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  color: ${({ active, theme }) => (active ? theme.textMain : '#4E5968')};
-  background: ${({ active }) => (active ? '#F2F4F6' : 'transparent')};
+  flex-shrink: 0;
+  color: ${({ active, theme }) => (active ? theme.colors.primary : theme.textSub)};
+  background: ${({ active, theme }) =>
+    active
+      ? theme.mode === 'dark'
+        ? 'rgba(255, 255, 255, 0.1)'
+        : '#F2F4F6'
+      : 'transparent'};
   border: none;
   cursor: pointer;
   transition: all 0.2s;
+
   &:hover {
-    background: #f2f4f6;
+    background: ${({ theme }) =>
+      theme.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : '#f2f4f6'};
     color: ${({ theme }) => theme.textMain};
   }
+
   &:disabled {
     cursor: not-allowed;
-    opacity: 0.5;
+    opacity: 0.4;
   }
+`;
+
+// 레이아웃 고정 래퍼 (자식의 scale/visualizer 변경 시 주변 요소 밀림 100% 방지)
+const HeroMicWrapper = styled.div`
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
 `;
 
 const HeroMicButton = styled.button<{ isListening: boolean }>`
@@ -74,28 +103,29 @@ const HeroMicButton = styled.button<{ isListening: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  border: 4px solid white;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.25s ease;
+  border: 3px solid ${({ theme }) => (theme.mode === 'dark' ? '#333333' : '#ffffff')};
   cursor: pointer;
+  flex-shrink: 0;
 
   ${({ isListening, theme }) =>
     isListening
       ? css`
           background-color: ${theme.colors.error};
           color: white;
-          animation: ${pulseRing} 2s infinite;
+          animation: ${pulseRing} 1.8s infinite;
         `
       : css`
           background-color: ${theme.colors.primary};
           color: ${theme.colors.onPrimary};
           &:hover {
-            transform: scale(1.08);
+            transform: scale(1.06);
           }
         `}
 
   &:disabled {
     filter: grayscale(100%);
-    opacity: 0.5;
+    opacity: 0.4;
     cursor: not-allowed;
     animation: none;
     transform: none;
@@ -106,44 +136,56 @@ const KeyboardInputWrapper = styled.div`
   pointer-events: auto;
   width: 100%;
   max-width: 500px;
-  background: white;
-  padding: 10px;
+  background: ${({ theme }) => theme.cardBg};
+  border: 1px solid ${({ theme }) => theme.border};
+  padding: 8px 12px;
   border-radius: 24px;
   display: flex;
   align-items: center;
   gap: 10px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
 `;
 
 const StyledInput = styled.input`
   flex: 1;
   padding: 8px 12px;
   border-radius: 16px;
-  background: #f2f4f6;
-  border: none;
-  font-size: 16px;
+  background: ${({ theme }) => theme.background};
+  color: ${({ theme }) => theme.textMain};
+  border: 1px solid transparent;
+  font-size: 15px;
+
   &:focus {
     outline: none;
-    background: #eaecef;
+    border-color: ${({ theme }) => theme.colors.primary};
+  }
+
+  &::placeholder {
+    color: ${({ theme }) => theme.textDisabled};
   }
 `;
 
 const SendBtn = styled.button`
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
   background: ${({ theme }) => theme.colors.primary};
   color: ${({ theme }) => theme.colors.onPrimary};
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   transition: transform 0.1s;
   border: none;
   cursor: pointer;
+
   &:active {
-    transform: scale(0.9);
+    transform: scale(0.92);
   }
+
   &:disabled {
-    background: #e1e4e8;
+    background: ${({ theme }) => theme.border};
+    color: ${({ theme }) => theme.textDisabled};
     cursor: not-allowed;
   }
 `;
@@ -156,14 +198,15 @@ const MobileHint = styled.div`
   transform: translateX(-50%);
   background-color: rgba(0, 0, 0, 0.85);
   color: white;
-  padding: 12px 24px;
+  padding: 10px 20px;
   border-radius: 20px;
-  font-size: 14px;
+  font-size: 13px;
+  font-weight: 600;
   white-space: nowrap;
   z-index: 1000;
   pointer-events: none;
   animation: ${keyframes`
-    0% { opacity: 0; transform: translate(-50%, 10px); }
+    0% { opacity: 0; transform: translate(-50%, 8px); }
     100% { opacity: 1; transform: translate(-50%, 0); }
   `} 0.3s ease-out;
 `;
@@ -179,7 +222,8 @@ const ReviewIsland = styled.div`
   padding: 8px;
   border-radius: 100px;
   background: ${({ theme }) => theme.cardBg};
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border: 1px solid ${({ theme }) => theme.border};
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
 `;
 
 const ReviewButton = styled.button<{ $primary?: boolean }>`
@@ -262,7 +306,7 @@ export const InputBar = React.memo(function InputBar({
 
   return (
     <FloatingBarWrapper>
-      {/*  모바일 안내 메시지 추가 */}
+      {/* 모바일 안내 메시지 */}
       {isListening && <MobileHint>{t('talk.tapWhenDone')}</MobileHint>}
 
       {inputMode === 'mic' ? (
@@ -275,19 +319,25 @@ export const InputBar = React.memo(function InputBar({
             <MdKeyboard size={24} aria-hidden="true" />
           </SideButton>
 
-          <HeroMicButton
-            isListening={isListening}
-            onClick={handleMicClick}
-            disabled={!isMyTurn || hasFeedback}
-            aria-label={isListening ? t('talk.stopRecordingAria') : t('talk.startRecordingAria')}
-            aria-pressed={isListening}
-          >
-            {isListening && mediaStream ? (
-              <AudioVisualizer stream={mediaStream} />
-            ) : (
-              <FiMic size={28} />
-            )}
-          </HeroMicButton>
+          <HeroMicWrapper>
+            <HeroMicButton
+              isListening={isListening}
+              onClick={handleMicClick}
+              disabled={!isMyTurn || hasFeedback}
+              aria-label={
+                isListening
+                  ? t('talk.stopRecordingAria')
+                  : t('talk.startRecordingAria')
+              }
+              aria-pressed={isListening}
+            >
+              {isListening && mediaStream ? (
+                <AudioVisualizer stream={mediaStream} />
+              ) : (
+                <FiMic size={28} />
+              )}
+            </HeroMicButton>
+          </HeroMicWrapper>
 
           <SideButton
             active={showHint}
@@ -301,7 +351,10 @@ export const InputBar = React.memo(function InputBar({
         </FloatingIsland>
       ) : (
         <KeyboardInputWrapper>
-          <SideButton onClick={() => setInputMode('mic')} aria-label={t('talk.switchToMicAria')}>
+          <SideButton
+            onClick={() => setInputMode('mic')}
+            aria-label={t('talk.switchToMicAria')}
+          >
             <FiX size={20} aria-hidden="true" />
           </SideButton>
           <StyledInput
@@ -329,3 +382,4 @@ export const InputBar = React.memo(function InputBar({
     </FloatingBarWrapper>
   );
 });
+

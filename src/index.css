@@ -1,41 +1,42 @@
 @import 'tailwindcss';
 
 @theme {
-  /* 폰트 */
-  --font-family-sans: 'Inter', system-ui, sans-serif;
-  --font-family-display: 'Shantell Sans', cursive;
+  --font-family-sans: 'Inter', system-ui, sans-serif;
+  --font-family-display: 'Shantell Sans', cursive;
 
+  --bg-main: #f2f1ed;
 
-  /* 배경 */
-  --bg-main: #f2f1ed;
+  /* 메인 컬러 — 블루 제외, 퍼플로 차별화 */
+  --color-primary: #9985fb;
+  --color-primary-hover: #7c66f2; /* 살짝 진한 퍼플, hover/pressed용 */
+  --color-accent: #fea339;
 
-  /* 색상 */
-  --color-primary: #8b7355;
-  --color-accent: #d95f2b;
-  
   /* 상태 */
-  --color-success: #67b99a;
-  --color-error: #db6b6b;
+  --color-success: #4ba95f;
+  --color-error: #ff908d;
+  --color-error-text: #c64c48; /* 핑크 단독으론 경고감 약해서 텍스트/아이콘용 진한 톤 별도 */
 
-  /* 테두리 */
-  --color-border-subtle: #e8dcc8;
-  --color-border-default: #c5b8a3;
-  --color-border-strong: #b89e82;
+  /* 테두리 — 퍼플/오렌지와 어울리게 뉴트럴 톤으로 살짝 조정 */
+  --color-border-subtle: #ece9e2;
+  --color-border-default: #d6d1c6;
+  --color-border-strong: #b5aea0;
   --color-border-dashed: #d4b89e;
 
-  /* 화자 */
-  --color-speaker1: #E2F0D9; 
-  --color-speaker2: #DAE8FC; 
-  --color-speaker3: #FFF2CC; 
-
+  /* 화자 — 파스텔 톤 통일 (밝기 맞추고 색상만 다르게) */
+  --color-speaker1: #e4f2e7; /* 그린 파스텔 */
+  --color-speaker1-text: #2d6539;
+  --color-speaker2: #e8f8fe; /* 스카이블루 파스텔 */
+  --color-speaker2-text: #276e82;
+  --color-speaker3: #fff1e1; /* 오렌지 파스텔 */
+  --color-speaker3-text: #a15d0a;
+  --color-speaker4: #ffeeee; /* 핑크 파스텔, 4번째 화자 필요시 */
+  --color-speaker4-text: #9c4f49;
 
   /* 텍스트 */
-  --color-text-primary: #2d3136;
+  --color-text-primary: #0c0c0c;
   --color-text-secondary: #7b7872;
   --color-text-muted: #b7b7a8;
 }
-
-
 
 @layer base {
   body {

@@ -7,36 +7,43 @@ const RoleSelectionContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 8px;
+  padding: 16px;
   height: 100%;
   flex-direction: column;
   background-color: ${({ theme }) => theme.background};
 `;
 
 const RoleTitle = styled.h1`
-  font-size: 28px;
+  font-size: clamp(22px, 3.5vh, 28px);
   font-weight: 800;
-  margin-bottom: 10px;
+  margin-bottom: clamp(4px, 1vh, 10px);
   color: ${({ theme }) => theme.textMain};
   font-family: 'Shantell Sans', cursive;
+  text-align: center;
 `;
 
 const RoleSubtitle = styled.p`
   color: ${({ theme }) => theme.textSub};
-  margin-bottom: 40px;
+  margin-bottom: clamp(16px, 3vh, 40px);
+  font-size: clamp(13px, 1.8vh, 15px);
+  text-align: center;
 `;
 
 const RoleGrid = styled.div`
   display: flex;
-  gap: 16px;
+  gap: clamp(10px, 2vh, 16px);
   flex-wrap: wrap;
   justify-content: center;
+  max-width: 680px;
+  width: 100%;
 `;
 
 const RoleButton = styled.button`
-  width: 140px;
-  height: 160px;
-  border-radius: 24px;
+  flex: 1 1 clamp(100px, 25vw, 140px);
+  max-width: 140px;
+  min-height: clamp(110px, 16vh, 160px);
+  padding: clamp(10px, 1.5vh, 16px);
+  border-radius: clamp(16px, 2.5vh, 24px);
   background-color: ${({ theme }) => theme.cardBg};
   border: 1px solid ${({ theme }) => theme.borderSubtle};
   display: flex;
@@ -54,24 +61,26 @@ const RoleButton = styled.button`
 `;
 
 const RoleAvatarCircle = styled.div<{ bgColor: string }>`
-  width: 56px;
-  height: 56px;
+  width: clamp(40px, 6vh, 56px);
+  height: clamp(40px, 6vh, 56px);
   border-radius: 50%;
   background-color: ${({ bgColor, theme }) =>
     (theme.speaker as Record<string, string>)?.[bgColor] || bgColor};
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: clamp(18px, 2.8vh, 24px);
   font-weight: 800;
   color: ${({ theme }) => theme.textMain};
-  margin-bottom: 16px;
+  margin-bottom: clamp(8px, 1.5vh, 16px);
 `;
 
 const RoleName = styled.span`
   font-weight: 700;
-  font-size: 16px;
+  font-size: clamp(13px, 1.8vh, 16px);
   color: ${({ theme }) => theme.textMain};
+  text-align: center;
+  word-break: break-word;
 `;
 
 interface RoleSelectionProps {

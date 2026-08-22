@@ -14,14 +14,20 @@ const ChatContainer = styled.div`
   flex: 1;
   overflow-y: auto;
   padding: 12px 14px;
-  padding-bottom: 120px; /* 플로팅 바 영역 확보 */
-  scroll-padding-bottom: 120px;
+  padding-bottom: clamp(75px, 11vh, 95px); /* 플로팅 바 영역 확보 */
+  scroll-padding-bottom: clamp(75px, 11vh, 95px);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: clamp(6px, 1vh, 10px);
   scroll-behavior: smooth;
   animation: ${floatUp} 0.3s ease-out;
   -webkit-overflow-scrolling: touch;
+
+  @media (max-height: 800px) {
+    padding: 8px 12px;
+    padding-bottom: 70px;
+    scroll-padding-bottom: 70px;
+  }
 `;
 
 interface ChatProps {
@@ -55,7 +61,7 @@ export const Chat = React.memo(function Chat({
       const activeElement = chatContainerRef.current.children[currentLineIndex] as HTMLElement;
       if (activeElement) {
         const container = chatContainerRef.current;
-        const FLOATING_BAR_CLEARANCE = 110; // 플로팅 바 유효 높이
+        const FLOATING_BAR_CLEARANCE = container.clientHeight <= 600 ? 70 : 90; // 플로팅 바 유효 높이
         const effectiveCenter = (container.clientHeight - FLOATING_BAR_CLEARANCE) / 2;
         const offset =
           activeElement.offsetTop -

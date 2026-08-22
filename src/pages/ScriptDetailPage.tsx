@@ -39,6 +39,7 @@ const PALETTE = [
 
 const PageContainer = styled.div`
   height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   background-color: ${({ theme }) => theme.background};
@@ -59,6 +60,10 @@ const Header = styled.header`
   position: sticky;
   top: 0;
   z-index: 20;
+
+  @media (max-height: 800px) {
+    height: 50px;
+  }
 `;
 
 const HeaderLeft = styled.div`

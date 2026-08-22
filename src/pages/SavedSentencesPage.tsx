@@ -17,15 +17,16 @@ import { useTTS, DEFAULT_RATE, RATE_STEPS } from '@/utils/useTTS';
 const REPEAT_STEPS = [1, 2, 3] as const;
 
 const PageContainer = styled.div`
-  padding: 14px 12px 40px;
+  padding: clamp(10px, 2vh, 14px) 12px clamp(20px, 4vh, 40px);
   max-width: 800px;
   margin: 0 auto;
   min-height: 100vh;
+  min-height: 100dvh;
   background-color: ${({ theme }) => theme.background};
 `;
 
 const Header = styled.header`
-  margin-bottom: 20px;
+  margin-bottom: clamp(12px, 2vh, 20px);
 `;
 
 const PageTitle = styled.h1`

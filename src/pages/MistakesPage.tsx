@@ -21,15 +21,21 @@ import {
 
 const PageContainer = styled.div`
   min-height: 100vh;
+  min-height: 100dvh;
   background-color: ${({ theme }) => theme.background};
   padding: 10px 20px;
   font-family: 'lato', sans-serif;
-  padding-bottom: 100px;
+  padding-bottom: clamp(60px, 10vh, 100px);
   transition: background-color 0.3s ease;
+
+  @media (max-height: 800px) {
+    padding: 8px 14px;
+    padding-bottom: 60px;
+  }
 `;
 
 const Header = styled.header`
-  margin-bottom: 32px;
+  margin-bottom: clamp(14px, 2.5vh, 32px);
 `;
 
 const Title = styled.h1`

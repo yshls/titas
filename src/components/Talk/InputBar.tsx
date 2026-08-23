@@ -55,7 +55,6 @@ const FloatingIsland = styled.div`
   width: 100%;
   max-width: 300px;
   justify-content: space-between;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
 `;
 
 const SideButton = styled.button<{ active?: boolean }>`
@@ -142,7 +141,6 @@ const KeyboardInputWrapper = styled.div`
   display: flex;
   align-items: center;
   gap: 10px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
 `;
 
 const StyledInput = styled.input`
@@ -225,8 +223,6 @@ const ReviewIsland = styled.div`
   padding: 8px;
   border-radius: 100px;
   background: ${({ theme }) => theme.cardBg};
-  border: 1px solid ${({ theme }) => theme.border};
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
 `;
 
 const ReviewButton = styled.button<{ $primary?: boolean }>`

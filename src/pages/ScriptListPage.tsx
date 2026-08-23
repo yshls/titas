@@ -109,7 +109,8 @@ const SearchInput = styled.input`
   transition: all 0.2s;
 
   &:focus {
-    box-shadow: inset 0 0 0 2px ${({ theme }) => theme.colors.primary};
+    outline: 2px solid ${({ theme }) => theme.colors.primary};
+    outline-offset: -2px;
   }
 
   &::placeholder {
@@ -213,7 +214,6 @@ const SortMenu = styled.div`
   border-radius: 12px;
   z-index: 20;
   padding: 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 `;
 
 const SortOption = styled.button<{ isActive: boolean }>`

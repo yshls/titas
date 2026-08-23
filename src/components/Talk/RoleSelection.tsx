@@ -55,7 +55,6 @@ const RoleButton = styled.button`
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
     border-color: ${({ theme }) => theme.border};
   }
 `;

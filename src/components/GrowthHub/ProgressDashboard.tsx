@@ -133,12 +133,6 @@ const StatCard = styled(motion.div)`
   position: relative;
   overflow: hidden;
   cursor: pointer;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
-  transition: box-shadow 0.3s ease;
-
-  &:hover {
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
-  }
 `;
 
 const StatIconWrapper = styled(motion.div)<{ primaryColor: string }>`

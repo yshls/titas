@@ -34,7 +34,6 @@ const ModalContent = styled.div`
   text-align: center;
   max-width: 320px;
   width: 90%;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
   animation: ${scaleUp} 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
 `;

@@ -223,8 +223,7 @@ const MessageBubble = styled.div<{
   ${({ active, theme }) =>
     active &&
     `
-    border-color: ${theme.colors.primary};
-    box-shadow: 0 0 0 2px ${theme.colors.primaryLight};
+    outline: 2px solid ${theme.colors.primaryLight};
     transform: scale(1.02);
   `}
 

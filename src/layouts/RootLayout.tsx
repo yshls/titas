@@ -214,7 +214,6 @@ const ProfileDropdown = styled(motion.div)`
   display: flex;
   flex-direction: column;
   gap: 2px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 `;
 
 const DropdownHeader = styled.div`

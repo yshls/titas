@@ -17,9 +17,10 @@ const Header = styled.header`
   align-items: center;
   gap: 12px;
   padding: 12px;
-  background-color: rgba(255, 255, 255, 0.95);
+  background-color: ${({ theme }) =>
+    theme.mode === 'dark' ? 'rgba(36, 36, 36, 0.95)' : 'rgba(255, 255, 255, 0.95)'};
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid ${({ theme }) => theme.border};
   position: sticky;
   top: 0;
   z-index: 20;
@@ -29,27 +30,29 @@ const BackButton = styled.button`
   padding: 8px;
   margin-left: -8px;
   border-radius: 50%;
-  color: #333;
+  color: ${({ theme }) => theme.textMain};
   border: none;
   background: transparent;
   cursor: pointer;
   transition: background 0.2s;
   &:hover {
-    background-color: rgba(0, 0, 0, 0.05);
+    background-color: ${({ theme }) => theme.border};
   }
 `;
 
 const HeaderTitle = styled.span`
   font-weight: 700;
   font-size: 17px;
-  color: #333;
+  color: ${({ theme }) => theme.textMain};
 `;
 
+// 헤딩·본문 색이 전부 고정값이었다. 특히 h2는 다크모드 배경과 완전히
+// 같은 색(#1a1a1a)이라 소제목이 통째로 안 보였다. 테마 토큰으로 교체.
 const ContentContainer = styled.div`
   flex: 1;
   overflow-y: auto;
   padding: 16px 14px;
-  color: #333;
+  color: ${({ theme }) => theme.textMain};
   line-height: 1.6;
   font-size: 14px;
 
@@ -58,24 +61,30 @@ const ContentContainer = styled.div`
     font-weight: 700;
     margin-top: 24px;
     margin-bottom: 12px;
-    color: #1a1a1a;
+    color: ${({ theme }) => theme.textMain};
   }
 
   p {
     margin-bottom: 12px;
-    color: #555;
+    color: ${({ theme }) => theme.textSub};
   }
 
   ol {
     list-style-type: decimal;
     padding-left: 20px;
     margin-bottom: 12px;
-    color: #555;
+    color: ${({ theme }) => theme.textSub};
   }
 
   li {
     margin-bottom: 4px;
   }
+`;
+
+const Disclaimer = styled.p`
+  margin-top: 40px;
+  color: ${({ theme }) => theme.textDisabled};
+  font-size: 12px;
 `;
 
 export function TermsOfServicePage() {
@@ -157,9 +166,9 @@ export function TermsOfServicePage() {
           인식 오류 등에 대해 원칙적으로 책임을 지지 않습니다.
         </p>
 
-        <p style={{ marginTop: '40px', color: '#999', fontSize: '12px' }}>
+        <Disclaimer>
           * 본 약관은 예시이며 실제 운영 시에는 법률 전문가의 검토가 필요합니다.
-        </p>
+        </Disclaimer>
       </ContentContainer>
     </PageContainer>
   );

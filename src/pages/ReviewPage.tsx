@@ -16,10 +16,19 @@ import {
   type FSRSReviewLog,
 } from '@/services/fsrsService';
 
+// 화면 가장자리 여백은 스크립트 목록(ScriptListPage)의 PageContainer를 기준으로 맞춘다.
 const Container = styled.div`
-  padding: clamp(10px, 2vh, 20px) 12px;
+  padding: 12px;
   max-width: 1100px;
   margin: 0 auto;
+
+  @media (min-width: 1024px) {
+    padding: 8px;
+  }
+
+  @media (max-height: 800px) {
+    padding: 8px;
+  }
 `;
 
 const Header = styled.div`

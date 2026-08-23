@@ -7,13 +7,22 @@ import { Seo } from '@/components/common/Seo';
 import { useHistoryLogs } from '@/hooks/pageSpecific/useHistoryLogs';
 import { DateGroupSection } from '@/components/History/HistoryListComponents';
 
+// 화면 가장자리 여백은 스크립트 목록(ScriptListPage)의 PageContainer를 기준으로 맞춘다.
 const PageContainer = styled.div`
-  padding: clamp(10px, 2vh, 20px) 12px;
+  padding: 12px;
   max-width: 800px;
   margin: 0 auto;
   min-height: 100vh;
   min-height: 100dvh;
   background-color: ${({ theme }) => theme.background};
+
+  @media (min-width: 1024px) {
+    padding: 8px;
+  }
+
+  @media (max-height: 800px) {
+    padding: 8px;
+  }
 `;
 
 const Header = styled.header`

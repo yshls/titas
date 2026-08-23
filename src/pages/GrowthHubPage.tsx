@@ -34,14 +34,19 @@ const getGreeting = () => {
   return { key: 'dashboard.greeting.night', Icon: MdNightlight };
 };
 
+// 화면 가장자리 여백은 스크립트 목록(ScriptListPage)의 PageContainer를 기준으로 맞춘다.
 const DashboardContainer = styled.div`
   width: 100%;
-  padding-bottom: 40px;
+  padding: 12px;
   background-color: ${({ theme }) => theme.background};
+
+  @media (min-width: 1024px) {
+    padding: 8px;
+  }
 `;
 
 const HeaderSection = styled.header`
-  margin-bottom: 32px;
+  margin-bottom: 24px;
 `;
 
 const GreetingTitle = styled.h1`

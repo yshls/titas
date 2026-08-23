@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { MdCelebration, MdHourglassEmpty } from 'react-icons/md';
 import { getRelativeTime, getNaturalTime } from '@/utils/timeUtils';
 
+// 이 컴포넌트가 예전엔 색을 전부 고정값으로 써서 다크모드에서도 항상
+// 밝은 회색 박스로만 떠 있었다. 테마 토큰으로 바꿔 다크모드에서도 맞게 보이게 한다.
 const Container = styled.div`
   display: flex;
   flex-direction: column;
@@ -11,27 +13,27 @@ const Container = styled.div`
   justify-content: center;
   padding: 40px 16px;
   text-align: center;
-  background-color: #f8f9fa;
+  background-color: ${({ theme }) => theme.cardBg};
   border-radius: 16px;
   margin: 20px 0;
 `;
 
 const IconWrapper = styled(motion.div)`
   display: flex;
-  color: #1db954;
+  color: ${({ theme }) => theme.colors.primary};
   margin-bottom: 16px;
 `;
 
 const Title = styled.h3`
   font-size: 24px;
   font-weight: 700;
-  color: #333;
+  color: ${({ theme }) => theme.textMain};
   margin-bottom: 8px;
 `;
 
 const Description = styled.p`
   font-size: 16px;
-  color: #666;
+  color: ${({ theme }) => theme.textSub};
   max-width: 400px;
   line-height: 1.5;
   margin-bottom: 24px;
@@ -40,9 +42,9 @@ const Description = styled.p`
 const TimeInfo = styled.div`
   margin-top: 8px;
   padding: 16px 24px;
-  background-color: #eef2ff;
+  background-color: ${({ theme }) => theme.background};
   border-radius: 12px;
-  color: #4f46e5;
+  color: ${({ theme }) => theme.textMain};
   font-weight: 600;
   font-size: 15px;
   display: flex;
@@ -53,7 +55,7 @@ const TimeInfo = styled.div`
 
 const SubTime = styled.span`
   font-size: 13px;
-  color: #818cf8;
+  color: ${({ theme }) => theme.textSub};
   font-weight: 400;
 `;
 

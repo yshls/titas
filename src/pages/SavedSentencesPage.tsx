@@ -16,17 +16,26 @@ import { useTTS, DEFAULT_RATE, RATE_STEPS } from '@/hooks/useTTS';
 
 const REPEAT_STEPS = [1, 2, 3] as const;
 
+// 화면 가장자리 여백은 스크립트 목록(ScriptListPage)의 PageContainer를 기준으로 맞춘다.
 const PageContainer = styled.div`
-  padding: clamp(10px, 2vh, 14px) 12px clamp(20px, 4vh, 40px);
+  padding: 12px;
   max-width: 800px;
   margin: 0 auto;
   min-height: 100vh;
   min-height: 100dvh;
   background-color: ${({ theme }) => theme.background};
+
+  @media (min-width: 1024px) {
+    padding: 8px;
+  }
+
+  @media (max-height: 800px) {
+    padding: 8px;
+  }
 `;
 
 const Header = styled.header`
-  margin-bottom: clamp(12px, 2vh, 20px);
+  margin-bottom: clamp(12px, 2vh, 24px);
 `;
 
 const PageTitle = styled.h1`

@@ -3,6 +3,8 @@ import styled from '@emotion/styled';
 import { useTranslation } from 'react-i18next';
 import { MdArrowBack } from 'react-icons/md';
 
+// 배경이 항상 밝은 고정값이었는데, 아이콘·글자색은 테마를 따라가서
+// 다크모드에서 밝은 아이콘이 밝은 배경 위에 놓여 안 보이는 문제가 있었다.
 const Header = styled.header`
   display: flex;
   align-items: center;

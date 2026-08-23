@@ -19,14 +19,19 @@ import {
   MdSpeed,
 } from 'react-icons/md';
 
+// 화면 가장자리 여백은 스크립트 목록(ScriptListPage)의 PageContainer를 기준으로 맞춘다.
 const PageContainer = styled.div`
   min-height: 100vh;
   min-height: 100dvh;
   background-color: ${({ theme }) => theme.background};
-  padding: 10px 20px;
+  padding: 12px;
   font-family: 'lato', sans-serif;
   padding-bottom: clamp(60px, 10vh, 100px);
   transition: background-color 0.3s ease;
+
+  @media (min-width: 1024px) {
+    padding: 8px;
+  }
 
   @media (max-height: 800px) {
     padding: 8px 14px;
@@ -35,7 +40,7 @@ const PageContainer = styled.div`
 `;
 
 const Header = styled.header`
-  margin-bottom: clamp(14px, 2.5vh, 32px);
+  margin-bottom: clamp(12px, 2vh, 24px);
 `;
 
 const Title = styled.h1`
@@ -165,7 +170,9 @@ const RankBadge = styled.div<{ rank: number }>`
       return `background-color: #F3F4F6; color: #6B7280; border: 1px solid #E5E7EB;`;
     if (rank === 3)
       return `background-color: #FFF1E6; color: #C2410C; border: 1px solid #FFEDD5;`;
-    return `background-color: ${theme.background}; color: ${theme.textSub}; border: 1px solid ${theme.border};`;
+    // 카드 배경(theme.cardBg)이랑 거의 같은 색이라 다크모드에서 배지가
+    // 카드에 파묻혀 숫자가 안 보였다. border 색을 배경으로 써서 확실히 구분되게 한다.
+    return `background-color: ${theme.border}; color: ${theme.textMain};`;
   }}
 `;
 

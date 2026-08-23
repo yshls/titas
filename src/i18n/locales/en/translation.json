@@ -70,7 +70,8 @@
     "statisticsTitle": "Statistics",
     "selectedDatePractice": "Selected Date Practice",
     "totalSentences": "Total Sentences",
-    "totalScripts": "Total Scripts"
+    "totalScripts": "Total Scripts",
+    "totalScriptsAria": "Go to my scripts"
   },
   "reviewPrompt": {
     "dueTitle": "<highlight>{{count}} cards</highlight> are ready for review",

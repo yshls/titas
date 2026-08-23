@@ -5,7 +5,14 @@ import 'react-calendar/dist/Calendar.css';
 import dayjs from 'dayjs';
 import { useTheme } from '@emotion/react';
 import { useTranslation } from 'react-i18next';
-import { MdLocalFireDepartment, MdPlayArrow, MdDescription, MdBarChart } from 'react-icons/md';
+import { useNavigate } from 'react-router-dom';
+import {
+  MdLocalFireDepartment,
+  MdPlayArrow,
+  MdDescription,
+  MdLibraryBooks,
+  MdChevronRight,
+} from 'react-icons/md';
 import { AnimatedCounter } from '@/components/common/AnimatedCounter';
 import { useAppStore } from '@/store/appStore';
 
@@ -122,7 +129,7 @@ const StreakItem = styled.div`
   span { font-size: 11px; color: ${({ theme }) => theme.textSub}; }
 `;
 
-const StatCard = styled(motion.div)`
+const StatCard = styled(motion.div)<{ $clickable?: boolean }>`
   background: ${({ theme }) => theme.cardBg};
   border-radius: 20px;
   padding: 16px;
@@ -132,7 +139,14 @@ const StatCard = styled(motion.div)`
   gap: 16px;
   position: relative;
   overflow: hidden;
-  cursor: pointer;
+  cursor: ${({ $clickable }) => ($clickable ? 'pointer' : 'default')};
+`;
+
+// 눌러서 이동할 수 있는 카드에만 붙는 화살표. 클릭 가능하다는 걸 알려준다.
+const StatChevron = styled(MdChevronRight)`
+  margin-left: auto;
+  flex-shrink: 0;
+  color: ${({ theme }) => theme.colors.grey400};
 `;
 
 const StatIconWrapper = styled(motion.div)<{ primaryColor: string }>`
@@ -240,6 +254,8 @@ export function CalendarSection({
 
 export function StatisticsColumn({ selectedDateFreq, totalSentences, totalScripts }: any) {
   const { t } = useTranslation();
+  const theme = useTheme();
+  const navigate = useNavigate();
 
   return (
     <Column>
@@ -247,9 +263,8 @@ export function StatisticsColumn({ selectedDateFreq, totalSentences, totalScript
       <StatsStack>
         <StatCard
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-          whileHover={{ scale: 1.02, y: -4 }} whileTap={{ scale: 0.98 }}
         >
-          <StatIconWrapper primaryColor="#FF6B6B" whileHover={{ rotate: [0, -10, 10, 0] }}>
+          <StatIconWrapper primaryColor={theme.colors.red500} whileHover={{ rotate: [0, -10, 10, 0] }}>
             <MdPlayArrow size={26} />
           </StatIconWrapper>
           <StatTextContainer>
@@ -260,9 +275,8 @@ export function StatisticsColumn({ selectedDateFreq, totalSentences, totalScript
 
         <StatCard
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}
-          whileHover={{ scale: 1.02, y: -4 }} whileTap={{ scale: 0.98 }}
         >
-          <StatIconWrapper primaryColor="#4ECDC4" whileHover={{ rotate: [0, -10, 10, 0] }}>
+          <StatIconWrapper primaryColor={theme.colors.blue500} whileHover={{ rotate: [0, -10, 10, 0] }}>
             <MdDescription size={22} />
           </StatIconWrapper>
           <StatTextContainer>
@@ -271,17 +285,27 @@ export function StatisticsColumn({ selectedDateFreq, totalSentences, totalScript
           </StatTextContainer>
         </StatCard>
 
+        {/* 총 대본 수는 눌러서 바로 내 스크립트 목록으로 이동할 수 있다. */}
         <StatCard
+          $clickable
+          role="link"
+          tabIndex={0}
+          onClick={() => navigate('/scripts')}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') navigate('/scripts');
+          }}
+          aria-label={t('dashboard.totalScriptsAria')}
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}
           whileHover={{ scale: 1.02, y: -4 }} whileTap={{ scale: 0.98 }}
         >
-          <StatIconWrapper primaryColor="#FFE66D" whileHover={{ rotate: [0, -10, 10, 0] }}>
-            <MdBarChart size={24} />
+          <StatIconWrapper primaryColor={theme.colors.primary} whileHover={{ rotate: [0, -10, 10, 0] }}>
+            <MdLibraryBooks size={22} />
           </StatIconWrapper>
           <StatTextContainer>
             <StatLabel>{t('dashboard.totalScripts')}</StatLabel>
             <StatValue><AnimatedCounter value={totalScripts} /></StatValue>
           </StatTextContainer>
+          <StatChevron size={22} />
         </StatCard>
       </StatsStack>
     </Column>

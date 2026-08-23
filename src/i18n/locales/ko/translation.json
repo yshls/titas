@@ -70,7 +70,8 @@
     "statisticsTitle": "통계",
     "selectedDatePractice": "선택한 날짜 연습",
     "totalSentences": "총 문장 수",
-    "totalScripts": "총 대본 수"
+    "totalScripts": "총 대본 수",
+    "totalScriptsAria": "내 스크립트 목록으로 이동"
   },
   "reviewPrompt": {
     "dueTitle": "복습할 카드 <highlight>{{count}}개</highlight>가 기다리고 있어요",

@@ -115,7 +115,7 @@ const InputSection = styled(SectionCard)`
   position: sticky;
   bottom: 0;
   z-index: 10;
-  border-top: 1px solid ${({ theme }) => theme.border};
+  border: none;
   padding: 10px;
 
   @media (min-width: 640px) {
@@ -137,14 +137,13 @@ const DialogueInput = styled.input`
   border-radius: 8px;
   background-color: ${({ theme }) => theme.background};
   color: ${({ theme }) => theme.textMain};
-  border: 1px solid transparent;
+  border: none;
   font-weight: 500;
   font-size: 16px;
   transition: all 0.2s;
 
   &:focus {
     background-color: ${({ theme }) => theme.cardBg};
-    border-color: ${({ theme }) => theme.colors.primary};
   }
 
   &::placeholder {

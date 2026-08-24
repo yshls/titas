@@ -116,7 +116,7 @@ const BlurredText = styled.div`
 const FeedbackContainer = styled.div`
   margin-top: 8px;
   padding-top: 8px;
-  border-top: 1px solid ${({ theme }) => theme.borderSubtle};
+  border: none;
   font-size: 14px;
   line-height: 1.55;
 `;

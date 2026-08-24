@@ -102,7 +102,7 @@ const HeroMicButton = styled.button<{ isListening: boolean }>`
   align-items: center;
   justify-content: center;
   transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.25s ease;
-  border: 3px solid ${({ theme }) => (theme.mode === 'dark' ? theme.border : '#ffffff')};
+  border: none;
   cursor: pointer;
   flex-shrink: 0;
 
@@ -123,10 +123,8 @@ const HeroMicButton = styled.button<{ isListening: boolean }>`
         `}
 
   &:disabled {
-    filter: grayscale(100%);
-    opacity: 0.4;
     cursor: not-allowed;
-    animation: none;
+    opacity: 0.4;
     transform: none;
   }
 `;
@@ -154,12 +152,8 @@ const StyledInput = styled.input`
   border-radius: 16px;
   background: ${({ theme }) => theme.background};
   color: ${({ theme }) => theme.textMain};
-  border: 1px solid transparent;
+  border: none;
   font-size: 15px;
-
-  &:focus {
-    border-color: ${({ theme }) => theme.colors.primary};
-  }
 
   &::placeholder {
     color: ${({ theme }) => theme.textDisabled};

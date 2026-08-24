@@ -27,7 +27,7 @@ const ScriptGroupCard = styled.div`
 const ScriptGroupHeader = styled.div`
   padding: 16px;
   background: ${({ theme }) => theme.background};
-  border-bottom: 1px solid ${({ theme }) => theme.border};
+  border: none;
 `;
 
 const ScriptGroupTitle = styled.h3`

@@ -233,7 +233,7 @@ const ProfileDropdown = styled(motion.div)`
 
 const DropdownHeader = styled.div`
   padding: 12px;
-  border-bottom: 1px solid ${({ theme }) => theme.border};
+  border: none;
   margin-bottom: 4px;
 `;
 
@@ -275,7 +275,7 @@ const DropdownItem = styled.button<{ danger?: boolean }>`
 `;
 
 const Divider = styled.div`
-  border-top: 1px solid ${({ theme }) => theme.border};
+  border: none;
   margin-top: 4px;
   padding-top: 4px;
 `;
@@ -366,7 +366,7 @@ const MainContent = styled.main<{ noPadding?: boolean }>`
 
 const Footer = styled.footer`
   padding: 10px 24px;
-  border-top: 1px solid ${({ theme }) => theme.border};
+  border: none;
 
   @media (max-height: 800px) {
     padding: 6px 16px;

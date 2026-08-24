@@ -19,7 +19,7 @@ const Header = styled.header`
   padding: 12px;
   background-color: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  border: none;
   position: sticky;
   top: 0;
   z-index: 20;

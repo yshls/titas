@@ -71,16 +71,12 @@ export const TitleInput = styled.input`
   width: 100%;
   padding: 8px 0;
   border: none;
-  border-bottom: 2px solid ${({ theme }) => theme.border};
   background-color: transparent;
   color: ${({ theme }) => theme.textMain};
   font-weight: 700;
   font-size: 18px;
   transition: all 0.2s;
 
-  &:focus {
-    border-bottom-color: ${({ theme }) => theme.colors.primary};
-  }
   &::placeholder {
     color: ${({ theme }) => theme.textSub};
     opacity: 0.8;
@@ -94,7 +90,7 @@ const SpeakerRow = styled.div<{ isActive: boolean; activeBg: string }>`
   padding: 10px;
   border-radius: 8px;
   background-color: ${({ isActive, theme }) => (isActive ? theme.border : 'transparent')};
-  border: 1px solid transparent;
+  border: none;
   transition: all 0.2s;
   cursor: pointer;
 
@@ -178,13 +174,10 @@ export const DialogueItemWrapper = styled(motion.article)<{ isEditing: boolean }
   align-items: flex-start;
   gap: 14px;
   padding: 8px 12px;
-  border-bottom: 1px solid ${({ theme }) => theme.border};
+  border: none;
   background-color: ${({ isEditing, theme }) => (isEditing ? theme.background : 'transparent')};
   transition: background-color 0.2s;
 
-  &:last-child {
-    border-bottom: none;
-  }
   &:hover {
     background-color: ${({ theme }) => theme.background};
   }
@@ -294,7 +287,6 @@ export const ActionButton = styled.button<{ variant?: 'primary' | 'secondary' | 
     transform: none;
     background-color: ${({ theme }) => theme.colors.grey100};
     color: ${({ theme }) => theme.colors.grey500};
-    border-color: transparent;
   }
 `;
 

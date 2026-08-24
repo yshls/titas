@@ -11,7 +11,6 @@ import { useAppStore } from '@/store/appStore';
 
 const CalendarCard = styled(motion.div)`
   background: ${({ theme }) => theme.cardBg};
-  border: 1px solid ${({ theme }) => theme.border};
   border-radius: 24px;
   padding: clamp(14px, 2.5vh, 24px) 14px;
   height: fit-content;
@@ -36,7 +35,6 @@ const CalendarCard = styled(motion.div)`
     color: ${({ theme }) => theme.textMain};
     background-color: transparent !important;
     border: none;
-    outline: none;
     border-radius: 12px;
     padding: 8px 12px;
     transition: background-color 0.2s;
@@ -56,9 +54,9 @@ const CalendarCard = styled(motion.div)`
     color: ${({ theme }) => theme.textSub};
     text-transform: uppercase;
     text-decoration: none;
-    border-bottom: 1px solid ${({ theme }) => theme.border};
-    padding-bottom: 12px;
-    margin-bottom: 12px;
+    border: none;
+    padding-bottom: 8px;
+    margin-bottom: 8px;
   }
 
   .react-calendar__month-view__weekdays__weekday:nth-of-type(1) { color: ${({ theme }) => theme.colors.red600}; }
@@ -85,9 +83,9 @@ const CalendarCard = styled(motion.div)`
   .react-calendar__month-view__days__day:nth-of-type(7n + 1) { color: ${({ theme }) => theme.colors.red600}; }
 
   .react-calendar__tile--now {
-    background: transparent;
-    color: ${({ theme }) => theme.textMain};
-    border: 2px solid ${({ theme }) => theme.colors.primary};
+    background: ${({ theme }) => theme.colors.brand50};
+    color: ${({ theme }) => theme.colors.primary};
+    border: none;
     font-weight: 800;
   }
 
@@ -108,7 +106,7 @@ const StreakInfo = styled.div`
   max-width: 360px;
   margin-top: clamp(10px, 2vh, 24px);
   padding-top: clamp(10px, 2vh, 24px);
-  border-top: 1px solid ${({ theme }) => theme.border};
+  border: none;
   display: flex;
   justify-content: space-around;
   align-items: center;
@@ -133,11 +131,10 @@ const StatCard = styled(motion.div)`
   position: relative;
   overflow: hidden;
   cursor: pointer;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
-  transition: box-shadow 0.3s ease;
+  transition: transform 0.2s ease, background-color 0.2s ease;
 
   &:hover {
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+    transform: translateY(-2px);
   }
 `;
 

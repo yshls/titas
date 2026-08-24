@@ -102,18 +102,22 @@ const TaskItemWrapper = styled.div`
 `;
 
 const Checkbox = styled.button<{ checked?: boolean }>`
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   border-radius: 6px;
-  border: 2px solid ${({ theme }) => theme.textSub};
+  border: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: ${({ checked, theme }) => (checked ? theme.textMain : 'transparent')};
-  border-color: ${({ checked, theme }) => (checked ? theme.textMain : theme.textSub)};
-  color: ${({ theme }) => theme.background};
+  background-color: ${({ checked, theme }) =>
+    checked ? theme.colors.primary : theme.colors.grey200};
+  color: ${({ theme }) => theme.colors.onPrimary};
   transition: all 0.2s;
   cursor: pointer;
+
+  &:hover {
+    filter: brightness(0.95);
+  }
 `;
 
 const TaskText = styled.span<{ checked?: boolean }>`
@@ -153,7 +157,6 @@ const TaskInput = styled.input`
   border: none;
   padding: 4px 12px;
   font-size: 14px;
-  outline: none;
   color: ${({ theme }) => theme.textMain};
   &::placeholder {
     color: ${({ theme }) => theme.textSub};

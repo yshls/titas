@@ -105,7 +105,6 @@ const SearchInput = styled.input`
   font-size: 14px;
   font-weight: 500;
   color: ${({ theme }) => theme.textMain};
-  outline: none;
   transition: all 0.2s;
 
   &:focus {
@@ -213,7 +212,7 @@ const SortMenu = styled.div`
   border-radius: 12px;
   z-index: 20;
   padding: 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
 `;
 
 const SortOption = styled.button<{ isActive: boolean }>`
@@ -339,7 +338,6 @@ const ScriptCard = styled(motion.article)<{ isDeleting: boolean }>`
 
   @media (hover: hover) {
     &:hover {
-      border-color: ${({ theme }) => theme.colors.primary};
       background-color: ${({ theme }) => theme.background};
     }
   }
@@ -405,7 +403,7 @@ const Tag = styled.span`
 
 const CardFooter = styled.div`
   padding: 12px;
-  border-top: 1px solid ${({ theme }) => theme.border};
+  border: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -430,6 +428,7 @@ const ActionButton = styled.button<{ variant?: 'primary' | 'neutral' }>`
   text-transform: uppercase;
   transition: all 0.2s;
   cursor: pointer;
+  border: none;
 
   ${({ variant, theme }) =>
     variant === 'primary'
@@ -438,9 +437,8 @@ const ActionButton = styled.button<{ variant?: 'primary' | 'neutral' }>`
     &:hover { background-color: ${theme.colors.primaryHover}; }
   `
       : `
-    background-color: ${theme.cardBg}; color: ${theme.textMain};
-    border: 1px solid ${theme.border};
-    &:hover { background-color: ${theme.border}; }
+    background-color: ${theme.colors.grey100}; color: ${theme.textMain};
+    &:hover { background-color: ${theme.colors.grey200}; }
   `}
 `;
 

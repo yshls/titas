@@ -8,6 +8,12 @@ export default defineConfig({
   plugins: [react(), basicSsl()],
   server: {
     host: true,
+    // Supabase OAuth의 Redirect URLs 허용목록은 origin이 정확히 일치해야 한다.
+    // 포트가 밀리면(5173→5174→…) redirectTo가 목록에 없는 값이 되고,
+    // Supabase는 에러 대신 조용히 Site URL(배포 주소)로 폴백해버린다.
+    // 포트를 못 잡으면 다른 포트로 뜨지 말고 실패하게 둔다.
+    port: 5173,
+    strictPort: true,
     https: (() => {
       const keyPath = './.certs/localhost-key.pem';
       const certPath = './.certs/localhost.pem';

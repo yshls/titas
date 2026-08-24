@@ -10,7 +10,7 @@ const Header = styled.header`
   padding: 12px;
   background-color: ${({ theme }) => theme.background};
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid ${({ theme }) => theme.borderSubtle};
+  border: none;
   position: sticky;
   top: 0;
   z-index: 20;

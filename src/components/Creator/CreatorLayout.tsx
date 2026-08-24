@@ -71,17 +71,12 @@ export const TitleInput = styled.input`
   width: 100%;
   padding: 8px 0;
   border: none;
-  border-bottom: 2px solid ${({ theme }) => theme.border};
   background-color: transparent;
   color: ${({ theme }) => theme.textMain};
   font-weight: 700;
   font-size: 18px;
-  outline: none;
   transition: all 0.2s;
 
-  &:focus {
-    border-bottom-color: ${({ theme }) => theme.colors.primary};
-  }
   &::placeholder {
     color: ${({ theme }) => theme.textSub};
     opacity: 0.8;
@@ -95,7 +90,7 @@ const SpeakerRow = styled.div<{ isActive: boolean; activeBg: string }>`
   padding: 10px;
   border-radius: 8px;
   background-color: ${({ isActive, theme }) => (isActive ? theme.border : 'transparent')};
-  border: 1px solid transparent;
+  border: none;
   transition: all 0.2s;
   cursor: pointer;
 
@@ -111,7 +106,6 @@ const SpeakerNameInput = styled.input`
   font-size: 15px;
   font-weight: 600;
   color: ${({ theme }) => theme.textMain};
-  outline: none;
   padding: 4px;
 
   &::placeholder {
@@ -161,9 +155,8 @@ export function SpeakerItem({
 export const ScriptListWrapper = styled.div`
   flex: 1;
   overflow-y: auto;
-  background-color: ${({ theme }) => theme.cardBg};
-  border-radius: 12px;
-  padding: 8px;
+  background-color: transparent;
+  padding: 12px;
   position: relative;
 
   &::-webkit-scrollbar {
@@ -180,13 +173,10 @@ export const DialogueItemWrapper = styled(motion.article)<{ isEditing: boolean }
   align-items: flex-start;
   gap: 14px;
   padding: 8px 12px;
-  border-bottom: 1px solid ${({ theme }) => theme.border};
+  border: none;
   background-color: ${({ isEditing, theme }) => (isEditing ? theme.background : 'transparent')};
   transition: background-color 0.2s;
 
-  &:last-child {
-    border-bottom: none;
-  }
   &:hover {
     background-color: ${({ theme }) => theme.background};
   }
@@ -215,7 +205,6 @@ export const DialogueItemWrapper = styled(motion.article)<{ isEditing: boolean }
     color: ${({ theme }) => theme.textMain};
     background: transparent;
     border: none;
-    outline: none;
     resize: none;
     line-height: 1.6;
     font-family: inherit;
@@ -235,7 +224,6 @@ export const DialogueItemWrapper = styled(motion.article)<{ isEditing: boolean }
     width: 100%;
     background: transparent;
     border: none;
-    outline: none;
     resize: none;
     font-family: inherit;
     padding: 0;
@@ -298,7 +286,6 @@ export const ActionButton = styled.button<{ variant?: 'primary' | 'secondary' | 
     transform: none;
     background-color: ${({ theme }) => theme.colors.grey100};
     color: ${({ theme }) => theme.colors.grey500};
-    border-color: transparent;
   }
 `;
 

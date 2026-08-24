@@ -53,7 +53,6 @@ const TextArea = styled.textarea`
   padding: 0;
   margin: 0;
   resize: none;
-  outline: none;
   overflow: hidden;
   box-shadow: none;
 `;

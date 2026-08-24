@@ -82,8 +82,8 @@ const ShowMoreButton = styled.button`
   width: 100%;
   padding: 16px;
   margin-top: 16px;
-  background-color: ${({ theme }) => theme.cardBg};
-  border: 1px dashed ${({ theme }) => theme.border};
+  background-color: ${({ theme }) => theme.colors.grey100};
+  border: none;
   border-radius: 16px;
   color: ${({ theme }) => theme.textSub};
   font-weight: 700;
@@ -96,8 +96,7 @@ const ShowMoreButton = styled.button`
   gap: 8px;
 
   &:hover {
-    background-color: ${({ theme }) => theme.background};
-    border-color: ${({ theme }) => theme.textMain};
+    background-color: ${({ theme }) => theme.colors.grey200};
     color: ${({ theme }) => theme.textMain};
   }
 `;
@@ -108,13 +107,7 @@ const WordCardContainer = styled(motion.div)<{
 }>`
   background-color: ${({ theme }) => theme.cardBg};
   border-radius: 16px;
-  border: 2px solid
-    ${({ theme, isExpanded, isSolved }) =>
-      isSolved
-        ? theme.colors.success
-        : isExpanded
-          ? theme.colors.accent
-          : 'transparent'};
+  border: none;
   overflow: hidden;
   transition: all 0.2s ease-in-out;
   cursor: pointer;
@@ -123,15 +116,7 @@ const WordCardContainer = styled(motion.div)<{
     isSolved &&
     `
     background-color: ${theme.colors.green50};
-    border-color: ${theme.colors.success};
   `}
-
-  @media (hover: hover) {
-    &:hover {
-      border-color: ${({ theme, isSolved }) =>
-        isSolved ? theme.colors.success : theme.colors.accent};
-    }
-  }
 `;
 
 const CardMain = styled.div`
@@ -160,12 +145,12 @@ const RankBadge = styled.div<{ rank: number }>`
 
   ${({ rank, theme }) => {
     if (rank === 1)
-      return `background-color: #FFF7D6; color: #D97706; border: 1px solid #FEF3C7;`;
+      return `background-color: #FFF7D6; color: #D97706; border: none;`;
     if (rank === 2)
-      return `background-color: #F3F4F6; color: #6B7280; border: 1px solid #E5E7EB;`;
+      return `background-color: #F3F4F6; color: #6B7280; border: none;`;
     if (rank === 3)
-      return `background-color: #FFF1E6; color: #C2410C; border: 1px solid #FFEDD5;`;
-    return `background-color: ${theme.background}; color: ${theme.textSub}; border: 1px solid ${theme.border};`;
+      return `background-color: #FFF1E6; color: #C2410C; border: none;`;
+    return `background-color: ${theme.background}; color: ${theme.textSub}; border: none;`;
   }}
 `;
 
@@ -238,7 +223,7 @@ const expandAnimation = keyframes`
 `;
 
 const ExpandedContent = styled.div`
-  border-top: 1px solid ${({ theme }) => theme.border};
+  border: none;
   padding: 16px;
   background-color: ${({ theme }) => theme.background};
   animation: ${expandAnimation} 0.3s ease-out forwards;

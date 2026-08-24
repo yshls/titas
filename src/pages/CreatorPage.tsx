@@ -95,28 +95,27 @@ const Main = styled.main`
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 16px;
   height: 100%;
+  background-color: ${({ theme }) => theme.cardBg};
+  border-radius: 16px;
+  overflow: hidden;
 
   @media (min-width: 1024px) {
     height: calc(100vh - 48px);
     height: calc(100dvh - 48px);
   }
-
-  @media (max-height: 800px) {
-    gap: 10px;
-  }
 `;
 
-const InputSection = styled(SectionCard)`
+const InputSection = styled.div`
   display: flex;
   flex-direction: column;
   gap: 12px;
   position: sticky;
   bottom: 0;
   z-index: 10;
-  border-top: 1px solid ${({ theme }) => theme.border};
-  padding: 10px;
+  border: none;
+  padding: 12px;
+  background-color: ${({ theme }) => theme.cardBg};
 
   @media (min-width: 640px) {
     flex-direction: row;
@@ -137,15 +136,13 @@ const DialogueInput = styled.input`
   border-radius: 8px;
   background-color: ${({ theme }) => theme.background};
   color: ${({ theme }) => theme.textMain};
-  border: 1px solid transparent;
+  border: none;
   font-weight: 500;
   font-size: 16px;
-  outline: none;
   transition: all 0.2s;
 
   &:focus {
-    background-color: ${({ theme }) => theme.cardBg};
-    border-color: ${({ theme }) => theme.colors.primary};
+    background-color: ${({ theme }) => theme.colors.grey100};
   }
 
   &::placeholder {

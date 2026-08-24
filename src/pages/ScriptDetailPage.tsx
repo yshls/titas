@@ -54,7 +54,7 @@ const Header = styled.header`
   align-items: center;
   justify-content: space-between;
   padding: 0 12px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  border: none;
   background-color: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(10px);
   position: sticky;
@@ -124,12 +124,12 @@ const AutoPlayButton = styled.button<{ isPlaying: boolean }>`
       ? `
     background-color: ${theme.border};
     color: ${theme.textSub};
-    border: 1px solid ${theme.border};
+    border: none;
   `
       : `
     background-color: ${theme.colors.primaryLight};
     color: ${theme.colors.primary};
-    border: 1px solid transparent;
+    border: none;
   `}
 
   &:hover {
@@ -159,7 +159,6 @@ const VoiceSelect = styled.select`
   font-weight: 700;
   font-size: 12px;
   color: ${({ theme }) => theme.textMain};
-  outline: none;
   max-width: 150px;
   cursor: pointer;
 `;
@@ -223,8 +222,7 @@ const MessageBubble = styled.div<{
   ${({ active, theme }) =>
     active &&
     `
-    border-color: ${theme.colors.primary};
-    box-shadow: 0 0 0 2px ${theme.colors.primaryLight};
+    background-color: ${theme.colors.primaryLight};
     transform: scale(1.02);
   `}
 
@@ -309,7 +307,7 @@ const Footer = styled.div`
   display: flex;
   justify-content: center;
   background-color: ${({ theme }) => theme.background};
-  border-top: 1px solid ${({ theme }) => theme.border};
+  border: none;
 `;
 
 const StartButton = styled.button`

@@ -58,10 +58,24 @@ const Container = styled.div`
   background-color: ${({ theme }) => theme.background || '#ffffff'};
 `;
 
-const Header = styled.header`
+const Header = styled.header<{ isScrolled: boolean }>`
   height: 52px;
+  position: sticky;
   top: 0;
   z-index: 50;
+  background-color: ${({ theme, isScrolled }) =>
+    isScrolled
+      ? theme.mode === 'dark'
+        ? 'rgba(36, 35, 34, 0.9)'
+        : 'rgba(250, 250, 250, 0.9)'
+      : 'transparent'};
+  backdrop-filter: ${({ isScrolled }) => (isScrolled ? 'blur(12px)' : 'none')};
+  -webkit-backdrop-filter: ${({ isScrolled }) => (isScrolled ? 'blur(12px)' : 'none')};
+  box-shadow: ${({ isScrolled }) =>
+    isScrolled ? '0 2px 8px rgba(0, 0, 0, 0.04)' : 'none'};
+  transition: box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 0.25s ease,
+    backdrop-filter 0.25s ease;
 `;
 
 const HeaderContent = styled.div`
@@ -214,12 +228,12 @@ const ProfileDropdown = styled(motion.div)`
   display: flex;
   flex-direction: column;
   gap: 2px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
 `;
 
 const DropdownHeader = styled.div`
   padding: 12px;
-  border-bottom: 1px solid ${({ theme }) => theme.border};
+  border: none;
   margin-bottom: 4px;
 `;
 
@@ -261,7 +275,7 @@ const DropdownItem = styled.button<{ danger?: boolean }>`
 `;
 
 const Divider = styled.div`
-  border-top: 1px solid ${({ theme }) => theme.border};
+  border: none;
   margin-top: 4px;
   padding-top: 4px;
 `;
@@ -352,7 +366,7 @@ const MainContent = styled.main<{ noPadding?: boolean }>`
 
 const Footer = styled.footer`
   padding: 10px 24px;
-  border-top: 1px solid ${({ theme }) => theme.border};
+  border: none;
 
   @media (max-height: 800px) {
     padding: 6px 16px;
@@ -454,11 +468,20 @@ export function RootLayout() {
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const location = useLocation();
   const isTalkPage = location.pathname.startsWith('/talk');
   const isScriptDetailPage = location.pathname.startsWith('/script');
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 4);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // 외부 클릭 감지
   useEffect(() => {
@@ -602,7 +625,7 @@ export function RootLayout() {
       <Analytics />
 
       <Container>
-        <Header>
+        <Header isScrolled={isScrolled}>
           <HeaderContent>
             <LeftSection>
               <LogoLink to="/">

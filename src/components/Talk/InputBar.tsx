@@ -43,19 +43,19 @@ const FloatingBarWrapper = styled.div`
 const FloatingIsland = styled.div`
   pointer-events: auto;
   background: ${({ theme }) =>
-    theme.mode === 'dark' ? 'rgba(36, 35, 34, 0.95)' : 'rgba(255, 255, 255, 0.95)'};
+    theme.mode === 'dark' ? 'rgba(36, 35, 34, 0.9)' : 'rgba(255, 255, 255, 0.9)'};
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   padding: 6px 8px;
   border-radius: 100px;
-  border: 1px solid ${({ theme }) => theme.borderSubtle};
+  border: none;
   display: flex;
   align-items: center;
   gap: 8px;
   width: 100%;
   max-width: 300px;
   justify-content: space-between;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
 `;
 
 const SideButton = styled.button<{ active?: boolean }>`
@@ -102,7 +102,7 @@ const HeroMicButton = styled.button<{ isListening: boolean }>`
   align-items: center;
   justify-content: center;
   transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.25s ease;
-  border: 3px solid ${({ theme }) => (theme.mode === 'dark' ? theme.border : '#ffffff')};
+  border: none;
   cursor: pointer;
   flex-shrink: 0;
 
@@ -123,26 +123,27 @@ const HeroMicButton = styled.button<{ isListening: boolean }>`
         `}
 
   &:disabled {
-    filter: grayscale(100%);
-    opacity: 0.4;
     cursor: not-allowed;
-    animation: none;
+    opacity: 0.4;
     transform: none;
   }
 `;
 
 const KeyboardInputWrapper = styled.div`
   pointer-events: auto;
+  background: ${({ theme }) =>
+    theme.mode === 'dark' ? 'rgba(36, 35, 34, 0.9)' : 'rgba(255, 255, 255, 0.9)'};
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   width: 100%;
   max-width: 500px;
-  background: ${({ theme }) => theme.cardBg};
-  border: 1px solid ${({ theme }) => theme.border};
   padding: 8px 12px;
   border-radius: 24px;
   display: flex;
   align-items: center;
   gap: 10px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  border: none;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
 `;
 
 const StyledInput = styled.input`
@@ -151,13 +152,8 @@ const StyledInput = styled.input`
   border-radius: 16px;
   background: ${({ theme }) => theme.background};
   color: ${({ theme }) => theme.textMain};
-  border: 1px solid transparent;
+  border: none;
   font-size: 15px;
-
-  &:focus {
-    outline: none;
-    border-color: ${({ theme }) => theme.colors.primary};
-  }
 
   &::placeholder {
     color: ${({ theme }) => theme.textDisabled};
@@ -224,9 +220,12 @@ const ReviewIsland = styled.div`
   max-width: 340px;
   padding: 8px;
   border-radius: 100px;
-  background: ${({ theme }) => theme.cardBg};
-  border: 1px solid ${({ theme }) => theme.border};
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  background: ${({ theme }) =>
+    theme.mode === 'dark' ? 'rgba(36, 35, 34, 0.9)' : 'rgba(255, 255, 255, 0.9)'};
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: none;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
 `;
 
 const ReviewButton = styled.button<{ $primary?: boolean }>`

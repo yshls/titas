@@ -12,7 +12,7 @@ import {
 import { useAppStore } from '@/store/appStore';
 import { Seo } from '@/components/common/Seo';
 import { useSavedSentences } from '@/hooks/pageSpecific/useSavedSentences';
-import { useTTS, DEFAULT_RATE, RATE_STEPS } from '@/utils/useTTS';
+import { useTTS, DEFAULT_RATE, RATE_STEPS } from '@/hooks/useTTS';
 
 const REPEAT_STEPS = [1, 2, 3] as const;
 

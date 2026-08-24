@@ -3,8 +3,8 @@ import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useAppStore } from '@/store/appStore';
 import { useNavigate } from 'react-router-dom';
-import { useTTS } from '@/utils/useTTS';
-import { useSpeechRecognition } from '@/utils/useSpeechRecognition';
+import { useTTS } from '@/hooks/useTTS';
+import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import type { PracticeLog, WeakSpot } from '@/utils/types';
 import styled from '@emotion/styled';
 import { keyframes } from '@emotion/react';
@@ -467,11 +467,7 @@ function WordCardItem({
 
   const handleSlowTTS = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const utterance = new SpeechSynthesisUtterance(item.word);
-    utterance.rate = 0.5;
-    utterance.lang = 'en-US';
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(utterance);
+    speak(item.word, null, undefined, 0.5);
   };
 
   return (

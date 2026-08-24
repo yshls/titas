@@ -6,7 +6,7 @@ import { MdLock } from 'react-icons/md';
 import { useAppStore } from '@/store/appStore';
 import { supabase } from '@/supabaseClient';
 import toast from 'react-hot-toast';
-import { ReviewEmptyState } from '@/utils/ReviewEmptyState';
+import { ReviewEmptyState } from '@/components/Review/ReviewEmptyState';
 import {
   getDueReviews,
   getPriorityScore,

@@ -13,7 +13,7 @@ import {
   MdBookmark,
 } from 'react-icons/md';
 import type { ScriptData } from '@/utils/types';
-import { useTTS, DEFAULT_RATE, RATE_STEPS } from '@/utils/useTTS';
+import { useTTS, DEFAULT_RATE, RATE_STEPS } from '@/hooks/useTTS';
 import { useMemo, useState, useEffect, useRef } from 'react';
 import styled from '@emotion/styled';
 import toast from 'react-hot-toast';

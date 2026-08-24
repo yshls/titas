@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { usePracticeStore } from '@/store/practiceStore';
-import { useTTS } from '@/utils/useTTS';
+import { useTTS } from '@/hooks/useTTS';
 
 export function usePracticeFlow() {
   // 스토어 상태 개별 선택

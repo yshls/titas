@@ -45,18 +45,17 @@ const RoleButton = styled.button`
   padding: clamp(10px, 1.5vh, 16px);
   border-radius: clamp(16px, 2.5vh, 24px);
   background-color: ${({ theme }) => theme.cardBg};
-  border: 1px solid ${({ theme }) => theme.borderSubtle};
+  border: none;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: transform 0.2s ease, filter 0.2s ease;
 
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
-    border-color: ${({ theme }) => theme.border};
+    transform: translateY(-3px);
+    filter: brightness(0.98);
   }
 `;
 

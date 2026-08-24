@@ -105,7 +105,6 @@ const SearchInput = styled.input`
   font-size: 14px;
   font-weight: 500;
   color: ${({ theme }) => theme.textMain};
-  outline: none;
   transition: all 0.2s;
 
   &:focus {
@@ -213,7 +212,7 @@ const SortMenu = styled.div`
   border-radius: 12px;
   z-index: 20;
   padding: 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
 `;
 
 const SortOption = styled.button<{ isActive: boolean }>`

@@ -76,7 +76,6 @@ export const TitleInput = styled.input`
   color: ${({ theme }) => theme.textMain};
   font-weight: 700;
   font-size: 18px;
-  outline: none;
   transition: all 0.2s;
 
   &:focus {
@@ -111,7 +110,6 @@ const SpeakerNameInput = styled.input`
   font-size: 15px;
   font-weight: 600;
   color: ${({ theme }) => theme.textMain};
-  outline: none;
   padding: 4px;
 
   &::placeholder {
@@ -215,7 +213,6 @@ export const DialogueItemWrapper = styled(motion.article)<{ isEditing: boolean }
     color: ${({ theme }) => theme.textMain};
     background: transparent;
     border: none;
-    outline: none;
     resize: none;
     line-height: 1.6;
     font-family: inherit;
@@ -235,7 +232,6 @@ export const DialogueItemWrapper = styled(motion.article)<{ isEditing: boolean }
     width: 100%;
     background: transparent;
     border: none;
-    outline: none;
     resize: none;
     font-family: inherit;
     padding: 0;

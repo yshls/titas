@@ -159,7 +159,6 @@ const VoiceSelect = styled.select`
   font-weight: 700;
   font-size: 12px;
   color: ${({ theme }) => theme.textMain};
-  outline: none;
   max-width: 150px;
   cursor: pointer;
 `;

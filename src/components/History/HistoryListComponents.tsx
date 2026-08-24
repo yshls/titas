@@ -40,20 +40,18 @@ const ScriptGroupTitle = styled.h3`
 const AttemptList = styled.div`
   display: flex;
   flex-direction: column;
+  gap: 2px;
+  padding: 4px;
 `;
 
 const AttemptRowStyled = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid ${({ theme }) => theme.border};
+  padding: 10px 14px;
+  border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.2s;
-
-  &:last-child {
-    border-bottom: none;
-  }
 
   &:hover {
     background-color: ${({ theme }) => theme.background};

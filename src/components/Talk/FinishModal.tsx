@@ -34,7 +34,6 @@ const ModalContent = styled.div`
   text-align: center;
   max-width: 320px;
   width: 90%;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
   animation: ${scaleUp} 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
 `;
@@ -111,15 +110,15 @@ const SecondaryButton = styled.button`
   width: 100%;
   padding: 14px;
   border-radius: 14px;
-  background: ${({ theme }) => theme.background};
+  background: ${({ theme }) => theme.colors.grey100};
   color: ${({ theme }) => theme.textMain};
-  border: 1px solid ${({ theme }) => theme.borderSubtle};
+  border: none;
   font-weight: 700;
   font-size: 15px;
   cursor: pointer;
   transition: background-color 0.2s;
   &:hover {
-    background: ${({ theme }) => theme.borderSubtle};
+    background: ${({ theme }) => theme.colors.grey200};
   }
 `;
 

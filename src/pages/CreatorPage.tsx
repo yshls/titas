@@ -140,7 +140,6 @@ const DialogueInput = styled.input`
   border: 1px solid transparent;
   font-weight: 500;
   font-size: 16px;
-  outline: none;
   transition: all 0.2s;
 
   &:focus {

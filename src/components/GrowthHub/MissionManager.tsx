@@ -153,7 +153,6 @@ const TaskInput = styled.input`
   border: none;
   padding: 4px 12px;
   font-size: 14px;
-  outline: none;
   color: ${({ theme }) => theme.textMain};
   &::placeholder {
     color: ${({ theme }) => theme.textSub};

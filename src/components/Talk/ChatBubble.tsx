@@ -170,16 +170,15 @@ const ActionBtn = styled.button`
   border-radius: 10px;
   font-size: 11px;
   font-weight: 700;
-  background-color: ${({ theme }) => theme.cardBg};
+  background-color: ${({ theme }) => theme.colors.grey100};
   cursor: pointer;
   color: ${({ theme }) => theme.textMain};
-  border: 1px solid ${({ theme }) => theme.borderSubtle};
-  transition: all 0.2s;
+  border: none;
+  transition: background-color 0.2s ease, transform 0.2s ease;
 
   &:hover {
-    background-color: ${({ theme }) => theme.borderSubtle};
+    background-color: ${({ theme }) => theme.colors.grey200};
     transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   }
 `;
 

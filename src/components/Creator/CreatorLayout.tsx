@@ -155,9 +155,8 @@ export function SpeakerItem({
 export const ScriptListWrapper = styled.div`
   flex: 1;
   overflow-y: auto;
-  background-color: ${({ theme }) => theme.cardBg};
-  border-radius: 12px;
-  padding: 8px;
+  background-color: transparent;
+  padding: 12px;
   position: relative;
 
   &::-webkit-scrollbar {

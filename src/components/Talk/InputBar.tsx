@@ -24,16 +24,20 @@ const FloatingBarWrapper = styled.div`
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 0 20px 34px 20px;
+  padding: 0 16px clamp(12px, 2vh, 20px) 16px;
   display: flex;
   justify-content: center;
   pointer-events: none;
   background: linear-gradient(
     to top,
-    ${({ theme }) => theme.background} 30%,
+    ${({ theme }) => theme.background} 35%,
     transparent 100%
   );
   z-index: 30;
+
+  @media (max-height: 800px) {
+    padding: 0 12px 10px 12px;
+  }
 `;
 
 const FloatingIsland = styled.div`

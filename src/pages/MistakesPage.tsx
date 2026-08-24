@@ -3,8 +3,8 @@ import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useAppStore } from '@/store/appStore';
 import { useNavigate } from 'react-router-dom';
-import { useTTS } from '@/utils/useTTS';
-import { useSpeechRecognition } from '@/utils/useSpeechRecognition';
+import { useTTS } from '@/hooks/useTTS';
+import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import type { PracticeLog, WeakSpot } from '@/utils/types';
 import styled from '@emotion/styled';
 import { keyframes } from '@emotion/react';
@@ -21,15 +21,21 @@ import {
 
 const PageContainer = styled.div`
   min-height: 100vh;
+  min-height: 100dvh;
   background-color: ${({ theme }) => theme.background};
   padding: 10px 20px;
   font-family: 'lato', sans-serif;
-  padding-bottom: 100px;
+  padding-bottom: clamp(60px, 10vh, 100px);
   transition: background-color 0.3s ease;
+
+  @media (max-height: 800px) {
+    padding: 8px 14px;
+    padding-bottom: 60px;
+  }
 `;
 
 const Header = styled.header`
-  margin-bottom: 32px;
+  margin-bottom: clamp(14px, 2.5vh, 32px);
 `;
 
 const Title = styled.h1`
@@ -461,11 +467,7 @@ function WordCardItem({
 
   const handleSlowTTS = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const utterance = new SpeechSynthesisUtterance(item.word);
-    utterance.rate = 0.5;
-    utterance.lang = 'en-US';
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(utterance);
+    speak(item.word, null, undefined, 0.5);
   };
 
   return (

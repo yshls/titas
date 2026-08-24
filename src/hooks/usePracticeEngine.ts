@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { usePracticeStore } from '@/store/practiceStore';
 import { useUserInput } from './useUserInput';
 import { usePracticeFlow } from './usePracticeFlow';
-import { useTTS } from '@/utils/useTTS';
+import { useTTS } from '@/hooks/useTTS';
 import type { DialogueLine } from '@/utils/types';
 
 const PALETTE = [

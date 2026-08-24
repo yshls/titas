@@ -13,7 +13,7 @@ import {
   MdBookmark,
 } from 'react-icons/md';
 import type { ScriptData } from '@/utils/types';
-import { useTTS, DEFAULT_RATE, RATE_STEPS } from '@/utils/useTTS';
+import { useTTS, DEFAULT_RATE, RATE_STEPS } from '@/hooks/useTTS';
 import { useMemo, useState, useEffect, useRef } from 'react';
 import styled from '@emotion/styled';
 import toast from 'react-hot-toast';
@@ -39,6 +39,7 @@ const PALETTE = [
 
 const PageContainer = styled.div`
   height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   background-color: ${({ theme }) => theme.background};
@@ -59,6 +60,10 @@ const Header = styled.header`
   position: sticky;
   top: 0;
   z-index: 20;
+
+  @media (max-height: 800px) {
+    height: 50px;
+  }
 `;
 
 const HeaderLeft = styled.div`

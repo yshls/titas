@@ -8,10 +8,11 @@ import { useHistoryLogs } from '@/hooks/pageSpecific/useHistoryLogs';
 import { DateGroupSection } from '@/components/History/HistoryListComponents';
 
 const PageContainer = styled.div`
-  padding: 20px 12px;
+  padding: clamp(10px, 2vh, 20px) 12px;
   max-width: 800px;
   margin: 0 auto;
   min-height: 100vh;
+  min-height: 100dvh;
   background-color: ${({ theme }) => theme.background};
 `;
 
@@ -19,7 +20,7 @@ const Header = styled.header`
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 24px;
+  margin-bottom: clamp(12px, 2vh, 24px);
 `;
 
 const BackButton = styled.button`

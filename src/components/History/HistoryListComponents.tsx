@@ -98,7 +98,7 @@ interface AttemptRowItemProps {
   onClick: (log: FSRSReviewLog) => void;
 }
 
-export function AttemptRowItem({ log, onClick }: AttemptRowItemProps) {
+function AttemptRowItem({ log, onClick }: AttemptRowItemProps) {
   const { t } = useTranslation();
   return (
     <AttemptRowStyled onClick={() => onClick(log)}>
@@ -121,7 +121,7 @@ interface ScriptGroupItemProps {
   onRowClick: (log: FSRSReviewLog) => void;
 }
 
-export function ScriptGroupItem({ title, attempts, onRowClick }: ScriptGroupItemProps) {
+function ScriptGroupItem({ title, attempts, onRowClick }: ScriptGroupItemProps) {
   return (
     <ScriptGroupCard>
       <ScriptGroupHeader>

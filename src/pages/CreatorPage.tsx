@@ -54,14 +54,19 @@ const PageContainer = styled.div`
   flex-direction: column;
   gap: 16px;
   min-height: 100vh;
+  min-height: 100dvh;
   background-color: ${({ theme }) => theme.background};
   font-family: 'lato', sans-serif;
   transition: background-color 0.3s ease;
 
   @media (min-width: 1024px) {
     flex-direction: row;
-    gap: 32px;
+    gap: 24px;
     padding: 8px;
+  }
+
+  @media (max-height: 800px) {
+    gap: 12px;
   }
 `;
 
@@ -77,7 +82,12 @@ const Sidebar = styled.aside`
     top: 24px;
     height: fit-content;
     max-height: calc(100vh - 48px);
+    max-height: calc(100dvh - 48px);
     overflow-y: auto;
+  }
+
+  @media (max-height: 800px) {
+    gap: 10px;
   }
 `;
 
@@ -90,6 +100,11 @@ const Main = styled.main`
 
   @media (min-width: 1024px) {
     height: calc(100vh - 48px);
+    height: calc(100dvh - 48px);
+  }
+
+  @media (max-height: 800px) {
+    gap: 10px;
   }
 `;
 

@@ -6,7 +6,7 @@ import { MdLock } from 'react-icons/md';
 import { useAppStore } from '@/store/appStore';
 import { supabase } from '@/supabaseClient';
 import toast from 'react-hot-toast';
-import { ReviewEmptyState } from '@/utils/ReviewEmptyState';
+import { ReviewEmptyState } from '@/components/Review/ReviewEmptyState';
 import {
   getDueReviews,
   getPriorityScore,
@@ -17,17 +17,17 @@ import {
 } from '@/services/fsrsService';
 
 const Container = styled.div`
-  padding: 20px 12px;
+  padding: clamp(10px, 2vh, 20px) 12px;
   max-width: 1100px;
   margin: 0 auto;
 `;
 
 const Header = styled.div`
-  margin-bottom: 24px;
+  margin-bottom: clamp(12px, 2vh, 24px);
 `;
 
 const Title = styled.h1`
-  font-size: 24px;
+  font-size: clamp(20px, 3vh, 24px);
   font-weight: 800;
   color: ${({ theme }) => theme.textMain};
   margin-bottom: 6px;
@@ -43,13 +43,13 @@ const Subtitle = styled.p`
 const LoginGateWrapper = styled.div`
   background: ${({ theme }) => theme.cardBg};
   border-radius: 16px;
-  padding: 28px 20px;
+  padding: clamp(16px, 3vh, 28px) 20px;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
-  margin-top: 32px;
+  gap: clamp(8px, 1.5vh, 16px);
+  margin-top: clamp(14px, 2.5vh, 32px);
 `;
 
 const LoginGateIcon = styled.div`

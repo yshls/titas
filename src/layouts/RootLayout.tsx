@@ -38,6 +38,7 @@ const LanguageSwitcher = styled.button`
 
 const LayoutWrapper = styled.div`
   min-height: 100vh;
+  min-height: 100dvh;
   /* 테마 변수 사용 */
   background-color: ${({ theme }) => theme.background || '#ffffff'};
   color: ${({ theme }) => theme.textMain || '#333d4b'};
@@ -53,6 +54,7 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  min-height: 100dvh;
   background-color: ${({ theme }) => theme.background || '#ffffff'};
 `;
 
@@ -342,11 +344,19 @@ const MobileDeleteButton = styled.button`
 const MainContent = styled.main<{ noPadding?: boolean }>`
   flex: 1;
   padding: ${({ noPadding }) => (noPadding ? '0' : '12px')};
+
+  @media (max-height: 800px) {
+    padding: ${({ noPadding }) => (noPadding ? '0' : '8px 12px')};
+  }
 `;
 
 const Footer = styled.footer`
   padding: 10px 24px;
   border-top: 1px solid ${({ theme }) => theme.border};
+
+  @media (max-height: 800px) {
+    padding: 6px 16px;
+  }
 `;
 
 const FooterContent = styled.div`

@@ -38,6 +38,7 @@ const SORT_OPTIONS = [
 const PageContainer = styled.div`
   padding: 12px;
   min-height: 100vh;
+  min-height: 100dvh;
   font-family: 'lato', sans-serif;
   background-color: ${({ theme }) => theme.background};
   transition: background-color 0.3s ease;
@@ -45,13 +46,17 @@ const PageContainer = styled.div`
   @media (min-width: 1024px) {
     padding: 8px;
   }
+
+  @media (max-height: 800px) {
+    padding: 8px;
+  }
 `;
 
 const Header = styled.header`
-  margin-bottom: 24px;
+  margin-bottom: clamp(12px, 2vh, 24px);
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: clamp(8px, 1.5vh, 16px);
 
   @media (min-width: 768px) {
     flex-direction: row;

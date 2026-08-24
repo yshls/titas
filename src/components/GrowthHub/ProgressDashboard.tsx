@@ -9,10 +9,11 @@ import { MdLocalFireDepartment, MdPlayArrow, MdDescription, MdBarChart } from 'r
 import { AnimatedCounter } from '@/components/common/AnimatedCounter';
 import { useAppStore } from '@/store/appStore';
 
-const CalendarCard = styled.div`
+const CalendarCard = styled(motion.div)`
   background: ${({ theme }) => theme.cardBg};
+  border: 1px solid ${({ theme }) => theme.border};
   border-radius: 24px;
-  padding: 16px 14px 14px;
+  padding: clamp(14px, 2.5vh, 24px) 14px;
   height: fit-content;
   box-shadow: none;
 
@@ -28,7 +29,7 @@ const CalendarCard = styled.div`
     background-color: transparent;
   }
 
-  .react-calendar__navigation { margin-bottom: 24px; }
+  .react-calendar__navigation { margin-bottom: clamp(10px, 2vh, 24px); }
   .react-calendar__navigation button {
     font-size: 18px;
     font-weight: 800;
@@ -105,8 +106,8 @@ const CalendarCard = styled.div`
 const StreakInfo = styled.div`
   width: 100%;
   max-width: 360px;
-  margin-top: 24px;
-  padding-top: 24px;
+  margin-top: clamp(10px, 2vh, 24px);
+  padding-top: clamp(10px, 2vh, 24px);
   border-top: 1px solid ${({ theme }) => theme.border};
   display: flex;
   justify-content: space-around;

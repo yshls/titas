@@ -4,8 +4,8 @@ import { MdKeyboard } from 'react-icons/md';
 import { useTranslation } from 'react-i18next';
 import { useDevice } from '@/hooks/useDevice';
 import { usePracticeStore } from '@/store/practiceStore';
-import { useSpeechRecognition } from '@/utils/useSpeechRecognition';
-import { useTTS } from '@/utils/useTTS';
+import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
+import { useTTS } from '@/hooks/useTTS';
 import { checkWordDiff, calculateAccuracy } from '@/utils/diffChecker';
 import { transcribeAudio } from '@/api/groqWhisper';
 

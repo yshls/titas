@@ -53,7 +53,7 @@ export const Label = styled.label`
 
 export const LabelSubText = styled.span`
   font-size: 11px;
-  color: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.textSub};
   font-weight: 600;
   display: flex;
   align-items: center;

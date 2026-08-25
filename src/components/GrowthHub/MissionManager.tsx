@@ -38,7 +38,7 @@ const EmptyStateCard = styled.div`
 
 const EmptyIcon = styled.div`
   display: flex;
-  color: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.textSub};
   margin-bottom: 8px;
 `;
 

@@ -78,7 +78,7 @@ const SectionTitle = styled.h2`
     display: block;
     width: 4px;
     height: 18px;
-    background-color: ${({ theme }) => theme.colors.primary};
+    background-color: ${({ theme }) => theme.colors.grey400};
     border-radius: 2px;
   }
 `;

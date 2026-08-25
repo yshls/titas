@@ -69,7 +69,7 @@ const GreetingIcon = styled.span`
   /* 첫 줄 글자 높이에 맞춰 아이콘을 정렬한다. */
   line-height: 1;
   padding-top: 4px;
-  color: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.textSub};
 `;
 
 const GridContainer = styled.div`

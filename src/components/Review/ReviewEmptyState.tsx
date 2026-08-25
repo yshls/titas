@@ -18,9 +18,10 @@ const Container = styled.div`
   margin: 20px 0;
 `;
 
+// 축하하는 상태라 브랜드색보다 success(초록)가 의미상 더 맞는다.
 const IconWrapper = styled(motion.div)`
   display: flex;
-  color: ${({ theme }) => theme.colors.primary};
+  color: ${({ theme }) => theme.colors.success};
   margin-bottom: 16px;
 `;
 
